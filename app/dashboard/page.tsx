@@ -1,0 +1,336 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { 
+  Sparkles, 
+  Home, 
+  LayoutTemplate, 
+  Image as ImageIcon, 
+  Settings, 
+  Crown,
+  Plus,
+  Video,
+  Type,
+  MoreHorizontal,
+  LogOut,
+  Menu,
+  X,
+  CreditCard,
+  History,
+  Upload
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { Logo } from "@/components/Logo";
+import { ChatWidget } from "@/components/ChatWidget";
+import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
+import { SalePromotionTemplate } from "@/components/templates/SalePromotion";
+import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
+import { LUXURY_VARIATIONS, SALE_PROMOTION_VARIATIONS, PREMIUM_BRAND_VARIATIONS } from "@/lib/template-data";
+
+function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  return (
+    <>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-[#030712]/80 backdrop-blur-sm z-40 lg:hidden"
+            onClick={onClose}
+          />
+        )}
+      </AnimatePresence>
+      <motion.aside 
+        className={`fixed top-0 left-0 bottom-0 w-64 bg-[#0a1128] border-r border-white/5 z-50 flex flex-col transition-transform lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
+        <div className="p-6 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <Logo className="w-8 h-8 rounded-lg" />
+            <span className="font-display font-medium text-xl tracking-widest text-white">INRASTUDIO</span>
+          </Link>
+          <button className="lg:hidden text-slate-400 hover:text-white" onClick={onClose}>
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-1">
+          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 text-white font-medium">
+            <Home className="w-5 h-5 text-cyan-400" /> Dashboard
+          </Link>
+          <Link href="/dashboard/templates" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white font-medium transition-colors">
+            <LayoutTemplate className="w-5 h-5" /> Templates
+          </Link>
+          <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white font-medium transition-colors">
+            <History className="w-5 h-5" /> Campaigns
+          </Link>
+          <Link href="/dashboard/settings" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white font-medium transition-colors">
+            <Settings className="w-5 h-5" /> Settings
+          </Link>
+        </div>
+
+        <div className="p-4 border-t border-white/5">
+          <Link href="/pricing" className="flex items-center gap-3 px-4 py-3 mb-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-transparent hover:bg-amber-500/20 text-amber-400 font-medium transition-colors border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]">
+            <Crown className="w-5 h-5" /> Upgrade to Pro
+          </Link>
+          <button className="flex items-center gap-3 px-4 py-3 w-full rounded-xl hover:bg-red-500/10 text-slate-400 hover:text-red-400 font-medium transition-colors text-left">
+            <LogOut className="w-5 h-5" /> Sign Out
+          </button>
+        </div>
+      </motion.aside>
+    </>
+  );
+}
+
+export default function DashboardPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [generateFlyer, setGenerateFlyer] = useState(true);
+  const [generateCaption, setGenerateCaption] = useState(true);
+  const [generateVideo, setGenerateVideo] = useState(true);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [greeting, setGreeting] = useState("Good morning");
+  const router = useRouter();
+
+  useEffect(() => {
+    try {
+      const formatter = new Intl.DateTimeFormat('en-NG', {
+        timeZone: 'Africa/Lagos',
+        hour: 'numeric',
+        hour12: false
+      });
+      const hourString = formatter.format(new Date());
+      const hour = parseInt(hourString, 10);
+
+      let text = "Good evening";
+      if (hour >= 0 && hour < 12) text = "Good morning";
+      else if (hour >= 12 && hour < 17) text = "Good afternoon";
+      
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setGreeting(text);
+    } catch (e) {
+      setGreeting("Good day");
+    }
+  }, []);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setUploadedImage(url);
+    }
+  };
+
+  const handleStartGenerating = () => {
+    if (!uploadedImage) {
+      alert("Please upload a product image to continue.");
+      return;
+    }
+    sessionStorage.setItem("campaignImage", uploadedImage);
+    router.push("/dashboard/templates");
+  };
+
+  return (
+    <div className="min-h-screen bg-[#030712] text-slate-50 font-sans selection:bg-cyan-500 selection:text-white flex">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <main className="flex-1 lg:ml-64 relative min-h-screen">
+        {/* Mobile Header */}
+        <header className="lg:hidden flex items-center justify-between p-4 border-b border-white/5 bg-[#0a1128]/80 backdrop-blur-md sticky top-0 z-30">
+          <div className="flex items-center gap-2">
+            <Logo className="w-6 h-6 rounded-md" />
+            <span className="font-display font-medium text-lg tracking-widest text-white">INRASTUDIO</span>
+          </div>
+          <button onClick={() => setSidebarOpen(true)} className="p-2 text-slate-300">
+            <Menu className="w-6 h-6" />
+          </button>
+        </header>
+
+        <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-12">
+          
+          {/* Greeting */}
+          <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <p className="text-slate-400 text-sm font-medium uppercase tracking-widest mb-1">Overview</p>
+              <h1 className="text-3xl md:text-4xl font-display font-bold text-white tracking-tight">{greeting}, Alex ✨</h1>
+            </div>
+            <div className="flex items-center gap-3">
+              {/* Profile Avatar Mock */}
+              <div className="w-10 h-10 rounded-full bg-cyan-900 border-2 border-cyan-400 flex items-center justify-center text-cyan-50 font-bold overflow-hidden shadow-lg shadow-cyan-400/20">
+                A
+              </div>
+            </div>
+          </section>
+
+          {/* Usage Stats (Apple HIG inspired: clean cards with subtle borders/blur) */}
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white/[0.03] border border-white/5 backdrop-blur-md p-6 rounded-3xl shadow-sm relative overflow-hidden">
+              <div className="z-10 relative">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-slate-400 font-medium">Campaigns Left</h3>
+                  <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-cyan-400" />
+                  </div>
+                </div>
+                <div className="text-4xl font-display font-medium text-white">1</div>
+                <p className="text-sm text-slate-500 mt-2">Free Trial</p>
+              </div>
+            </div>
+            <div className="bg-white/[0.03] border border-white/5 backdrop-blur-md p-6 rounded-3xl shadow-sm relative overflow-hidden">
+              <div className="z-10 relative">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-slate-400 font-medium">Assets Generated</h3>
+                  <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                    <ImageIcon className="w-4 h-4 text-indigo-400" />
+                  </div>
+                </div>
+                <div className="text-4xl font-display font-medium text-white">0</div>
+                <p className="text-sm text-slate-500 mt-2">Lifetime creations</p>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 backdrop-blur-md p-6 rounded-3xl shadow-[0_0_30px_rgba(245,158,11,0.05)] relative overflow-hidden flex flex-col justify-center">
+              <div className="flex items-center justify-between mb-3">
+                 <h3 className="text-amber-400/80 font-semibold font-mono tracking-widest text-xs uppercase">Pro Plan</h3>
+                 <Crown className="w-5 h-5 text-amber-400" />
+              </div>
+              <p className="text-slate-300 text-sm mb-4">Unlock unlimited campaigns without watermarks.</p>
+              <Link href="/pricing" className="text-sm font-semibold text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1 group">
+                Upgrade Now <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          </section>
+
+          {/* Create Campaign Hero CTA */}
+          <section className="bg-gradient-to-tr from-[#0a1128] to-cyan-950/40 border border-cyan-500/20 rounded-[2rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-32 bg-cyan-500/10 blur-[100px] rounded-full mix-blend-screen pointer-events-none" />
+            <div className="absolute bottom-0 left-0 p-32 bg-indigo-500/10 blur-[100px] rounded-full mix-blend-screen pointer-events-none" />
+            
+            <div className="max-w-4xl relative z-10">
+              <h2 className="text-3xl font-display font-bold text-white mb-2 tracking-tight">Create New Campaign</h2>
+              <p className="text-slate-400 mb-8 max-w-xl">Upload your product image and select the assets you want to generate. Click start to auto-generate from beautiful templates.</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="bg-[#030712]/50 rounded-2xl p-6 border border-white/5 backdrop-blur-sm space-y-4">
+                   <p className="text-xs font-mono text-slate-500 uppercase tracking-widest mb-2 font-bold focus:outline-none">Includes:</p>
+                   <label className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-not-allowed border border-transparent hover:border-white/5 opacity-80">
+                     <input type="checkbox" className="w-5 h-5 rounded border-slate-700 bg-slate-900 text-cyan-400 focus:ring-cyan-400/50 focus:ring-offset-slate-900 pointer-events-none" checked={true} readOnly disabled />
+                     <div className="flex items-center gap-3">
+                       <div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center"><ImageIcon className="w-4 h-4 text-cyan-400" /></div>
+                       <span className="font-medium text-slate-200">Flyer Design <span className="text-xs text-slate-400 ml-2">(Required)</span></span>
+                     </div>
+                   </label>
+                   <label className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-not-allowed border border-transparent hover:border-white/5 opacity-80">
+                     <input type="checkbox" className="w-5 h-5 rounded border-slate-700 bg-slate-900 text-cyan-400 focus:ring-cyan-400/50 focus:ring-offset-slate-900 pointer-events-none" checked={true} readOnly disabled />
+                     <div className="flex items-center gap-3">
+                       <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center"><Type className="w-4 h-4 text-indigo-400" /></div>
+                       <span className="font-medium text-slate-200">Social Caption <span className="text-xs text-slate-400 ml-2">(Required)</span></span>
+                     </div>
+                   </label>
+                   <label className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer border border-transparent hover:border-white/5">
+                     <input type="checkbox" className="w-5 h-5 rounded border-slate-700 bg-slate-900 text-cyan-400 focus:ring-cyan-400/50 focus:ring-offset-slate-900" checked={generateVideo} onChange={(e) => setGenerateVideo(e.target.checked)} />
+                     <div className="flex items-center gap-3">
+                       <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center"><Video className="w-4 h-4 text-purple-400" /></div>
+                       <span className="font-medium text-slate-200">Promo Video</span>
+                     </div>
+                   </label>
+                </div>
+  
+                <div className="bg-[#030712]/50 rounded-2xl p-6 border border-white/5 backdrop-blur-sm space-y-4 flex flex-col">
+                   <div className="flex items-center justify-between mb-2">
+                     <p className="text-xs font-mono text-slate-500 uppercase tracking-widest font-bold focus:outline-none">Product Image</p>
+                     <span className="text-xs font-medium text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">Required</span>
+                   </div>
+                   
+                   <label className="flex-1 flex flex-col items-center justify-center w-full min-h-[160px] md:min-h-0 border-2 border-dashed border-cyan-500/30 rounded-2xl cursor-pointer bg-cyan-950/10 hover:bg-cyan-950/20 transition-all group overflow-hidden relative">
+                     {uploadedImage ? (
+                       <Image src={uploadedImage} alt="Uploaded product" fill className="object-contain p-4" />
+                     ) : (
+                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                         <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                           <Upload className="w-6 h-6 text-cyan-400" />
+                         </div>
+                         <p className="mb-2 text-sm text-slate-300 font-medium"><span className="text-cyan-400">Click to upload</span> or drag and drop</p>
+                         <p className="text-xs text-slate-500">PNG, JPG or WEBP</p>
+                       </div>
+                     )}
+                     <input type="file" className="hidden" accept="image/png, image/jpeg, image/webp" onChange={handleImageUpload} />
+                   </label>
+                </div>
+              </div>
+
+              <button onClick={handleStartGenerating} className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-cyan-400 hover:bg-cyan-300 text-[#0a1128] rounded-full font-bold transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] active:scale-[0.98]">
+                <Plus className="w-5 h-5" /> Start Campaign
+              </button>
+            </div>
+          </section>
+
+          {/* Recent Campaigns */}
+          <section>
+            <div className="flex items-center justify-between mb-6">
+               <h2 className="text-xl font-display font-semibold text-white tracking-tight">Recent Campaigns</h2>
+               <Link href="#" className="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors">View All</Link>
+            </div>
+            
+            <div className="flex flex-col items-center justify-center py-16 bg-white/[0.02] border border-white/5 rounded-3xl border-dashed">
+              <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
+                 <History className="w-8 h-8 text-slate-500" />
+              </div>
+              <h3 className="text-lg font-medium text-white mb-2">No campaigns yet</h3>
+              <p className="text-slate-400 text-sm mb-6 max-w-sm text-center">Your generated flyers, captions, and videos will appear here once you create a campaign.</p>
+            </div>
+          </section>
+
+          {/* Most Used Templates */}
+          <section>
+            <div className="flex items-center justify-between mb-6">
+               <h2 className="text-xl font-display font-semibold text-white tracking-tight">Most Used Templates</h2>
+               <Link href="/dashboard/templates" className="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors">View All</Link>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+               {[
+                 { name: "Digital Agency", category: "Premium Brand", templateType: PremiumBrandTemplate, data: PREMIUM_BRAND_VARIATIONS.find(v => v.name === "Digital Agency")! },
+                 { name: "Combo Offer", category: "Sale Promotion", templateType: SalePromotionTemplate, data: SALE_PROMOTION_VARIATIONS.find(v => v.name === "Combo Offer")! },
+                 { name: "Black Gold", category: "Luxury Product", templateType: LuxuryProductTemplate, data: LUXURY_VARIATIONS.find(v => v.name === "Black Gold")! }
+               ].map((item, i) => {
+                 const TemplateComp = item.templateType as any;
+                 return (
+                 <div key={item.name} onClick={() => router.push(`/dashboard/editor?variant=${encodeURIComponent(item.name)}&category=${encodeURIComponent(item.category)}`)} className="group relative rounded-2xl overflow-hidden bg-white/5 border border-white/5 aspect-[4/3] cursor-pointer hover:border-cyan-400/50 transition-colors shadow-lg">
+                    <div className="w-full h-[120%] pointer-events-none select-none relative -mt-[10%] opacity-80 group-hover:opacity-100 transition-opacity">
+                       <TemplateComp {...item.data} />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a1128] via-[#0a1128]/40 to-transparent flex flex-col justify-end p-6 z-[60]">
+                       <span className="text-[10px] uppercase font-bold tracking-widest text-cyan-400 mb-1">{item.category}</span>
+                       <h3 className="text-lg font-medium text-white shadow-black drop-shadow-md">{item.name}</h3>
+                    </div>
+                 </div>
+               )})}
+            </div>
+          </section>
+
+        </div>
+      </main>
+      <ChatWidget />
+    </div>
+  );
+}
+
+function ArrowRight(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
+    </svg>
+  )
+}
