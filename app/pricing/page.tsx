@@ -61,8 +61,7 @@ function Pricing() {
               <h3 className="text-2xl font-bold text-white mb-2">Free Trial</h3>
               <p className="text-slate-400 text-sm mb-6">Test the platform.</p>
               <div className="text-5xl font-display font-medium text-white mb-10 flex flex-col">
-                <span className="text-lg text-slate-500 line-through tracking-wide mb-1 opacity-0">&nbsp;</span>
-                Free
+                 Free<span className="text-base text-slate-400 font-normal uppercase tracking-widest mt-2">/ Month</span>
               </div>
               <ul className="space-y-4 mb-10">
                 <li className="flex items-center gap-3 text-slate-300"><CheckCircle className="w-5 h-5 text-slate-500 shrink-0"/> 1 Campaign Free</li>
@@ -79,7 +78,7 @@ function Pricing() {
               <p className="text-slate-400 text-sm mb-6">No commitments.</p>
               <div className="text-5xl font-display font-medium text-white mb-10 flex flex-col">
                  <span className="text-lg text-slate-500 line-through tracking-wide mb-1 decoration-red-500/50 decoration-2">₦2,500</span>
-                 ₦1,000<span className="text-base text-slate-400 font-normal uppercase tracking-widest mt-2">/ Campaign</span>
+                ₦1,000<span className="text-base text-slate-400 font-normal uppercase tracking-widest mt-2">/ Campaign</span>
               </div>
               <ul className="space-y-4 mb-10">
                 <li className="flex items-center gap-3 text-white"><CheckCircle className="w-5 h-5 text-slate-500 shrink-0"/> 1 Full Campaign</li>

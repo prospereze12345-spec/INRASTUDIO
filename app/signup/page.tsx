@@ -28,11 +28,11 @@ export default function SignUpPage() {
         
         <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
           <div className="space-y-1">
-            <label className="text-sm font-medium text-slate-700" htmlFor="name">Full Name</label>
+            <label className="text-sm font-medium text-slate-700" htmlFor="name"> Name</label>
             <input 
               id="name"
               type="text" 
-              placeholder="e.g. John Doe"
+              placeholder="e.g. John"
               className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 outline-none transition-all placeholder:text-slate-400"
             />
           </div>
