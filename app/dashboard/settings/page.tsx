@@ -1,219 +1,285 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { 
-  Sparkles, 
-  Home, 
-  LayoutTemplate, 
-  Settings, 
-  Crown,
-  LogOut,
-  Menu,
-  X,
-  History,
-  MonitorSmartphone,
-  Trash2,
-  Globe
-} from "lucide-react";
+import { Home, LayoutTemplate, Settings, Crown, Menu, X, MonitorSmartphone } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
 
-function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+// ─────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────
+interface UserProfile {
+  id: string;
+  email: string;
+  full_name: string;
+  country: string;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Auth helpers (same style as dashboard)
+// ─────────────────────────────────────────────────────────────
+function getAccessToken() {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("access");
+}
+
+function getRefreshToken() {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("refresh");
+}
+
+async function refreshToken() {
+  const refresh = getRefreshToken();
+  if (!refresh) return null;
+
+  const res = await fetch("/api/auth/token/refresh/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh }),
+  });
+
+  if (!res.ok) return null;
+
+  const data = await res.json();
+  localStorage.setItem("access", data.access);
+  return data.access;
+}
+
+async function fetchMe(token: string): Promise<UserProfile> {
+  const res = await fetch("/api/auth/me/", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (res.status === 401) throw new Error("UNAUTHORIZED");
+  if (!res.ok) throw new Error("ERROR");
+
+  return res.json();
+}
+
+// ─────────────────────────────────────────────────────────────
+// Hook (same pattern as dashboard)
+// ─────────────────────────────────────────────────────────────
+function useUser() {
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      let token = getAccessToken();
+
+      if (!token) {
+        router.replace("/login");
+        return;
+      }
+
+      try {
+        const profile = await fetchMe(token);
+        if (!cancelled) setUser(profile);
+      } catch (err: any) {
+        if (err.message === "UNAUTHORIZED") {
+          const newToken = await refreshToken();
+
+          if (!newToken) {
+            localStorage.clear();
+            router.replace("/login");
+            return;
+          }
+
+          const profile = await fetchMe(newToken);
+          if (!cancelled) setUser(profile);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
+  return { user, loading };
+}
+
+// ─────────────────────────────────────────────────────────────
+// Sidebar
+// ─────────────────────────────────────────────────────────────
+function Sidebar({ isOpen, onClose }: any) {
   return (
     <>
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#030712]/80 backdrop-blur-sm z-40 lg:hidden"
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 z-40 lg:hidden"
             onClick={onClose}
           />
         )}
       </AnimatePresence>
-      <motion.aside 
-        className={`fixed top-0 left-0 bottom-0 w-64 bg-[#0a1128] border-r border-white/5 z-50 flex flex-col transition-transform lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+
+      <motion.aside
+        className={`fixed top-0 left-0 bottom-0 w-64 bg-[#0a1128] border-r border-white/5 z-50 flex flex-col ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0`}
       >
-        <div className="p-6 flex items-center justify-between">
+        <div className="p-6 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
-            <Logo className="w-8 h-8 rounded-lg" />
-            <span className="font-display font-medium text-xl tracking-widest text-white">INRASTUDIO</span>
+            <Logo className="w-8 h-8" />
+            <span className="text-white font-medium">INRASTUDIO</span>
           </Link>
-          <button className="lg:hidden text-slate-400 hover:text-white" onClick={onClose}>
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="lg:hidden">
+            <X className="w-5 h-5 text-white" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-1">
-          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white font-medium transition-colors">
+        <nav className="flex-1 px-4 space-y-1">
+          <Link href="/dashboard" className="flex gap-3 px-4 py-3 text-slate-400">
             <Home className="w-5 h-5" /> Dashboard
           </Link>
-          <Link href="/dashboard/templates" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white font-medium transition-colors">
+
+          <Link href="/dashboard/templates" className="flex gap-3 px-4 py-3 text-slate-400">
             <LayoutTemplate className="w-5 h-5" /> Templates
           </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white font-medium transition-colors">
-            <History className="w-5 h-5" /> Campaigns
-          </Link>
-          <Link href="/dashboard/settings" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 text-white font-medium transition-colors">
+
+          <Link href="/dashboard/settings" className="flex gap-3 px-4 py-3 bg-white/10 text-white">
             <Settings className="w-5 h-5 text-cyan-400" /> Settings
           </Link>
-        </div>
+        </nav>
 
         <div className="p-4 border-t border-white/5">
-          <Link href="/pricing" className="flex items-center gap-3 px-4 py-3 mb-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-transparent hover:bg-amber-500/20 text-amber-400 font-medium transition-colors border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]">
-            <Crown className="w-5 h-5" /> Upgrade to Pro
+          <Link href="/pricing" className="flex gap-3 px-4 py-3 text-amber-400">
+            <Crown className="w-5 h-5" /> Upgrade
           </Link>
-          <button className="flex items-center gap-3 px-4 py-3 w-full rounded-xl hover:bg-red-500/10 text-slate-400 hover:text-red-400 font-medium transition-colors text-left">
-            <LogOut className="w-5 h-5" /> Sign Out
-          </button>
         </div>
       </motion.aside>
     </>
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// Page
+// ─────────────────────────────────────────────────────────────
 export default function SettingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, loading } = useUser();
+
+  const [fullName, setFullName] = useState("");
+  const [country, setCountry] = useState("NG");
+
+  useEffect(() => {
+    if (user) {
+      setFullName(user.full_name || "");
+      setCountry(user.country || "NG");
+    }
+  }, [user]);
+
+  const handleSave = async () => {
+    await fetch("/api/auth/update-profile/", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getAccessToken()}`,
+      },
+      body: JSON.stringify({
+        full_name: fullName,
+        country,
+      }),
+    });
+
+    alert("Profile updated");
+  };
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout/", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${getAccessToken()}`,
+      },
+    });
+
+    localStorage.clear();
+    window.location.replace("/login");
+  };
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-50 font-sans selection:bg-cyan-500 selection:text-white flex">
+    <div className="min-h-screen bg-[#030712] text-white flex">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <main className="flex-1 lg:ml-64 relative min-h-screen">
-        {/* Mobile Header */}
-        <header className="lg:hidden flex items-center justify-between p-4 border-b border-white/5 bg-[#0a1128]/80 backdrop-blur-md sticky top-0 z-30">
-          <div className="flex items-center gap-2">
-            <Logo className="w-6 h-6 rounded-md" />
-            <span className="font-display font-medium text-lg tracking-widest text-white">INRASTUDIO</span>
-          </div>
-          <button onClick={() => setSidebarOpen(true)} className="p-2 text-slate-300">
+      <main className="flex-1 lg:ml-64">
+        {/* Header */}
+        <header className="lg:hidden flex justify-between p-4 border-b border-white/5">
+          <Logo className="w-6 h-6" />
+          <button onClick={() => setSidebarOpen(true)}>
             <Menu className="w-6 h-6" />
           </button>
         </header>
 
-        <div className="p-6 md:p-10 max-w-4xl mx-auto space-y-10">
-          
-          <div>
-            <h1 className="text-3xl font-display font-bold text-white tracking-tight mb-2">Account Settings</h1>
-            <p className="text-slate-400 text-sm">Manage your personal information and account security.</p>
-          </div>
+        <div className="max-w-3xl mx-auto p-6 space-y-10">
+          <h1 className="text-3xl font-bold">Account Settings</h1>
 
-          <div className="space-y-6">
-            
-            {/* Profile Info */}
-            <section className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 md:p-8">
-              <h2 className="text-xl font-semibold text-white mb-6">Profile</h2>
-              
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">Full Name</label>
-                  <input 
-                    type="text" 
-                    defaultValue="Alex" 
-                    className="w-full max-w-md bg-[#0a1128] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all font-medium"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">Email Address</label>
-                  <input 
-                    type="email" 
-                    defaultValue="alex@example.com" 
-                    disabled
-                    className="w-full max-w-md bg-[#0a1128]/50 border border-white/5 rounded-xl px-4 py-3 text-slate-400 focus:outline-none font-medium cursor-not-allowed"
-                  />
-                  <p className="text-xs text-slate-500 mt-2">Email address cannot be changed.</p>
-                </div>
+          {/* PROFILE */}
+          <section className="bg-white/5 p-6 rounded-2xl space-y-5">
+            <h2 className="text-xl font-semibold">Profile</h2>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">Country</label>
-                  <div className="relative max-w-md">
-                    <select 
-                      className="w-full bg-[#0a1128] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all font-medium appearance-none"
-                      defaultValue="NG"
-                    >
-                      <option value="NG">Nigeria</option>
-                      <option value="KE">Kenya</option>
-                      <option value="GH">Ghana</option>
-                      <option value="ZA">South Africa</option>
-                      <option value="EG">Egypt</option>
-                      <option value="OTHER">Other</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                      <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-8 pt-6 border-t border-white/5">
-                <button className="px-6 py-2.5 bg-white text-[#0a1128] font-bold rounded-xl hover:bg-slate-200 transition-colors text-sm">
-                  Save Changes
-                </button>
-              </div>
-            </section>
+            <div>
+              <label className="text-sm text-slate-400">Full Name</label>
+              <input
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full mt-2 p-3 bg-[#0a1128] rounded-xl"
+              />
+            </div>
 
-            {/* Preferences */}
-            <section className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 md:p-8">
-              <h2 className="text-xl font-semibold text-white mb-6">Preferences</h2>
-              
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Default Language</label>
-                <div className="relative max-w-md">
-                  <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <select 
-                    className="w-full bg-[#0a1128] border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all font-medium appearance-none"
-                    defaultValue="en"
-                  >
-                    <option value="en">English</option>
-                    <option value="pcm">Pidgin</option>
-                    <option value="sw">Swahili</option>
-                    <option value="zu">Zulu</option>
-                    <option value="ar">Arabic</option>
-                    <option value="fr">French</option>
-                  </select>
-                </div>
-              </div>
-            </section>
+            <div>
+              <label className="text-sm text-slate-400">Email</label>
+              <input
+                value={user?.email || ""}
+                disabled
+                className="w-full mt-2 p-3 bg-[#0a1128]/50 text-slate-400 rounded-xl"
+              />
+            </div>
 
-            {/* Security */}
-            <section className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 md:p-8">
-              <h2 className="text-xl font-semibold text-white mb-6">Security & Devices</h2>
-              
-              <div className="space-y-6">
-                <div className="flex items-center justify-between flex-wrap gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center shrink-0">
-                      <MonitorSmartphone className="w-5 h-5 text-slate-300" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-white mb-1">Log out of all devices</p>
-                      <p className="text-xs text-slate-400">Sign out of every active session on all devices.</p>
-                    </div>
-                  </div>
-                  <button className="px-4 py-2 border border-white/20 rounded-lg text-sm font-medium text-white hover:bg-white/10 transition-colors">
-                    Log out all
-                  </button>
-                </div>
-              </div>
-            </section>
+            <div>
+              <label className="text-sm text-slate-400">Country</label>
+              <select
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                className="w-full mt-2 p-3 bg-[#0a1128] rounded-xl"
+              >
+                <option value="NG">Nigeria</option>
+                <option value="GH">Ghana</option>
+                <option value="KE">Kenya</option>
+              </select>
+            </div>
 
-            {/* Danger Zone */}
-            <section className="border border-red-500/20 rounded-3xl p-6 md:p-8 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-red-500/5 transition-colors group-hover:bg-red-500/10" />
-              <div className="relative z-10">
-                <h2 className="text-xl font-semibold text-red-400 mb-2">Delete Account</h2>
-                <p className="text-slate-400 text-sm mb-6 max-w-xl">
-                  Permanently delete your account and all of your content. This action cannot be undone.
-                </p>
-                <button className="px-5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 font-medium rounded-xl hover:bg-red-500 hover:text-white transition-all text-sm flex items-center gap-2 group-hover:border-red-500/50">
-                  <Trash2 className="w-4 h-4" />
-                  Delete my account
-                </button>
-              </div>
-            </section>
+            <button
+              onClick={handleSave}
+              className="px-6 py-2 bg-cyan-400 text-black rounded-xl font-semibold"
+            >
+              Save Changes
+            </button>
+          </section>
 
-          </div>
+          {/* SECURITY */}
+          <section className="bg-white/5 p-6 rounded-2xl">
+            <h2 className="text-xl font-semibold mb-4">Security</h2>
+
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 border border-white/20 rounded-lg flex items-center gap-2"
+            >
+              <MonitorSmartphone className="w-4 h-4" />
+              Log out all devices
+            </button>
+          </section>
         </div>
       </main>
     </div>
