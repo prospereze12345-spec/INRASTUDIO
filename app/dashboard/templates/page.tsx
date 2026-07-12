@@ -17,6 +17,11 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { Logo } from "@/components/Logo";
 import Image from "next/image";
+import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
+import { SalePromotionTemplate } from "@/components/templates/SalePromotion";
+import { SleekFlyerTemplate as MinimalProductTemplate } from "@/components/templates/MinimalProduct";
+import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
+import { LUXURY_VARIATIONS, SALE_PROMOTION_VARIATIONS, MINIMAL_PRODUCT_VARIATIONS, PREMIUM_BRAND_VARIATIONS } from "@/lib/template-data";
 
 function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   return (
@@ -71,12 +76,6 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   );
 }
 
-import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
-import { SalePromotionTemplate } from "@/components/templates/SalePromotion";
-import { MinimalProductTemplate } from "@/components/templates/MinimalProduct";
-import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
-import { LUXURY_VARIATIONS, SALE_PROMOTION_VARIATIONS, MINIMAL_PRODUCT_VARIATIONS, PREMIUM_BRAND_VARIATIONS } from "@/lib/template-data";
-
 const TEMPLATE_CATEGORIES = [
   {
     title: "Sale Promotion",
@@ -128,7 +127,6 @@ export default function TemplatesPage() {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <main className="flex-1 lg:ml-64 relative min-h-screen">
-        {/* Mobile Header */}
         <header className="lg:hidden flex items-center justify-between p-4 border-b border-white/5 bg-[#0a1128]/80 backdrop-blur-md sticky top-0 z-30">
           <div className="flex items-center gap-2">
             <Logo className="w-6 h-6 rounded-md" />
@@ -209,6 +207,7 @@ export default function TemplatesPage() {
                           <Image 
                             src={campaignImage || `https://picsum.photos/seed/${category.title.replace(/\s+/g, '')}${idx}/400/500`} 
                             alt={templateName} 
+                            unoptimized
                             fill 
                             className="object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-500 scale-100 group-hover:scale-105" 
                             referrerPolicy="no-referrer" 

@@ -1,10 +1,48 @@
-export function Logo({ className = "w-8 h-8" }: { className?: string }) {
+import Image from "next/image";
+
+// ────────────────────────────────────────────────────────────────────────────
+// IMPORTANT: this component never renders its own <Link>. Your Navbar.tsx
+// already wraps <Logo /> in <Link href="/"> itself (both the desktop and
+// mobile versions). If Logo also wrapped itself in a Link, you'd get
+// <a><a>...</a></a> — invalid HTML, which is exactly the hydration error
+// you hit. Do not add a Link back into this file. If some other page needs
+// the logo to be clickable, wrap it from the outside instead:
+//   <Link href="/"><Logo size="sm" /></Link>
+// ────────────────────────────────────────────────────────────────────────────
+
+const WORDMARK_SIZES = {
+  sm: "text-base",
+  md: "text-lg",
+  lg: "text-2xl",
+} as const;
+
+export function Logo({
+  size = "md",
+  showWordmark = true,
+  className = "h-9 w-9",
+}: {
+  size?: keyof typeof WORDMARK_SIZES;
+  showWordmark?: boolean;
+  /** Sizes the icon directly, e.g. "w-10 h-10" — matches how Navbar.tsx already calls this */
+  className?: string;
+}) {
   return (
-    <svg viewBox="0 0 100 100" className={className} xmlns="http://www.w3.org/2000/svg">
-      <rect width="100" height="100" rx="24" fill="#32D9CB" />
-      <path d="M 32 37 h 7 v 26 h -7 z" fill="#374151" />
-      <path d="M 42 63 L 51 37 h 7 l 12 26 h -7 l -2 -6 c -5 -3 -12 0 -13 6 z" fill="#374151" />
-      <path d="M 42 53 Q 56 42 70 53 l -2 -4 Q 56 38 43 49 z" fill="#374151" />
-    </svg>
+    <span className="inline-flex items-center gap-2.5">
+      <Image
+        src="/images/logo-icon.png"
+        alt="INRASTUDIO logo"
+        width={40}
+        height={40}
+        className={`shrink-0 object-contain ${className}`}
+        priority
+      />
+      {showWordmark && (
+        <span
+          className={`font-display ${WORDMARK_SIZES[size]} font-bold tracking-widest text-white`}
+        >
+          INRASTUDIO
+        </span>
+      )}
+    </span>
   );
 }

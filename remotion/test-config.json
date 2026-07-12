@@ -1,0 +1,9 @@
+{
+  "compositionId": "PromoVideo",
+  "inputProps": {},
+  "width": 1080,
+  "height": 1350,
+  "fps": 30,
+  "durationInFrames": 360,
+  "outputPath": "C:\\Users\\USER\\Downloads\\inra-studio\\remotion\\test-output.mp4"
+}

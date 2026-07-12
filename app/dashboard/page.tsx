@@ -16,7 +16,8 @@ import {
   History,
   Upload,
   Menu,
-
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
@@ -30,6 +31,12 @@ import {
   SALE_PROMOTION_VARIATIONS,
   PREMIUM_BRAND_VARIATIONS,
 } from "@/lib/template-data";
+import {
+  createCampaignJob,
+  pollUntilDone,
+  saveJobResult,
+  type JobStatus,
+} from "@/lib/campaign-api"; // adjust import path to wherever you put campaign-api.ts
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -44,18 +51,16 @@ interface UserProfile {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Token helpers  (keys: "access" and "refresh" in localStorage)
+// Token helpers
 // ─────────────────────────────────────────────────────────────────────────────
 function getAccessToken(): string | null {
   if (typeof window === "undefined") return null;
   return localStorage.getItem("access");
 }
-
 function getRefreshToken(): string | null {
   if (typeof window === "undefined") return null;
   return localStorage.getItem("refresh");
 }
-
 async function refreshAccessToken(): Promise<string | null> {
   const refresh = getRefreshToken();
   if (!refresh) return null;
@@ -67,80 +72,45 @@ async function refreshAccessToken(): Promise<string | null> {
     });
     if (!res.ok) return null;
     const data = await res.json();
-    if (data.access) {
-      localStorage.setItem("access", data.access);
-      return data.access;
-    }
-  } catch {
-    // network error
-  }
+    if (data.access) { localStorage.setItem("access", data.access); return data.access; }
+  } catch {}
   return null;
 }
-
 async function fetchMe(token: string): Promise<UserProfile> {
-  const res = await fetch("/api/auth/me/", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const res = await fetch("/api/auth/me/", { headers: { Authorization: `Bearer ${token}` } });
   if (res.status === 401) throw new Error("UNAUTHORIZED");
   if (!res.ok) throw new Error("FETCH_ERROR");
   return res.json();
 }
-
 function useUser() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-
   useEffect(() => {
     let cancelled = false;
-
     async function load() {
       let token = getAccessToken();
-
-      if (!token) {
-        router.replace("/login");
-        return;
-      }
-
+      if (!token) { router.replace("/login"); return; }
       try {
         const profile = await fetchMe(token);
         if (!cancelled) setUser(profile);
       } catch (err: any) {
         if (err.message === "UNAUTHORIZED") {
           const newToken = await refreshAccessToken();
-          if (!newToken) {
-            localStorage.removeItem("access");
-            localStorage.removeItem("refresh");
-            router.replace("/login");
-            return;
-          }
+          if (!newToken) { localStorage.removeItem("access"); localStorage.removeItem("refresh"); router.replace("/login"); return; }
           try {
             const profile = await fetchMe(newToken);
             if (!cancelled) setUser(profile);
-          } catch {
-            localStorage.removeItem("access");
-            localStorage.removeItem("refresh");
-            router.replace("/login");
-          }
+          } catch { localStorage.removeItem("access"); localStorage.removeItem("refresh"); router.replace("/login"); }
         }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      } finally { if (!cancelled) setLoading(false); }
     }
-
     load();
     return () => { cancelled = true; };
   }, [router]);
-
   return { user, loading };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// useGreeting  — Nigeria time (WAT = UTC+1), updates every minute
-//   00:00–11:59 → "Good morning"
-//   12:00–16:59 → "Good afternoon"
-//   17:00–23:59 → "Good evening"
-// ─────────────────────────────────────────────────────────────────────────────
 function useGreeting(): string {
   const getGreeting = () => {
     const watHour = new Date(Date.now() + 60 * 60 * 1000).getUTCHours();
@@ -148,63 +118,57 @@ function useGreeting(): string {
     if (watHour < 17) return "Good afternoon";
     return "Good evening";
   };
-
   const [greeting, setGreeting] = useState(getGreeting);
-
   useEffect(() => {
     const id = setInterval(() => setGreeting(getGreeting()), 60_000);
     return () => clearInterval(id);
   }, []);
-
   return greeting;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length === 1) return parts[0][0].toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
-
 function getFirstName(fullName: string): string {
   return fullName.trim().split(/\s+/)[0];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Sidebar
+// Upload state machine
+// idle → uploading (POST /generate/) → processing (polling /status/) → done | error
+// ─────────────────────────────────────────────────────────────────────────────
+type UploadPhase = "idle" | "uploading" | "processing" | "done" | "error";
+
+const PHASE_LABEL: Record<UploadPhase, string> = {
+  idle:       "",
+  uploading:  "Removing background…",
+  processing: "AI is generating your assets…",
+  done:       "Ready! Redirecting…",
+  error:      "Something went wrong. Please try again.",
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sidebar (unchanged from original)
 // ─────────────────────────────────────────────────────────────────────────────
 function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   return (
     <>
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 bg-[#030712]/80 backdrop-blur-sm z-40 lg:hidden"
-            onClick={onClose}
-          />
+            onClick={onClose} />
         )}
       </AnimatePresence>
-
-      <motion.aside
-        className={`fixed top-0 left-0 bottom-0 w-64 bg-[#0a1128] border-r border-white/5 z-50 flex flex-col transition-transform lg:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
+      <motion.aside className={`fixed top-0 left-0 bottom-0 w-64 bg-[#0a1128] border-r border-white/5 z-50 flex flex-col transition-transform lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="p-6 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Logo className="w-8 h-8 rounded-lg" />
-            <span className="font-display font-medium text-xl tracking-widest text-white">
-              INRASTUDIO
-            </span>
           </Link>
-          <button className="lg:hidden text-slate-400 hover:text-white" onClick={onClose}>
-            <X className="w-5 h-5" />
-          </button>
+          <button className="lg:hidden text-slate-400 hover:text-white" onClick={onClose}><X className="w-5 h-5" /></button>
         </div>
-
         <nav className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-1">
           <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 text-white font-medium">
             <Home className="w-5 h-5 text-cyan-400" /> Dashboard
@@ -219,12 +183,8 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
             <Settings className="w-5 h-5" /> Settings
           </Link>
         </nav>
-
         <div className="p-4 border-t border-white/5">
-          <Link
-            href="/pricing"
-            className="flex items-center gap-3 px-4 py-3 mb-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-transparent hover:bg-amber-500/20 text-amber-400 font-medium transition-colors border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]"
-          >
+          <Link href="/pricing" className="flex items-center gap-3 px-4 py-3 mb-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-transparent hover:bg-amber-500/20 text-amber-400 font-medium transition-colors border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]">
             <Crown className="w-5 h-5" /> Upgrade to Pro
           </Link>
         </div>
@@ -233,32 +193,69 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   );
 }
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [generateVideo, setGenerateVideo] = useState(true);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const router = useRouter();
 
+  // Local preview (blob URL) — only for the upload thumbnail
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  // The actual File object we send to the API
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
+  const [phase, setPhase]   = useState<UploadPhase>("idle");
+  const [errorMsg, setErrorMsg] = useState<string>("");
+
+  const router = useRouter();
   const { user, loading } = useUser();
   const greeting = useGreeting();
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setUploadedImage(URL.createObjectURL(file));
+    if (!file) return;
+    setImageFile(file);
+    setPreviewImage(URL.createObjectURL(file));
+    setPhase("idle");
+    setErrorMsg("");
   };
 
-  const handleStartGenerating = () => {
-    if (!uploadedImage) {
+  const handleStartGenerating = async () => {
+    if (!imageFile) {
       alert("Please upload a product image to continue.");
       return;
     }
-    sessionStorage.setItem("campaignImage", uploadedImage);
-    router.push("/dashboard/templates");
+
+    try {
+      // ── Step 1: POST /api/campaign/generate/ ───────────────────────────────
+      setPhase("uploading");
+      const { job_id } = await createCampaignJob(imageFile);
+
+      // ── Step 2: Poll /api/campaign/status/<job_id>/ ───────────────────────
+      setPhase("processing");
+      const result = await pollUntilDone(job_id, {
+        intervalMs: 2000,
+        maxAttempts: 90, // 3 min max
+        onStatus: (status: JobStatus) => {
+          // You can add finer-grained UI feedback here if desired
+          if (status === "processing") setPhase("processing");
+        },
+      });
+
+      // ── Step 3: Persist result, redirect to templates ─────────────────────
+      saveJobResult(result); // writes png_url, captions, video_url to sessionStorage
+      setPhase("done");
+      router.push("/dashboard/templates");
+
+    } catch (err: any) {
+      console.error("[Campaign]", err);
+      setPhase("error");
+      setErrorMsg(err?.message ?? "Unknown error");
+    }
   };
+
+  const isWorking = phase === "uploading" || phase === "processing";
 
   return (
     <div className="min-h-screen bg-[#030712] text-slate-50 font-sans selection:bg-cyan-500 selection:text-white flex">
@@ -296,13 +293,8 @@ export default function DashboardPage() {
                 </>
               )}
             </div>
-
-            {/* Avatar */}
-            <div className="w-10 h-10 rounded-full bg-cyan-900 border-2 border-cyan-400 flex items-center justify-center text-cyan-50 font-bold text-sm shadow-lg shadow-cyan-400/20"
-              title={user?.full_name ?? ""}>
-              {loading
-                ? <span className="w-4 h-4 bg-cyan-700 rounded-full animate-pulse" />
-                : getInitials(user?.full_name ?? "?")}
+            <div className="w-10 h-10 rounded-full bg-cyan-900 border-2 border-cyan-400 flex items-center justify-center text-cyan-50 font-bold text-sm shadow-lg shadow-cyan-400/20" title={user?.full_name ?? ""}>
+              {loading ? <span className="w-4 h-4 bg-cyan-700 rounded-full animate-pulse" /> : getInitials(user?.full_name ?? "?")}
             </div>
           </section>
 
@@ -391,9 +383,9 @@ export default function DashboardPage() {
                     <span className="text-xs font-medium text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">Required</span>
                   </div>
 
-                  <label className="flex-1 flex flex-col items-center justify-center min-h-[160px] border-2 border-dashed border-cyan-500/30 rounded-2xl cursor-pointer bg-cyan-950/10 hover:bg-cyan-950/20 transition-all group overflow-hidden relative">
-                    {uploadedImage ? (
-                      <Image src={uploadedImage} alt="Uploaded product" fill className="object-contain p-4" />
+                  <label className={`flex-1 flex flex-col items-center justify-center min-h-[160px] border-2 border-dashed rounded-2xl transition-all group overflow-hidden relative ${isWorking ? "border-cyan-400/60 cursor-not-allowed" : "border-cyan-500/30 cursor-pointer bg-cyan-950/10 hover:bg-cyan-950/20"}`}>
+                    {previewImage ? (
+                      <Image src={previewImage} alt="Uploaded product" fill className="object-contain p-4" />
                     ) : (
                       <div className="flex flex-col items-center justify-center py-8">
                         <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
@@ -403,16 +395,52 @@ export default function DashboardPage() {
                         <p className="text-xs text-slate-500 mt-1">PNG, JPG or WEBP</p>
                       </div>
                     )}
-                    <input type="file" className="hidden" accept="image/png,image/jpeg,image/webp" onChange={handleImageUpload} />
+                    <input type="file" className="hidden" accept="image/png,image/jpeg,image/webp" onChange={handleImageUpload} disabled={isWorking} />
                   </label>
                 </div>
               </div>
 
+              {/* Status feedback */}
+              <AnimatePresence>
+                {phase !== "idle" && (
+                  <motion.div
+                    key="status"
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className={`mb-6 flex items-center gap-3 px-5 py-3 rounded-2xl text-sm font-medium ${
+                      phase === "error"
+                        ? "bg-red-500/10 border border-red-500/20 text-red-400"
+                        : phase === "done"
+                        ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                        : "bg-cyan-500/10 border border-cyan-500/20 text-cyan-300"
+                    }`}
+                  >
+                    {phase === "error" ? (
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                    ) : isWorking ? (
+                      <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
+                    ) : null}
+                    <span>{phase === "error" ? errorMsg || PHASE_LABEL.error : PHASE_LABEL[phase]}</span>
+                    {isWorking && (
+                      <span className="ml-auto text-xs opacity-60 font-mono">
+                        {phase === "uploading" ? "Sending…" : "Processing…"}
+                      </span>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <button
                 onClick={handleStartGenerating}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-cyan-400 hover:bg-cyan-300 text-[#0a1128] rounded-full font-bold transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] active:scale-[0.98]"
+                disabled={isWorking || !imageFile}
+                className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-cyan-400 hover:bg-cyan-300 disabled:bg-cyan-900 disabled:text-cyan-700 disabled:cursor-not-allowed text-[#0a1128] rounded-full font-bold transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] active:scale-[0.98]"
               >
-                <Plus className="w-5 h-5" /> Start Campaign
+                {isWorking ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" /> {phase === "uploading" ? "Uploading…" : "Generating…"}</>
+                ) : (
+                  <><Plus className="w-5 h-5" /> Start Campaign</>
+                )}
               </button>
             </div>
           </section>
@@ -440,7 +468,6 @@ export default function DashboardPage() {
               <h2 className="text-xl font-display font-semibold text-white tracking-tight">Most Used Templates</h2>
               <Link href="/dashboard/templates" className="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors">View All</Link>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
                 { name: "Digital Agency",  category: "Premium Brand",  Comp: PremiumBrandTemplate,  data: PREMIUM_BRAND_VARIATIONS.find((v) => v.name === "Digital Agency")! },
