@@ -123,7 +123,7 @@ function PipelineMockup({
           <span className="h-2.5 w-2.5 rounded-full bg-yellow-500/80" />
           <span className="h-2.5 w-2.5 rounded-full bg-green-500/80" />
           <span className="ml-3 text-[11px] font-medium tracking-wide text-slate-500">
-            pipeline.ai
+            INRASTUDIO AI
           </span>
         </div>
 
@@ -169,7 +169,7 @@ function PipelineMockup({
               />
             </MediaCard>
 
-            <MediaCard label="AI promo video" icon={Video}>
+            <MediaCard label="Promo video" icon={Video}>
               <Image
                 src="/images/flyer.png"
                 alt=""

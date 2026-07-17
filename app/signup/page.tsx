@@ -115,7 +115,7 @@ export default function SignUpPage() {
         <Link href="/" className="flex items-center gap-2">
           <Logo className="w-8 h-8 rounded-lg" />
           <span className="font-display font-medium text-xl tracking-widest text-[#0a1128]">
-            INRASTUDIO
+            
           </span>
         </Link>
       </nav>

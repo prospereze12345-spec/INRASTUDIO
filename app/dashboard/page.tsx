@@ -36,7 +36,8 @@ import {
   pollUntilDone,
   saveJobResult,
   type JobStatus,
-} from "@/lib/campaign-api"; // adjust import path to wherever you put campaign-api.ts
+} from "@/lib/campaign-api";
+import { apiFetch } from "@/lib/auth";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -48,6 +49,25 @@ interface UserProfile {
   country: string;
   is_verified: boolean;
   created_at: string;
+}
+
+interface DashboardData {
+  id: number;
+  plan: {
+    id: number;
+    name: string;
+    plan_type: string;
+    campaigns_per_month: number | null;
+    has_watermark: boolean;
+    priority_queue: boolean;
+    premium_templates: boolean;
+  };
+  is_active: boolean;
+  campaigns_used: number;
+  campaigns_generated: number;
+  campaigns_remaining: number | string;
+  start_date: string;
+  end_date: string | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -208,9 +228,36 @@ export default function DashboardPage() {
   const [phase, setPhase]   = useState<UploadPhase>("idle");
   const [errorMsg, setErrorMsg] = useState<string>("");
 
+  // Dashboard data from backend
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
+
   const router = useRouter();
   const { user, loading } = useUser();
   const greeting = useGreeting();
+
+  // Fetch dashboard data using apiFetch
+  useEffect(() => {
+    async function fetchDashboardData() {
+      if (!user) return;
+      
+      try {
+        const data = await apiFetch<DashboardData>('/api/pricing/dashboard/');
+        setDashboardData(data);
+        setDashboardError(null);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        setDashboardError(error instanceof Error ? error.message : 'Failed to load dashboard data');
+      } finally {
+        setDashboardLoading(false);
+      }
+    }
+
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -246,6 +293,24 @@ export default function DashboardPage() {
       // ── Step 3: Persist result, redirect to templates ─────────────────────
       saveJobResult(result); // writes png_url, captions, video_url to sessionStorage
       setPhase("done");
+      
+      // ── Step 4: Track campaign generation using apiFetch ──────────────────
+      try {
+        await apiFetch('/api/pricing/track_generation/', {
+          method: 'POST',
+          body: JSON.stringify({
+            campaign_id: job_id,
+            action: 'generated'
+          }),
+        });
+        // Refresh dashboard data
+        const updatedData = await apiFetch<DashboardData>('/api/pricing/dashboard/');
+        setDashboardData(updatedData);
+      } catch (trackError) {
+        console.error('Error tracking generation:', trackError);
+        // Continue even if tracking fails
+      }
+      
       router.push("/dashboard/templates");
 
     } catch (err: any) {
@@ -256,6 +321,35 @@ export default function DashboardPage() {
   };
 
   const isWorking = phase === "uploading" || phase === "processing";
+
+  // Helper function to get campaigns remaining display
+  const getCampaignsDisplay = (remaining: number | string) => {
+    if (remaining === Infinity || remaining === 'Infinity' || remaining === 999999) {
+      return '♾️';
+    }
+    if (typeof remaining === 'number') {
+      return remaining.toString();
+    }
+    return remaining;
+  };
+
+  // Helper function to get plan display name
+  const getPlanDisplay = (planType: string) => {
+    if (planType === 'free') return 'Free Trial';
+    if (planType === 'payg') return 'Pay-as-you-go';
+    if (planType === 'pro') return 'Pro Plan';
+    return planType;
+  };
+
+  // Helper to check if user can generate more campaigns
+  const canGenerate = () => {
+    if (!dashboardData) return false;
+    const remaining = dashboardData.campaigns_remaining;
+    if (remaining === Infinity || remaining === 'Infinity' || remaining === 999999) {
+      return true;
+    }
+    return typeof remaining === 'number' && remaining > 0;
+  };
 
   return (
     <div className="min-h-screen bg-[#030712] text-slate-50 font-sans selection:bg-cyan-500 selection:text-white flex">
@@ -300,6 +394,7 @@ export default function DashboardPage() {
 
           {/* ── Stats ── */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Campaigns Left - Dynamic */}
             <div className="bg-white/[0.03] border border-white/5 backdrop-blur-md p-6 rounded-3xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-slate-400 font-medium">Campaigns Left</h3>
@@ -307,10 +402,25 @@ export default function DashboardPage() {
                   <Sparkles className="w-4 h-4 text-cyan-400" />
                 </div>
               </div>
-              <div className="text-4xl font-display font-medium text-white">1</div>
-              <p className="text-sm text-slate-500 mt-2">Free Trial</p>
+              {dashboardLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-10 w-20 bg-white/10 rounded-lg" />
+                </div>
+              ) : dashboardError ? (
+                <div className="text-red-400 text-sm">{dashboardError}</div>
+              ) : (
+                <>
+                  <div className="text-4xl font-display font-medium text-white">
+                    {getCampaignsDisplay(dashboardData?.campaigns_remaining ?? 0)}
+                  </div>
+                  <p className="text-sm text-slate-500 mt-2">
+                    {dashboardData?.plan ? getPlanDisplay(dashboardData.plan.plan_type) : 'No Plan'}
+                  </p>
+                </>
+              )}
             </div>
 
+            {/* Assets Generated - Dynamic */}
             <div className="bg-white/[0.03] border border-white/5 backdrop-blur-md p-6 rounded-3xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-slate-400 font-medium">Assets Generated</h3>
@@ -318,22 +428,62 @@ export default function DashboardPage() {
                   <ImageIcon className="w-4 h-4 text-indigo-400" />
                 </div>
               </div>
-              <div className="text-4xl font-display font-medium text-white">0</div>
-              <p className="text-sm text-slate-500 mt-2">Lifetime creations</p>
+              {dashboardLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-10 w-20 bg-white/10 rounded-lg" />
+                </div>
+              ) : (
+                <>
+                  <div className="text-4xl font-display font-medium text-white">
+                    {dashboardData?.campaigns_generated ?? 0}
+                  </div>
+                  <p className="text-sm text-slate-500 mt-2">Lifetime creations</p>
+                </>
+              )}
             </div>
 
-            <div className="bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 backdrop-blur-md p-6 rounded-3xl shadow-[0_0_30px_rgba(245,158,11,0.05)] flex flex-col justify-center">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-amber-400/80 font-semibold font-mono tracking-widest text-xs uppercase">Pro Plan</h3>
-                <Crown className="w-5 h-5 text-amber-400" />
+            {/* Plan Status - New Card */}
+            <div className="bg-white/[0.03] border border-white/5 backdrop-blur-md p-6 rounded-3xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-slate-400 font-medium">Plan Status</h3>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  dashboardData?.plan?.plan_type === 'pro' 
+                    ? 'bg-cyan-500/20' 
+                    : dashboardData?.plan?.plan_type === 'payg'
+                    ? 'bg-amber-500/20'
+                    : 'bg-slate-500/20'
+                }`}>
+                  <span className={`text-sm font-bold ${
+                    dashboardData?.plan?.plan_type === 'pro' 
+                      ? 'text-cyan-400' 
+                      : dashboardData?.plan?.plan_type === 'payg'
+                      ? 'text-amber-400'
+                      : 'text-slate-400'
+                  }`}>
+                    {dashboardLoading ? '...' : dashboardData?.plan?.plan_type === 'pro' ? 'PRO' : 
+                     dashboardData?.plan?.plan_type === 'payg' ? 'PAYG' : 'FREE'}
+                  </span>
+                </div>
               </div>
-              <p className="text-slate-300 text-sm mb-4">Unlock unlimited campaigns without watermarks.</p>
-              <Link href="/pricing" className="text-sm font-semibold text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1 group">
-                Upgrade Now <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              {dashboardLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-10 w-32 bg-white/10 rounded-lg" />
+                </div>
+              ) : (
+                <>
+                  <div className="text-4xl font-display font-medium text-white">
+                    {dashboardData?.plan?.name || 'Free Trial'}
+                  </div>
+                  <p className="text-sm text-slate-500 mt-2">
+                    {dashboardData?.is_active ? 'Active ✅' : 'Inactive ⚠️'}
+                  </p>
+                </>
+              )}
             </div>
           </section>
 
+
+            
           {/* ── Create Campaign ── */}
           <section className="bg-gradient-to-tr from-[#0a1128] to-cyan-950/40 border border-cyan-500/20 rounded-[2rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-32 bg-cyan-500/10 blur-[100px] rounded-full mix-blend-screen pointer-events-none" />
