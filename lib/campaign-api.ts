@@ -17,15 +17,39 @@ export interface Caption {
   platform: string;
   text: string;
 }
-
 export interface JobResultResponse {
   job_id: string;
   status: "done";
-  png_url: string;       // bg-removed product image (transparent PNG)
+  png_url: string;
   captions: Caption[];
   video_url: string | null;
+  // The API also returns the original flyer config (text/colors/brand)
+  // so the editor can be fully reconstructed later — type it explicitly
+  // instead of leaning on `as any` everywhere it's consumed.
+  flyer?: {
+    headline?: string;
+    subheadline?: string;
+    subtext?: string;
+    cta?: string;
+    ctaText?: string;
+    badgeText?: string;
+    brand_name?: string;
+    brandName?: string;
+    price_text?: string;
+    name?: string;
+    colors?: { primary: string; secondary: string; accent: string };
+  };
+  template_category?: string;
 }
 
+// ─── 3b. Fetch by id + cache (used when opening an existing campaign,
+//         e.g. from the dashboard's "Recent Campaigns" list) ────────────────
+
+export async function fetchJobById(jobId: string): Promise<JobResultResponse> {
+  const result = await getJobResult(jobId);
+  saveJobResult(result); // cache it so subsequent loads in this session are instant
+  return result;
+}
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 function getAccessToken(): string | null {

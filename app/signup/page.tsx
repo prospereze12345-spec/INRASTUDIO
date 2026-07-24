@@ -26,8 +26,6 @@ const COUNTRIES = [
   { value: "NG", label: "Nigeria" },
   { value: "KE", label: "Kenya" },
   { value: "GH", label: "Ghana" },
-  { value: "ZA", label: "South Africa" },
-  { value: "EG", label: "Egypt" },
   { value: "OTHER", label: "Other" },
 ] as const;
 

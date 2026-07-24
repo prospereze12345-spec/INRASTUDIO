@@ -12,30 +12,20 @@ export type EditableTextProps = {
   className?: string;
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
-  /** Stable id so the floating toolbar / free-text tool can target this node in the DOM. */
   fieldId?: string;
   children?: ReactNode;
 };
 
-/**
- * The single text primitive every flyer template should render through.
- *
- * - When `editable` is false (or `onChange` is omitted), it's a plain,
- *   non-interactive element — this is what the Templates gallery previews use.
- * - When editable, it becomes a controlled contentEditable node wired into the
- *   flyer's field-update flow, so clicking text in the actual editor canvas
- *   edits the *real* template the user picked instead of a generic stand-in.
- *
- * Enter is swallowed so a single logical field (a price, a CTA, one line of
- * a headline) can never accidentally grow extra lines and break the layout
- * math (cqi-based font sizing, line clamping, etc.) that the design assumes.
- */
 export const EditableText = forwardRef<HTMLElement, EditableTextProps>(function EditableText(
   { value, onChange, as: Tag = "span", editable = true, style, className, onFocusEl, onBlurEl, fieldId },
   forwardedRef
 ) {
   const innerRef = useRef<HTMLElement | null>(null);
+  const isComposing = useRef(false);
 
+  // Sole source of DOM text sync. Only runs while NOT focused, so it never
+  // fights an in-progress edit — and it correctly seeds initial content on
+  // mount, since activeElement !== el at that point.
   useEffect(() => {
     const el = innerRef.current;
     if (el && document.activeElement !== el && el.textContent !== value) {
@@ -69,14 +59,23 @@ export const EditableText = forwardRef<HTMLElement, EditableTextProps>(function 
       suppressContentEditableWarning
       className={className}
       style={{ outline: "none", cursor: "text", ...style }}
-      onInput={(e: React.FormEvent<HTMLElement>) => onChange((e.currentTarget.textContent ?? ""))}
+      // NOTE: no children here — this is the fix. React must never own this
+      // node's text content while it's editable; the ref effect above is the
+      // only writer, and only when unfocused.
+      onCompositionStart={() => { isComposing.current = true; }}
+      onCompositionEnd={(e: React.CompositionEvent<HTMLElement>) => {
+        isComposing.current = false;
+        onChange(e.currentTarget.textContent ?? "");
+      }}
+      onInput={(e: React.FormEvent<HTMLElement>) => {
+        if (isComposing.current) return;
+        onChange(e.currentTarget.textContent ?? "");
+      }}
       onFocus={(e: React.FocusEvent<HTMLElement>) => onFocusEl?.(e.currentTarget)}
       onBlur={onBlurEl}
       onKeyDown={(e: React.KeyboardEvent) => {
         if (e.key === "Enter") e.preventDefault();
       }}
-    >
-      {value}
-    </EditableTag>
+    />
   );
 });
