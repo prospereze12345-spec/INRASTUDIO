@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/auth";
 
@@ -11,7 +11,7 @@ type VerifyResponse = {
 
 type ViewState = "verifying" | "error";
 
-export default function PaymentVerifyPage() {
+function PaymentVerifyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const hasRun = useRef(false);
@@ -88,5 +88,21 @@ export default function PaymentVerifyPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function PaymentVerifyPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold">Loading...</h2>
+          </div>
+        </div>
+      }
+    >
+      <PaymentVerifyContent />
+    </Suspense>
   );
 }

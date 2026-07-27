@@ -785,18 +785,18 @@ const VideoPanel = memo(function VideoPanel({
       <div className="rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950"
         style={{ aspectRatio: `${fmt.rw}/${fmt.rh}`, maxHeight: 260 }}>
         <Player
-          ref={playerRef}
-          component={PromoVideo}
-          inputProps={promoProps}
-          durationInFrames={durationInFrames}
-          compositionWidth={COMP_W}
-          compositionHeight={COMP_H}
-          fps={fmt.fps}
-          style={{ width: "100%", height: "100%" }}
-          controls
-          loop
-          autoPlay
-        />
+  ref={playerRef}
+  component={PromoVideo as unknown as React.ComponentType<Record<string, unknown>>}
+  inputProps={promoProps}
+  durationInFrames={durationInFrames}
+  compositionWidth={COMP_W}
+  compositionHeight={COMP_H}
+  fps={fmt.fps}
+  style={{ width: "100%", height: "100%" }}
+  controls
+  loop
+  autoPlay
+/>
       </div>
 
       <Divider/>
