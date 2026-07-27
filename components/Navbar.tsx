@@ -59,9 +59,7 @@ export function Navbar() {
                  onMouseEnter={() => setShowUseCases(true)}
                  onMouseLeave={() => setShowUseCases(false)}
                >
-                 <button className="flex items-center gap-1 hover:text-cyan-400 transition-colors py-2">
-                   Use Cases <ChevronDown className={`w-4 h-4 transition-transform ${showUseCases ? 'rotate-180' : ''}`} />
-                 </button>
+                 
                  
                  <AnimatePresence>
                    {showUseCases && (
