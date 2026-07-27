@@ -49,7 +49,7 @@ export function Navbar() {
             <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 z-50 pointer-events-auto lg:hidden">
               <Link href="/" className="flex items-center gap-2">
                 <Logo className="w-7 h-7" />
-                <span className="font-display font-medium text-lg tracking-widest text-white">INRASTUDIO</span>
+                <span className="font-display font-medium text-lg tracking-widest text-white"></span>
               </Link>
             </div>
 
