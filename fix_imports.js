@@ -18,3 +18,4 @@ for (const p of pages) {
   fs.writeFileSync(p, content);
 }
 console.log('done fixing imports');
+

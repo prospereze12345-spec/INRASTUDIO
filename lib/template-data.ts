@@ -377,3 +377,4 @@ export const LUXURY_VARIATIONS = [
     colors: { primary: "#f1f1f1", secondary: "#000000", accent: "#ffffff" }
   }
 ];
+

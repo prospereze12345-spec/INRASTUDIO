@@ -15,11 +15,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*/",
-        destination: "http://127.0.0.1:8000/api/:path*/",
+        destination: "https://inrabackend.onrender.com/api/:path*/",
       },
       {
         source: "/api/:path*",
-        destination: "http://127.0.0.1:8000/api/:path*/",
+        destination: "https://inrabackend.onrender.com/api/:path*/",
       },
     ];
   },
@@ -54,3 +54,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
