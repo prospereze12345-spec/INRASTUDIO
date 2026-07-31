@@ -715,36 +715,27 @@ const VideoPanel = memo(function VideoPanel({
     logoImage:    logoOverlay.image,
     badge:        badgeOverlay.visible ? badgeOverlay : null,
   };
-
-  const handleDownload = async () => {
+const handleDownload = async () => {
     if (downloading) return;
     setDownloading(true);
     setDownloadError(null);
 
     try {
-      const [{ renderMediaOnWeb }, { PromoVideo: PromoVideoComp }] = await Promise.all([
-        import("@remotion/web-renderer"),
-        import("@/remotion/PromoVideo"),
-      ]);
-
-      const { getBlob } = await renderMediaOnWeb({
-        composition: {
-          id: "PromoVideo",
-          component: PromoVideoComp,
-          width: COMP_W,
-          height: COMP_H,
-          fps: fmt.fps,
-          durationInFrames,
-          defaultProps: promoProps,
-        } as const,
-        inputProps: promoProps,
-        container: "mp4",
-        videoCodec: "h264",
-        videoBitrate: "high",
-        onProgress: ({ progress }) => {},
+      const res = await fetch("/api/campaign/render-video/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          format: selectedFormat,
+          props: promoProps,
+        }),
       });
 
-      const blob = await getBlob();
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Render failed (${res.status})`);
+      }
+
+      const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -758,7 +749,6 @@ const VideoPanel = memo(function VideoPanel({
       setDownloading(false);
     }
   };
-
   return (
     <div className="space-y-4">
       <Label>Select format</Label>
