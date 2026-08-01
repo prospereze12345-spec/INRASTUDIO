@@ -404,3 +404,4 @@ export default function PricingRoute() {
     </div>
   );
 }
+

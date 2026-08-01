@@ -129,3 +129,4 @@ export async function fetchCaptionResult(campaignId: string): Promise<CaptionRes
     ],
   };
 }
+

@@ -378,3 +378,4 @@ export const LUXURY_VARIATIONS = [
   }
 ];
 
+

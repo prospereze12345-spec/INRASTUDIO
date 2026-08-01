@@ -19,7 +19,7 @@ function AuthCallbackContent() {
     const verifyToken = async () => {
       try {
         const res = await fetch(
-          "http://127.0.0.1:8000/api/auth/verify/",
+          "https://inrabackend.onrender.com/api/auth/verify/",
           {
             method: "POST",
             headers: {
@@ -94,3 +94,4 @@ export default function AuthCallbackPage() {
     </Suspense>
   );
 }
+

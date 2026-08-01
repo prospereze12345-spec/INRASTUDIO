@@ -740,3 +740,4 @@ function ArrowRight(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
