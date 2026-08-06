@@ -15,11 +15,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*/",
-        destination: "https://inrabackend.onrender.com/api/:path*/",
+        destination: "https://inrabackend-docker.onrender.com/api/:path*/",
       },
       {
         source: "/api/:path*",
-        destination: "https://inrabackend.onrender.com/api/:path*/",
+        destination: "https://inrabackend-docker.onrender.com/api/:path*/",
       },
     ];
   },
