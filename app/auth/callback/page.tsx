@@ -19,7 +19,7 @@ function AuthCallbackContent() {
     const verifyToken = async () => {
       try {
         const res = await fetch(
-          "https://inrabackend.onrender.com/api/auth/verify/",
+          "https://inrabackend-docker.onrender.com/api/auth/verify/",
           {
             method: "POST",
             headers: {
