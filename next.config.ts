@@ -23,8 +23,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-
-  images: {
+images: {
     remotePatterns: [
       {
         protocol: "http",
@@ -36,6 +35,12 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "picsum.photos",
         port: "",
+        pathname: "/**",
+      },
+      // ADD THIS — missing entirely, this is why the flyer image is blocked
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
         pathname: "/**",
       },
     ],
