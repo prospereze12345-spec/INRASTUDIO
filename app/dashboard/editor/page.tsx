@@ -126,9 +126,7 @@ const SOCIAL_FORMATS = [
   { id: "ig",     label: "Instagram", icon: ImageIcon,    ratio: "4:5",  rw: 4,  rh: 5,  fps: 30, durationS: 12 },
   { id: "square", label: "Square",    icon: Square,       ratio: "1:1",  rw: 1,  rh: 1,  fps: 30, durationS: 12 },
   { id: "story",  label: "Story",     icon: Smartphone,   ratio: "9:16", rw: 9,  rh: 16, fps: 30, durationS: 15 },
-  { id: "yt",     label: "YouTube",   icon: Monitor,      ratio: "16:9", rw: 16, rh: 9,  fps: 30, durationS: 15 },
   { id: "tiktok", label: "TikTok",    icon: Film,         ratio: "9:16", rw: 9,  rh: 16, fps: 30, durationS: 12 },
-  { id: "banner", label: "Banner",    icon: Monitor,      ratio: "21:9", rw: 21, rh: 9,  fps: 30, durationS: 10 },
 ] as const;
 type FormatId = typeof SOCIAL_FORMATS[number]["id"];
 
