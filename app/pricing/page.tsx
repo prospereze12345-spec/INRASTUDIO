@@ -300,42 +300,36 @@ function Pricing() {
 
                 <ul className="space-y-4 mb-10">
                   {isFree ? (
-                    <>
-                      <li className="flex items-center gap-3 text-slate-300">
-                        <CheckCircle className="w-5 h-5 text-slate-500 shrink-0" /> 1 Campaign Free
-                      </li>
-                      <li className="flex items-center gap-3 text-slate-300">
-                        <CheckCircle className="w-5 h-5 text-slate-500 shrink-0" /> No watermark
-                      </li>
-                    </>
-                  ) : isPayg ? (
-                    <>
-                      <li className="flex items-center gap-3 text-white">
-                        <CheckCircle className="w-5 h-5 text-slate-500 shrink-0" /> 1 Full Campaign
-                      </li>
-                      <li className="flex items-center gap-3 text-white">
-                        <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" /> No watermark
-                      </li>
-                      <li className="flex items-center gap-3 text-white">
-                        <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" /> High resolution exports
-                      </li>
-                    </>
-                  ) : (
-                    <>
-                      <li className="flex items-center gap-3 text-white">
-                        <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" /> Unlimited Campaigns
-                      </li>
-                      <li className="flex items-center gap-3 text-white">
-                        <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" /> No watermark
-                      </li>
-                      <li className="flex items-center gap-3 text-white">
-                        <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" /> Priority queue generation
-                      </li>
-                      <li className="flex items-center gap-3 text-white">
-                        <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" /> Premium templates
-                      </li>
-                    </>
-                  )}
+) : isPayg ? (
+  <>
+    <li className="flex items-center gap-3 text-white">
+      <CheckCircle className="w-5 h-5 text-slate-500 shrink-0" /> 1 Full Campaign
+    </li>
+    <li className="flex items-center gap-3 text-white">
+      <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" /> AI-powered marketing content
+    </li>
+    <li className="flex items-center gap-3 text-white">
+      <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" /> High resolution exports
+    </li>
+  </>
+) : (
+  <>
+    <li className="flex items-center gap-3 text-white">
+      <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" /> Unlimited Campaigns
+    </li>
+    <li className="flex items-center gap-3 text-white">
+      <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" /> AI-powered marketing content
+    </li>
+    <li className="flex items-center gap-3 text-white">
+      <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" /> Priority queue generation
+    </li>
+    <li className="flex items-center gap-3 text-white">
+      <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" /> Complete campaign creation
+    </li>
+  </>
+)
+
+
                 </ul>
               </div>
 
