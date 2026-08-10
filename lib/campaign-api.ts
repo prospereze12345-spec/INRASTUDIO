@@ -1,6 +1,5 @@
 
-import { apiFetch, ApiError } from "@/lib/api"; // adjust path to wherever apiFetch lives
-
+import { apiFetch, ApiError } from "@/lib/auth";
 export type JobStatus = "pending" | "processing" | "done" | "error";
 
 export interface JobCreatedResponse {
