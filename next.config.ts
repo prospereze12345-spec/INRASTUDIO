@@ -15,32 +15,41 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*/",
-        destination: "https://inrabackend-docker.onrender.com/api/:path*/",
+        destination:
+          "https://inrabackend-docker.onrender.com/api/:path*/",
       },
       {
         source: "/api/:path*",
-        destination: "https://inrabackend-docker.onrender.com/api/:path*/",
+        destination:
+          "https://inrabackend-docker.onrender.com/api/:path*/",
       },
     ];
   },
-images: {
+
+  images: {
+    // Serve modern image formats automatically.
+    // Helps reduce image payload size, especially on mobile.
+    formats: ["image/avif", "image/webp"],
+
     remotePatterns: [
-      {
-        protocol: "http",
-        hostname: "127.0.0.1",
-        port: "8000",
-        pathname: "/media/**",
-      },
+      // Production Django media files
       {
         protocol: "https",
-        hostname: "picsum.photos",
-        port: "",
-        pathname: "/**",
+        hostname: "inrabackend-docker.onrender.com",
+        pathname: "/media/**",
       },
-      // ADD THIS — missing entirely, this is why the flyer image is blocked
+
+      // Cloudinary production images
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+
+      // External placeholder images
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
         pathname: "/**",
       },
     ],
@@ -54,6 +63,7 @@ images: {
         ignored: /.*/,
       };
     }
+
     return config;
   },
 };

@@ -1,6 +1,5 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Campaign API — /api/campaign/ endpoints
-// ─────────────────────────────────────────────────────────────────────────────
+
+import { apiFetch, ApiError } from "@/lib/api"; // adjust path to wherever apiFetch lives
 
 export type JobStatus = "pending" | "processing" | "done" | "error";
 
@@ -17,15 +16,13 @@ export interface Caption {
   platform: string;
   text: string;
 }
+
 export interface JobResultResponse {
   job_id: string;
   status: "done";
   png_url: string;
   captions: Caption[];
   video_url: string | null;
-  // The API also returns the original flyer config (text/colors/brand)
-  // so the editor can be fully reconstructed later — type it explicitly
-  // instead of leaning on `as any` everywhere it's consumed.
   flyer?: {
     headline?: string;
     subheadline?: string;
@@ -42,73 +39,38 @@ export interface JobResultResponse {
   template_category?: string;
 }
 
-// ─── 3b. Fetch by id + cache (used when opening an existing campaign,
-//         e.g. from the dashboard's "Recent Campaigns" list) ────────────────
-
-export async function fetchJobById(jobId: string): Promise<JobResultResponse> {
-  const result = await getJobResult(jobId);
-  saveJobResult(result); // cache it so subsequent loads in this session are instant
-  return result;
-}
-// ─── helpers ─────────────────────────────────────────────────────────────────
-
-function getAccessToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("access");
-}
-
-function authHeaders(): HeadersInit {
-  const token = getAccessToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
 // ─── 1. Create job (POST /api/campaign/generate/) ────────────────────────────
-// Accepts a File/Blob (the raw product image).
-// Returns { job_id }.
-
 export async function createCampaignJob(imageFile: File | Blob): Promise<JobCreatedResponse> {
   const form = new FormData();
   form.append("image", imageFile);
 
-  const res = await fetch("/api/campaign/generate/", {
+  // apiFetch already skips the Content-Type header for FormData bodies
+  // and attaches/refreshes the auth token automatically.
+  return apiFetch<JobCreatedResponse>("/api/campaign/generate", {
     method: "POST",
-    headers: authHeaders(),
     body: form,
   });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.detail ?? `Job creation failed (${res.status})`);
-  }
-
-  return res.json();
 }
 
 // ─── 2. Poll job status (GET /api/campaign/status/<job_id>/) ─────────────────
-
 export async function getJobStatus(jobId: string): Promise<JobStatusResponse> {
-  const res = await fetch(`/api/campaign/status/${jobId}/`, {
-    headers: authHeaders(),
-  });
-  if (!res.ok) throw new Error(`Status check failed (${res.status})`);
-  return res.json();
+  return apiFetch<JobStatusResponse>(`/api/campaign/status/${jobId}`);
 }
 
 // ─── 3. Fetch result (GET /api/campaign/result/<job_id>/) ────────────────────
-
 export async function getJobResult(jobId: string): Promise<JobResultResponse> {
-  const res = await fetch(`/api/campaign/result/${jobId}/`, {
-    headers: authHeaders(),
-  });
-  if (!res.ok) throw new Error(`Result fetch failed (${res.status})`);
-  return res.json();
+  return apiFetch<JobResultResponse>(`/api/campaign/result/${jobId}`);
+}
+
+// ─── 3b. Fetch by id + cache (used when opening an existing campaign,
+//         e.g. from the dashboard's "Recent Campaigns" list) ────────────────
+export async function fetchJobById(jobId: string): Promise<JobResultResponse> {
+  const result = await getJobResult(jobId);
+  saveJobResult(result);
+  return result;
 }
 
 // ─── 4. Poll-until-done helper ───────────────────────────────────────────────
-// Polls every `intervalMs` (default 2 s) until status is "done" or "error",
-// or until `maxAttempts` is reached (default 60 = 2 min).
-// Calls `onStatus` each tick so callers can show progress.
-
 export async function pollUntilDone(
   jobId: string,
   opts?: {
@@ -117,9 +79,9 @@ export async function pollUntilDone(
     onStatus?: (status: JobStatus) => void;
   }
 ): Promise<JobResultResponse> {
-const { intervalMs = 3000, maxAttempts = 240, onStatus } = opts ?? {};
+  const { intervalMs = 3000, maxAttempts = 240, onStatus } = opts ?? {};
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    await delay(attempt === 0 ? 500 : intervalMs); // first check is quick
+    await delay(attempt === 0 ? 500 : intervalMs);
 
     const { status } = await getJobStatus(jobId);
     onStatus?.(status);
@@ -131,35 +93,72 @@ const { intervalMs = 3000, maxAttempts = 240, onStatus } = opts ?? {};
   throw new Error("Timed out waiting for job to complete");
 }
 
-// ─── SessionStorage keys ─────────────────────────────────────────────────────
-// We upgrade from storing a blob URL to storing the job result so every page
-// can access the bg-removed image URL, captions and video.
+// ─── Cache layer ──────────────────────────────────────────────────────────────
+// sessionStorage doesn't survive mobile in-app browsers, PWA relaunches, or
+// iOS backgrounding as reliably as desktop tabs. We keep sessionStorage as
+// the fast path but fall back to localStorage (with a TTL so stale campaign
+// data doesn't linger indefinitely) for the cases sessionStorage misses.
+const SS_JOB_ID = "campaign_job_id";
+const SS_RESULT = "campaign_result";
+const LS_RESULT_PREFIX = "campaign_result_cache:";
+const CACHE_TTL_MS = 1000 * 60 * 30; // 30 min — long enough to survive an app
+                                      // relaunch mid-edit, short enough to avoid
+                                      // showing a genuinely stale campaign.
 
-const SS_JOB_ID  = "campaign_job_id";
-const SS_RESULT  = "campaign_result";
+type CachedEntry = { result: JobResultResponse; cachedAt: number };
 
 export function saveJobResult(result: JobResultResponse): void {
   sessionStorage.setItem(SS_JOB_ID, result.job_id);
   sessionStorage.setItem(SS_RESULT, JSON.stringify(result));
-  // Keep legacy key so existing template page code keeps working
-  sessionStorage.setItem("campaignImage", result.png_url);
+  sessionStorage.setItem("campaignImage", result.png_url); // legacy key
+
+  try {
+    const entry: CachedEntry = { result, cachedAt: Date.now() };
+    localStorage.setItem(`${LS_RESULT_PREFIX}${result.job_id}`, JSON.stringify(entry));
+  } catch {
+    // localStorage full/unavailable (private mode etc.) — sessionStorage still works
+  }
 }
 
-export function loadJobResult(): JobResultResponse | null {
+export function loadJobResult(jobId?: string | null): JobResultResponse | null {
   const raw = sessionStorage.getItem(SS_RESULT);
-  if (!raw) return null;
-  try { return JSON.parse(raw) as JobResultResponse; } catch { return null; }
+  if (raw) {
+    try {
+      const cached = JSON.parse(raw) as JobResultResponse;
+      if (!jobId || cached.job_id === jobId) return cached;
+    } catch {
+      /* fall through to localStorage */
+    }
+  }
+
+  if (!jobId) return null;
+
+  try {
+    const raw2 = localStorage.getItem(`${LS_RESULT_PREFIX}${jobId}`);
+    if (!raw2) return null;
+    const entry = JSON.parse(raw2) as CachedEntry;
+    if (Date.now() - entry.cachedAt > CACHE_TTL_MS) {
+      localStorage.removeItem(`${LS_RESULT_PREFIX}${jobId}`);
+      return null;
+    }
+    return entry.result;
+  } catch {
+    return null;
+  }
 }
 
-export function clearJobResult(): void {
+export function clearJobResult(jobId?: string | null): void {
   sessionStorage.removeItem(SS_JOB_ID);
   sessionStorage.removeItem(SS_RESULT);
   sessionStorage.removeItem("campaignImage");
+  if (jobId) {
+    try { localStorage.removeItem(`${LS_RESULT_PREFIX}${jobId}`); } catch {}
+  }
 }
 
 // ─── util ─────────────────────────────────────────────────────────────────────
-
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+export { ApiError };

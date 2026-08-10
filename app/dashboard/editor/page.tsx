@@ -14,9 +14,8 @@ import {
   AlignLeft, AlignCenter, AlignRight, Plus, Minus, Package,
   UploadCloud, Film, Square, Smartphone, Monitor, Image as ImageIcon, Loader2,
 } from "lucide-react";
-
+import { loadJobResult, fetchJobById, ApiError } from "@/lib/campaign-api";
 import type { PlayerRef } from "@remotion/player";
-import { loadJobResult, fetchJobById } from "@/lib/campaign-api";
 import { Logo } from "@/components/Logo";
 
 // ─── Heavy / non-critical deps are code-split ─────────────────────────────────
@@ -1110,15 +1109,34 @@ useEffect(() => {
       ? (rawCategory as FlyerState["templateCategory"])
       : null;
 
-    let result = loadJobResult();
+    let result = loadJobResult(urlJobId);
 
-    // Cache miss (e.g. opened from Recent Campaigns in a new/different session)
-    // — go fetch it directly from the backend using the job id in the URL.
     if (!result && urlJobId) {
       try {
         result = await fetchJobById(urlJobId);
       } catch (err) {
+        if (cancelled) return;
+
+        if (err instanceof ApiError && err.status === 401) {
+          // Genuinely logged out — send to login with a way back here.
+          const redirect = encodeURIComponent(
+            `${window.location.pathname}${window.location.search}`
+          );
+          router.push(`/login?redirect=${redirect}`);
+          return;
+        }
+
+        // Real failure (network blip, 404, 5xx) — don't silently bounce
+        // to /dashboard, which would then bounce to /login and look
+        // identical to an auth failure from the user's perspective.
         console.error("Failed to load job", urlJobId, err);
+        setLoading(false);
+        setExportError(
+          err instanceof ApiError && err.status === 404
+            ? "That campaign couldn't be found."
+            : "Couldn't load this campaign. Check your connection and try again."
+        );
+        return;
       }
     }
 
