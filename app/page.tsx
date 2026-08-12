@@ -24,7 +24,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Navbar } from "@/components/Navbar";
-
+import { InstallButton } from '@/components/pwa/InstallButton';
 // ─── Types & data ──────────────────────────────────────────────────────────
 
 type Caption = {
@@ -362,12 +362,7 @@ function Hero() {
             <ArrowRight className="h-5 w-5" />
           </Link>
 
-          <a
-            href="#demo"
-            className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-8 py-4 text-lg font-medium text-white transition-colors hover:bg-white/10 sm:w-auto"
-          >
-            Watch Demo
-          </a>
+          <InstallButton />
         </motion.div>
       </div>
 

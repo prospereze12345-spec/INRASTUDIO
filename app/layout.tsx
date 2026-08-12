@@ -1,15 +1,43 @@
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import { Inter, Space_Grotesk } from 'next/font/google';
 import './globals.css';
-import {  Bebas_Neue, Playfair_Display, Poppins, Archivo_Black } from "next/font/google";
 
-const inter        = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const bebas        = Bebas_Neue({ subsets: ["latin"], weight: "400", variable: "--font-bebas" });
-const playfair     = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
-const poppins      = Poppins({ subsets: ["latin"], weight: ["400", "600", "700"], variable: "--font-poppins" });
-const archivoBlack = Archivo_Black({ subsets: ["latin"], weight: "400", variable: "--font-archivo" });
+import {
+  Bebas_Neue,
+  Playfair_Display,
+  Poppins,
+  Archivo_Black,
+} from 'next/font/google';
 
+import { PWAProvider } from '@/components/pwa/PWAProvider';
 
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+});
+
+const bebas = Bebas_Neue({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-bebas',
+});
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+});
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  variable: '--font-poppins',
+});
+
+const archivoBlack = Archivo_Black({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-archivo',
+});
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -18,19 +46,33 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: 'INRASTUDIO | African AI Marketing Studio',
-  description: 'Generate stunning AI Flyers, Captions, and Promo Videos.',
+  description:
+    'Generate stunning AI Flyers, Captions, and Promo Videos.',
+  manifest: '/manifest.webmanifest',
+  icons: {
+    icon: '/icons/icon-192.png',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
-export default function RootLayout({children}: {children: React.ReactNode}) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
-      <body className="bg-[#030712] text-slate-50 font-sans antialiased selection:bg-cyan-500 selection:text-white" suppressHydrationWarning>
-        {children}
+    <html
+      lang="en"
+      className={`${inter.variable} ${spaceGrotesk.variable}`}
+    >
+      <body
+        className="bg-[#030712] text-slate-50 font-sans antialiased selection:bg-cyan-500 selection:text-white"
+        suppressHydrationWarning
+      >
+        <PWAProvider>
+          {children}
+        </PWAProvider>
       </body>
     </html>
   );
 }
-
-  
-
-
