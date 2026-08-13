@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useMemo } from "react";
 import Image from "next/image";
@@ -225,7 +225,7 @@ function SmartCTA({
         onBlurEl={onBlurEl}
       />
 
-      <span className="ml-[2cqi] opacity-60">↗</span>
+      <span className="ml-[2cqi] opacity-60">â†—</span>
     </div>
   );
 }
@@ -549,8 +549,7 @@ function VariantDigitalAgency({
           <div className="mt-[5cqi]">
             <FeatureList
               features={parsed.features}
-              accentColor={colors.accent}
-              textColor={colors.secondary}
+              colors={colors}
               editable={editable}
               onUpdateFeature={(index, value) =>
                 onUpdate?.(
@@ -1026,8 +1025,7 @@ function VariantCleaningService({
           <div className="mt-[4cqi]">
             <FeatureList
               features={parsed.features}
-              accentColor={colors.accent}
-              textColor={colors.secondary}
+              colors={colors}
               editable={editable}
               onUpdateFeature={(index, value) =>
                 onUpdate?.(
@@ -1238,8 +1236,7 @@ function VariantOrganicDeal({
             <div className="mt-[3cqi]">
               <FeatureList
                 features={parsed.features}
-                accentColor={colors.accent}
-                textColor={colors.secondary}
+              colors={colors}
                 editable={editable}
                 onUpdateFeature={(index, value) =>
                   onUpdate?.(
@@ -1315,4 +1312,8 @@ function VariantOrganicDeal({
     </div>
   );
 }
+
+
+
+
 

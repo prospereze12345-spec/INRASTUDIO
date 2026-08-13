@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import {
   useState, useEffect, useRef, useCallback, Suspense, memo,
 } from "react";
@@ -18,14 +18,14 @@ import { loadJobResult, fetchJobById, ApiError } from "@/lib/campaign-api";
 import type { PlayerRef } from "@remotion/player";
 import { Logo } from "@/components/Logo";
 
-// â”€â”€â”€ Heavy / non-critical deps are code-split â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Heavy / non-critical deps are code-split ─────────────────────────────────
 const Player = dynamic(
   () => import("@remotion/player").then(m => m.Player),
   {
     ssr: false,
     loading: () => (
       <div className="w-full h-full flex items-center justify-center text-zinc-600 text-[11px]">
-        Loading previewâ€¦
+        Loading preview…
       </div>
     ),
   },
@@ -36,7 +36,7 @@ const PromoVideo = dynamic<PromoVideoProps>(
   { ssr: false },
 );
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Types ────────────────────────────────────────────────────────────────────
 import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
 import { SalePromotionTemplate } from "@/components/templates/SalePromotion";
 import { SleekFlyerTemplate as MinimalProductTemplate } from "@/components/templates/MinimalProduct";
@@ -167,7 +167,6 @@ type FlyerState = {
   website: string;
   phone: string;
   email: string;
-  address: string;
 
   features: string[];
   whyChooseUs: string[];
@@ -186,7 +185,6 @@ type FlyerState = {
   phoneVisible: boolean;
   emailVisible: boolean;
   websiteVisible: boolean;
-  addressVisible: boolean;
 
   productImage: string;
   logoImage: string | null;
@@ -208,7 +206,7 @@ type FlyerState = {
 
 type CanvasSize = { w: number; h: number };
 
-// â”€â”€â”€ Social format definitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Social format definitions ────────────────────────────────────────────────
 const SOCIAL_FORMATS = [
   { id: "ig",     label: "Instagram", icon: ImageIcon,    ratio: "4:5",  rw: 4,  rh: 5,  fps: 30, durationS: 12 },
   { id: "square", label: "Square",    icon: Square,       ratio: "1:1",  rw: 1,  rh: 1,  fps: 30, durationS: 12 },
@@ -233,7 +231,7 @@ function calcCanvasSize(
 }
 
 
-// â”€â”€â”€ Caption platform metadata â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Caption platform metadata ────────────────────────────────────────────────
 const PLATFORM_META: { key: keyof BackendCaptions; label: string; color: string }[] = [
   { key: "instagram", label: "Instagram", color: "text-pink-400"    },
   { key: "tiktok",    label: "TikTok",    color: "text-purple-400"  },
@@ -262,7 +260,7 @@ const MARKETING_FONTS = [
   { label: "Archivo Black",    value: "var(--font-archivo), sans-serif" },
 ];
 
-// â”€â”€â”€ Template themes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Template themes ──────────────────────────────────────────────────────────
 const TEMPLATE_THEMES = [
   { label: "Gold",      bg: "#0a0a0a", accent: "#c9a84c", text: "#ffffff" },
   { label: "Violet",    bg: "#0f0a1e", accent: "#a78bfa", text: "#ffffff" },
@@ -283,9 +281,9 @@ const COLOR_SWATCHES = [
   "#e07a5f", "#c9a84c", "#4a5d43", "#a78bfa", "#fca5a5",
 ];
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-//  EDITABLE â€” inline contenteditable
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ════════════════════════════════════════════════════════════════════════════
+//  EDITABLE — inline contenteditable
+// ════════════════════════════════════════════════════════════════════════════
 type EditableProps = {
   id: string;
   value: string;
@@ -329,9 +327,9 @@ function Editable({
   );
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-//  MOVABLE â€” drag + resize for overlays
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ════════════════════════════════════════════════════════════════════════════
+//  MOVABLE — drag + resize for overlays
+// ════════════════════════════════════════════════════════════════════════════
 type Transform = { x: number; y: number; scale: number };
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
@@ -433,7 +431,7 @@ function Movable({
                          flex items-center justify-center text-black shadow-lg cursor-grab touch-none"
               style={{ touchAction: "none" }}
             >
-              â ¿
+              ⠿
             </div>
           )}
           {onDelete && (
@@ -444,7 +442,7 @@ function Movable({
               className="absolute -top-3 -left-3 w-6 h-6 rounded-full bg-red-500 text-white text-[12px]
                          flex items-center justify-center shadow-lg touch-manipulation"
             >
-              âœ•
+              ✕
             </button>
           )}
           <div
@@ -461,9 +459,9 @@ function Movable({
   );
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-//  DISCOUNT BADGE â€” sunburst sticker
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ════════════════════════════════════════════════════════════════════════════
+//  DISCOUNT BADGE — sunburst sticker
+// ════════════════════════════════════════════════════════════════════════════
 type DiscountBadge = {
   visible: boolean;
   text: string;
@@ -542,9 +540,9 @@ function DiscountBadgeSticker({
   );
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ════════════════════════════════════════════════════════════════════════════
 //  FLOATING TEXT TOOLBAR (unchanged)
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ════════════════════════════════════════════════════════════════════════════
 function FloatingTextToolbar({ onClose }: { onClose: () => void }) {
   const [bold,   setBold]   = useState(false);
   const [italic, setItalic] = useState(false);
@@ -628,7 +626,7 @@ function FloatingTextToolbar({ onClose }: { onClose: () => void }) {
                    hover:bg-zinc-700 hover:text-white transition-colors touch-manipulation"
         title="Close"
       >
-        âœ•
+        ✕
       </button>
     </motion.div>
   );
@@ -645,9 +643,9 @@ function FtbBtn({ children, active, onClick }: { children: React.ReactNode; acti
 }
 function FtbSep() { return <div className="w-px h-4 bg-zinc-700 mx-0.5 shrink-0"/>; }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ════════════════════════════════════════════════════════════════════════════
 //  RIGHT SIDEBAR PANELS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ════════════════════════════════════════════════════════════════════════════
 
 const DesignPanel = memo(function DesignPanel({ data, onUpdate, onLogoUpload, badge, onBadgeChange }: {
   data: FlyerState;
@@ -742,7 +740,7 @@ const DesignPanel = memo(function DesignPanel({ data, onUpdate, onLogoUpload, ba
         <label className="flex flex-col items-center gap-1.5 border-[1.5px] border-dashed border-zinc-700
                           rounded-xl p-4 cursor-pointer hover:border-zinc-500 hover:bg-zinc-900/50 transition-all touch-manipulation">
           <UploadCloud size={18} className="text-zinc-500"/>
-          <span className="text-[11px] text-zinc-500 text-center">Upload logo â€” PNG recommended</span>
+          <span className="text-[11px] text-zinc-500 text-center">Upload logo — PNG recommended</span>
           <input type="file" accept="image/*" className="hidden"
             onChange={e => { const f = e.target.files?.[0]; if(f) onLogoUpload(f); }}/>
         </label>
@@ -755,7 +753,7 @@ const DesignPanel = memo(function DesignPanel({ data, onUpdate, onLogoUpload, ba
   );
 });
 
-// â”€â”€ Video panel â€” updated to accept overlays â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Video panel — updated to accept overlays ───────────────────────────────
 interface VideoPanelProps {
   flyer: FlyerState;
   activeFormatId: FormatId;
@@ -787,7 +785,7 @@ const VideoPanel = memo(function VideoPanel({
   const COMP_H = isWide ? Math.round(BASE * (fmt.rh / fmt.rw)) : BASE;
   const durationInFrames = fmt.fps * fmt.durationS;
 
-  // Extended promo props â€“ include overlays
+  // Extended promo props – include overlays
   const promoProps = {
     headline:     flyer.headline,
     subtext:      flyer.subtext,
@@ -927,7 +925,7 @@ const handleDownload = async () => {
   );
 });
 
-// â”€â”€ Captions panel (unchanged) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Captions panel (unchanged) ─────────────────────────────────────────────
 const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Caption[] }) {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -980,7 +978,7 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
   );
 });
 
-// â”€â”€â”€ Shared primitives â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Shared primitives ────────────────────────────────────────────────────────
 function Label({ children }: { children: React.ReactNode }) {
   return <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">{children}</p>;
 }
@@ -1011,7 +1009,6 @@ const EMPTY_FLYER_STATE: FlyerState = {
   phone: "",
   email: "",
   website: "",
-  address: "",
 
   features: [],
   whyChooseUs: [],
@@ -1022,7 +1019,6 @@ const EMPTY_FLYER_STATE: FlyerState = {
   phoneVisible: true,
   emailVisible: true,
   websiteVisible: true,
-  addressVisible: true,
 
   productImage: "",
   logoImage: null,
@@ -1036,6 +1032,7 @@ const EMPTY_FLYER_STATE: FlyerState = {
     accent: "#c9a84c",
   },
 };
+
 const VALID_CATEGORIES: FlyerState["templateCategory"][] = [
   "Luxury Product", "Sale Promotion", "Minimal Product", "Premium Brand",
 ];
@@ -1076,7 +1073,7 @@ function EditorContent() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [sheetExpanded, setSheetExpanded] = useState(false);
 
-  // â”€â”€â”€ Overlay states â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Overlay states ────────────────────────────────────────────────────
   const [logoOverlay, setLogoOverlay] = useState<{
     image: string | null;
     transform: Transform;
@@ -1122,7 +1119,7 @@ function EditorContent() {
   []
 );
 
-// NEW â€” features is an array, so it needs its own edit/add/remove handlers
+// NEW — features is an array, so it needs its own edit/add/remove handlers
 // rather than going through the generic `update` used for string fields.
 const updateFeature = useCallback((index: number, value: string) => {
   setFlyer(prev => {
@@ -1177,7 +1174,7 @@ const removeFeature = useCallback((index: number) => {
 
   const [pendingUploads, setPendingUploads] = useState(0);
 
-  // Handle image upload â€“ for logo, set overlay; for product, update flyer
+  // Handle image upload – for logo, set overlay; for product, update flyer
   const handleImageUpload = useCallback(
     async (file: File, field: "productImage" | "logoImage") => {
       if (!file) return;
@@ -1208,14 +1205,14 @@ const removeFeature = useCallback((index: number) => {
     [update]
   );
 
-  // â”€â”€â”€ Export logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Export logic ──────────────────────────────────────────────────────
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [exportingFormat, setExportingFormat] = useState<"png" | "jpg" | "pdf" | null>(null);
 
   const handleExportFlyer = async (format: "png" | "jpg" | "pdf") => {
     if (!flyerNodeRef.current) return;
     if (pendingUploads > 0) {
-      return setExportError("Still uploading your image â€” please wait a moment and try again.");
+      return setExportError("Still uploading your image — please wait a moment and try again.");
     }
 
     setExportingFormat(format);
@@ -1261,14 +1258,14 @@ const removeFeature = useCallback((index: number) => {
       console.error(err);
       setExportError(
         err instanceof Error
-          ? `${err.message} â€” this is usually a CORS issue with your product image.`
+          ? `${err.message} — this is usually a CORS issue with your product image.`
           : "Export failed."
       );
     } finally {
       setExportingFormat(null);
     }
   };
-// â”€â”€â”€ Load initial data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Load initial data ────────────────────────────────────────────────
 useEffect(() => {
   let cancelled = false;
 
@@ -1289,7 +1286,7 @@ useEffect(() => {
         if (cancelled) return;
 
         if (err instanceof ApiError && err.status === 401) {
-          // Genuinely logged out â€” send to login with a way back here.
+          // Genuinely logged out — send to login with a way back here.
           const redirect = encodeURIComponent(
             `${window.location.pathname}${window.location.search}`
           );
@@ -1297,7 +1294,7 @@ useEffect(() => {
           return;
         }
 
-        // Real failure (network blip, 404, 5xx) â€” don't silently bounce
+        // Real failure (network blip, 404, 5xx) — don't silently bounce
         // to /dashboard, which would then bounce to /login and look
         // identical to an auth failure from the user's perspective.
         console.error("Failed to load job", urlJobId, err);
@@ -1439,7 +1436,7 @@ if (result) {
 }, [router, searchParams]);
 
 
-  // â”€â”€â”€ Canvas size recalculation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Canvas size recalculation ────────────────────────────────────────
   useEffect(() => {
     const recalc = () => {
       if (!canvasWrapRef.current) return;
@@ -1492,7 +1489,7 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     return (
       <div className="h-[100dvh] w-screen bg-zinc-950 flex items-center justify-center
                       text-cyan-400 font-mono tracking-widest text-sm">
-        Loading your flyerâ€¦
+        Loading your flyer…
       </div>
     );
   }
@@ -1500,7 +1497,7 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
   return (
     <div className="h-[100dvh] w-screen bg-zinc-950 text-zinc-50 font-sans flex flex-col overflow-hidden overscroll-none">
 
-      {/* â”€â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ─── Header ──────────────────────────────────────────────────────── */}
       <header className="h-[52px] shrink-0 flex items-center justify-between gap-2 px-2 md:px-4
                          bg-[#111113] border-b border-zinc-800 z-40"
         style={{ paddingTop: "env(safe-area-inset-top)" }}>
@@ -1602,7 +1599,7 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         </div>
       )}
 
-      {/* â”€â”€â”€ Main area â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ─── Main area ──────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden relative">
 
         <aside className="hidden md:flex w-[52px] shrink-0 bg-[#111113] border-r border-zinc-800
@@ -1635,7 +1632,7 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
             onClick={handleCanvasClick}
           >
             <div ref={flyerNodeRef} className="relative" style={{ width: canvasSize.w, height: canvasSize.h }}>
-              {/* Template â€“ logo and badge are hidden */}
+              {/* Template – logo and badge are hidden */}
               <TemplateRenderer
   data={{ ...flyer, logoImage: null, badgeText: "" }}
   onUpdate={update}
@@ -1646,7 +1643,7 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
   onRemoveFeature={removeFeature}
 />
 
-              {/* â”€â”€â”€ Overlays â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+              {/* ─── Overlays ──────────────────────────────────────────────── */}
               {/* Logo */}
               {logoOverlay.image && (
                 <Movable
@@ -1901,22 +1898,13 @@ export default function FlyerEditor() {
     <Suspense fallback={
       <div className="h-[100dvh] w-screen bg-zinc-950 flex items-center justify-center
                       text-cyan-400 font-mono tracking-widest text-sm">
-        Loading editorâ€¦
+        Loading editor…
       </div>
     }>
       <EditorContent/>
     </Suspense>
   );
 }
-
-
-
-
-
-
-
-
-
 
 
 
