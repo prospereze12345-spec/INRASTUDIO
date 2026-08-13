@@ -1241,7 +1241,14 @@ if (result) {
                     : (result.flyer.feature_highlights && result.flyer.feature_highlights.length > 0)
                       ? result.flyer.feature_highlights
                       : prev.features,
-    })
+    }),
+    // NEW — these three were unconditional in the original version and got
+    // dropped. Without productImage, LuxuryProductTemplate's loading guard
+    // (`!props.productImage`) is permanently true, which is exactly the
+    // stuck "Loading template..." screen in your screenshot.
+    productImage:     result.png_url || prev.productImage,
+    templateVariant:  urlVariant  || result.flyer?.name || prev.templateVariant,
+    templateCategory: urlCategory || (result.template_category as FlyerState["templateCategory"]) || prev.templateCategory,
   }));
 
   if (result.captions) {
