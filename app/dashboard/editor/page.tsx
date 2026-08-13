@@ -1178,52 +1178,109 @@ useEffect(() => {
       router.push("/dashboard");
       return;
     }
-
 if (result) {
   setJobId(result.job_id || urlJobId || null);
-  setFlyer(prev => ({
-    ...prev,
-    ...(result.flyer && {
-      headline:   result.flyer.headline    || prev.headline,
-      subtext:    result.flyer.subheadline || result.flyer.subtext || prev.subtext,
-      ctaText:    result.flyer.cta         || result.flyer.ctaText || prev.ctaText,
-      badgeText:  result.flyer.badgeText   || prev.badgeText,
-      brandName:  result.flyer.brand_name  || result.flyer.brandName || prev.brandName,
-      price:      result.flyer.price_text  || prev.price,
-      colors:     result.flyer.colors      || prev.colors,
-      // NEW — matches flyer_builder.py's props.phone / props.features
-      phone:      result.flyer.phone       || prev.phone,
-      email:      result.flyer.email       || prev.email,
-      features:   (result.flyer.features && result.flyer.features.length > 0)
-                    ? result.flyer.features
-                    : (result.flyer.feature_highlights && result.flyer.feature_highlights.length > 0)
-                      ? result.flyer.feature_highlights
-                      : prev.features,
-    }),
 
-      if (result.captions) {
-        setCaptions(result.captions.map((c) => ({
-          platform: c.platform,
-          key:      c.platform.toLowerCase() as keyof BackendCaptions,
-          text:     c.text,
-          color:    PLATFORM_META.find(p => p.label.toLowerCase() === c.platform.toLowerCase())?.color || "text-zinc-400",
-        })));
-      }
-    } else if (urlVariant) {
-      setFlyer(prev => ({
-        ...prev,
-        templateVariant:  urlVariant,
-        templateCategory: urlCategory || prev.templateCategory,
-      }));
-    }
+  // ─────────────────────────────────────────────────────────────
+  // Update flyer data
+  // ─────────────────────────────────────────────────────────────
+  if (result.flyer) {
+    setFlyer((prev) => ({
+      ...prev,
 
-    setLoading(false);
+      headline:
+        result.flyer.headline ||
+        prev.headline,
+
+      subtext:
+        result.flyer.subheadline ||
+        result.flyer.subtext ||
+        prev.subtext,
+
+      ctaText:
+        result.flyer.cta ||
+        result.flyer.ctaText ||
+        prev.ctaText,
+
+      badgeText:
+        result.flyer.badgeText ||
+        prev.badgeText,
+
+      brandName:
+        result.flyer.brand_name ||
+        result.flyer.brandName ||
+        prev.brandName,
+
+      price:
+        result.flyer.price_text ||
+        prev.price,
+
+      colors:
+        result.flyer.colors ||
+        prev.colors,
+
+      // Contact information
+      phone:
+        result.flyer.phone ||
+        prev.phone,
+
+      email:
+        result.flyer.email ||
+        prev.email,
+
+      // Feature highlights
+      features:
+        result.flyer.features &&
+        result.flyer.features.length > 0
+          ? result.flyer.features
+          : result.flyer.feature_highlights &&
+              result.flyer.feature_highlights.length > 0
+            ? result.flyer.feature_highlights
+            : prev.features,
+    }));
   }
 
-  init();
-  return () => { cancelled = true; };
-}, [router, searchParams]);
+  // ─────────────────────────────────────────────────────────────
+  // Update generated social captions
+  // ─────────────────────────────────────────────────────────────
+  if (result.captions) {
+    setCaptions(
+      result.captions.map((c) => ({
+        platform: c.platform,
 
+        key:
+          c.platform.toLowerCase() as keyof BackendCaptions,
+
+        text: c.text,
+
+        color:
+          PLATFORM_META.find(
+            (p) =>
+              p.label.toLowerCase() ===
+              c.platform.toLowerCase()
+          )?.color || "text-zinc-400",
+      }))
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // If no flyer exists but a template variant was supplied,
+  // initialise the selected template.
+  // ─────────────────────────────────────────────────────────────
+  if (!result.flyer && urlVariant) {
+    setFlyer((prev) => ({
+      ...prev,
+
+      templateVariant: urlVariant,
+
+      templateCategory:
+        urlCategory ||
+        prev.templateCategory,
+    }));
+  }
+
+  setLoading(false);
+}
 
   // ─── Canvas size recalculation ────────────────────────────────────────
   useEffect(() => {
