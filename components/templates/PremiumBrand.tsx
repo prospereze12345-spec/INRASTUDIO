@@ -122,7 +122,16 @@ function BrandHeader({
   onFocusEl,
   onBlurEl,
   colors,
-}: PremiumBrandProps) {
+}: Pick<
+  PremiumBrandProps,
+  | "brandName"
+  | "website"
+  | "editable"
+  | "onUpdate"
+  | "onFocusEl"
+  | "onBlurEl"
+  | "colors"
+>) {
   return (
     <header className="flex items-center justify-between px-[6cqi] pt-[5cqi] relative z-20">
       <EditableText
@@ -246,7 +255,7 @@ function VariantGrandOpening({
   onBlurEl,
 }: PremiumBrandProps) {
   const parsed = useMemo(
-    () => parseFlyerContent({ badgeText, extraText }),
+    () => parseFlyerContent(badgeText, extraText),
     [badgeText, extraText]
   );
 
@@ -441,7 +450,7 @@ function VariantDigitalAgency({
   onBlurEl,
 }: PremiumBrandProps) {
   const parsed = useMemo(
-    () => parseFlyerContent({ badgeText, extraText }),
+    () => parseFlyerContent(badgeText, extraText),
     [badgeText, extraText]
   );
 
@@ -661,7 +670,7 @@ function VariantPremiumGold({
   onBlurEl,
 }: PremiumBrandProps) {
   const parsed = useMemo(
-    () => parseFlyerContent({ badgeText, extraText }),
+    () => parseFlyerContent(badgeText, extraText),
     [badgeText, extraText]
   );
 
@@ -871,7 +880,7 @@ function VariantCleaningService({
   onBlurEl,
 }: PremiumBrandProps) {
   const parsed = useMemo(
-    () => parseFlyerContent({ badgeText, extraText }),
+    () => parseFlyerContent(badgeText, extraText),
     [badgeText, extraText]
   );
 
@@ -1115,7 +1124,7 @@ function VariantOrganicDeal({
   onBlurEl,
 }: PremiumBrandProps) {
   const parsed = useMemo(
-    () => parseFlyerContent({ badgeText, extraText }),
+    () => parseFlyerContent(badgeText, extraText),
     [badgeText, extraText]
   );
 
@@ -1306,3 +1315,4 @@ function VariantOrganicDeal({
     </div>
   );
 }
+

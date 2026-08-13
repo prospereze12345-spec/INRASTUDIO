@@ -1,12 +1,12 @@
 "use client";
 
+import { EditableText } from "@/components/EditableText";
+
 import React from "react";
 import Image from "next/image";
 import { Phone, Mail, Globe, CheckCircle2, Plus, X } from "lucide-react";
 
-import { EditableText } from "@/components/EditableText";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
-import { Editable } from "@/components/editor/Editable";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    TYPES
@@ -168,14 +168,14 @@ export function FeatureList({
 
           {/* Editable feature text */}
           {editable ? (
-            <Editable
-              id={`feature-${index}`}
+            <EditableText
+              fieldId={`feature-${index}`}
               value={feature}
               onChange={(value) =>
                 onUpdateFeature?.(index, value)
               }
-              onFocus={onFocusEl}
-              onBlur={onBlurEl}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
               className="leading-snug"
               style={{
                 color: textColor,
@@ -306,12 +306,12 @@ function ContactItem({
 
       {/* Value */}
       {editable ? (
-        <Editable
-          id={id}
+        <EditableText
+          fieldId={id}
           value={value}
           onChange={(nextValue) => onChange?.(nextValue)}
-          onFocus={onFocusEl}
-          onBlur={onBlurEl}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
           className="leading-none"
           style={{
             color: textColor,
@@ -2136,3 +2136,6 @@ const VariantKoan = ({
     </div>
   </div>
 );
+
+
+

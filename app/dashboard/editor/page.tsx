@@ -41,22 +41,25 @@ import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
 import { SalePromotionTemplate } from "@/components/templates/SalePromotion";
 import { SleekFlyerTemplate as MinimalProductTemplate } from "@/components/templates/MinimalProduct";
 import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
-
 const TemplateRenderer = memo(function TemplateRenderer({
-  data, onUpdate, onElementFocus, onElementBlur,
-  onUpdateFeature, onAddFeature, onRemoveFeature,   // NEW
+  data,
+  onUpdate,
+  onElementFocus,
+  onElementBlur,
+  onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
 }: {
   data: FlyerState;
-  onUpdate: (k: keyof FlyerState, v: any) => void;
+  onUpdate: (field: string, value: any) => void;
   onElementFocus: (el: HTMLElement) => void;
   onElementBlur: () => void;
-  onUpdateFeature: (index: number, value: string) => void;  // NEW
-  onAddFeature: () => void;                                   // NEW
-  onRemoveFeature: (index: number) => void;                   // NEW
-}) {
 
-const shared = {
-  name: data.templateVariant,
+  onUpdateFeature: (index: number, value: string) => void;
+  onAddFeature: () => void;
+  onRemoveFeature: (index: number) => void;
+}) {
+  const shared = {
   headline: data.headline,
   ctaText: data.ctaText,
   productImage: data.productImage,
@@ -64,36 +67,63 @@ const shared = {
   website: data.website,
   price: data.price,
   colors: data.colors,
-  // NEW — these three feed the ContactBar + FeatureList components (Step 4)
-  phone: data.phone,
-  email: data.email,
-  features: data.features,
+
   editable: true,
-  onUpdate: onFieldUpdate,
+
+  onUpdate,
+
   onFocusEl: onElementFocus,
   onBlurEl: onElementBlur,
-  // NEW — array-item callbacks; onFieldUpdate only knows how to replace a
-  // whole field, not edit one array entry, so these are separate
-  onUpdateFeature: onUpdateFeature,
-  onAddFeature: onAddFeature,
-  onRemoveFeature: onRemoveFeature,
-} as const;
+
+  features: data.features,
+
+  onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
+};
 
   switch (data.templateCategory) {
     case "Luxury Product":
-      return <LuxuryProductTemplate {...shared} subtext={data.subtext} />;
+      return (
+        <LuxuryProductTemplate
+          {...shared}
+          subtext={data.subtext}
+        />
+      );
+
     case "Sale Promotion":
-      // Hide template badge – we use overlay
-      return <SalePromotionTemplate {...shared} subtext={data.subtext} badgeText="" />;
+      return (
+        <SalePromotionTemplate
+          {...shared}
+          subtext={data.subtext}
+          badgeText=""
+        />
+      );
+
     case "Minimal Product":
-      return <MinimalProductTemplate {...shared} subheadline={data.subtext} badge="" />;
+  return (
+    <MinimalProductTemplate
+      {...shared}
+    />
+  );
+
     case "Premium Brand":
-      return <PremiumBrandTemplate {...shared} subtext={data.subtext} badgeText="" />;
+      return (
+        <PremiumBrandTemplate
+          {...shared}
+          subtext={data.subtext}
+        />
+      );
+
     default:
-      return null;
+      return (
+        <LuxuryProductTemplate
+          {...shared}
+          subtext={data.subtext}
+        />
+      );
   }
 });
-
 type RsbTab     = "design" | "video" | "captions";
 type Tool       = "select" | "text";
 type ColorLayer = "bg" | "accent" | "text";
@@ -1014,9 +1044,22 @@ function EditorContent() {
 
   const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(null);
 
-  const update = useCallback((k: keyof FlyerState, v: any) => {
-  setFlyer(prev => ({ ...prev, [k]: v }));
-}, []);
+ const update = useCallback(
+  (field: string, value: any) => {
+    setFlyer(prev => {
+      if (!(field in prev)) {
+        console.warn(`Unknown flyer field: ${field}`);
+        return prev;
+      }
+
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
+  },
+  []
+);
 
 // NEW — features is an array, so it needs its own edit/add/remove handlers
 // rather than going through the generic `update` used for string fields.
@@ -1178,109 +1221,51 @@ useEffect(() => {
       router.push("/dashboard");
       return;
     }
+
 if (result) {
   setJobId(result.job_id || urlJobId || null);
+  setFlyer(prev => ({
+    ...prev,
+    ...(result.flyer && {
+      headline:   result.flyer.headline    || prev.headline,
+      subtext:    result.flyer.subheadline || result.flyer.subtext || prev.subtext,
+      ctaText:    result.flyer.cta         || result.flyer.ctaText || prev.ctaText,
+      badgeText:  result.flyer.badgeText   || prev.badgeText,
+      brandName:  result.flyer.brand_name  || result.flyer.brandName || prev.brandName,
+      price:      result.flyer.price_text  || prev.price,
+      colors:     result.flyer.colors      || prev.colors,
+      phone:      result.flyer.phone       || prev.phone,
+      email:      result.flyer.email       || prev.email,
+      features:   (result.flyer.features && result.flyer.features.length > 0)
+                    ? result.flyer.features
+                    : (result.flyer.feature_highlights && result.flyer.feature_highlights.length > 0)
+                      ? result.flyer.feature_highlights
+                      : prev.features,
+    })
+  }));
 
-  // ─────────────────────────────────────────────────────────────
-  // Update flyer data
-  // ─────────────────────────────────────────────────────────────
-  if (result.flyer) {
-    setFlyer((prev) => ({
-      ...prev,
-
-      headline:
-        result.flyer.headline ||
-        prev.headline,
-
-      subtext:
-        result.flyer.subheadline ||
-        result.flyer.subtext ||
-        prev.subtext,
-
-      ctaText:
-        result.flyer.cta ||
-        result.flyer.ctaText ||
-        prev.ctaText,
-
-      badgeText:
-        result.flyer.badgeText ||
-        prev.badgeText,
-
-      brandName:
-        result.flyer.brand_name ||
-        result.flyer.brandName ||
-        prev.brandName,
-
-      price:
-        result.flyer.price_text ||
-        prev.price,
-
-      colors:
-        result.flyer.colors ||
-        prev.colors,
-
-      // Contact information
-      phone:
-        result.flyer.phone ||
-        prev.phone,
-
-      email:
-        result.flyer.email ||
-        prev.email,
-
-      // Feature highlights
-      features:
-        result.flyer.features &&
-        result.flyer.features.length > 0
-          ? result.flyer.features
-          : result.flyer.feature_highlights &&
-              result.flyer.feature_highlights.length > 0
-            ? result.flyer.feature_highlights
-            : prev.features,
-    }));
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // Update generated social captions
-  // ─────────────────────────────────────────────────────────────
   if (result.captions) {
-    setCaptions(
-      result.captions.map((c) => ({
-        platform: c.platform,
-
-        key:
-          c.platform.toLowerCase() as keyof BackendCaptions,
-
-        text: c.text,
-
-        color:
-          PLATFORM_META.find(
-            (p) =>
-              p.label.toLowerCase() ===
-              c.platform.toLowerCase()
-          )?.color || "text-zinc-400",
-      }))
-    );
+    setCaptions(result.captions.map((c) => ({
+      platform: c.platform,
+      key:      c.platform.toLowerCase() as keyof BackendCaptions,
+      text:     c.text,
+      color:    PLATFORM_META.find(p => p.label.toLowerCase() === c.platform.toLowerCase())?.color || "text-zinc-400",
+    })));
   }
-
-  // ─────────────────────────────────────────────────────────────
-  // If no flyer exists but a template variant was supplied,
-  // initialise the selected template.
-  // ─────────────────────────────────────────────────────────────
-  if (!result.flyer && urlVariant) {
-    setFlyer((prev) => ({
-      ...prev,
-
-      templateVariant: urlVariant,
-
-      templateCategory:
-        urlCategory ||
-        prev.templateCategory,
-    }));
-  }
-
-  setLoading(false);
+} else if (urlVariant) {
+  setFlyer(prev => ({
+    ...prev,
+    templateVariant:  urlVariant,
+    templateCategory: urlCategory || prev.templateCategory,
+  }));
 }
+    setLoading(false);
+  }
+
+  init();
+  return () => { cancelled = true; };
+}, [router, searchParams]);
+
 
   // ─── Canvas size recalculation ────────────────────────────────────────
   useEffect(() => {
@@ -1751,6 +1736,8 @@ export default function FlyerEditor() {
     </Suspense>
   );
 }
+
+
 
 
 

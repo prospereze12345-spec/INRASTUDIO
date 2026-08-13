@@ -15,29 +15,43 @@ export interface Caption {
   platform: string;
   text: string;
 }
-
 export interface JobResultResponse {
   job_id: string;
   status: "done";
   png_url: string;
   captions: Caption[];
   video_url: string | null;
+
   flyer?: {
     headline?: string;
     subheadline?: string;
     subtext?: string;
+
     cta?: string;
     ctaText?: string;
     badgeText?: string;
+
     brand_name?: string;
     brandName?: string;
+
     price_text?: string;
     name?: string;
-    colors?: { primary: string; secondary: string; accent: string };
+
+    phone?: string;
+    email?: string;
+
+    features?: string[];
+    feature_highlights?: string[];
+
+    colors?: {
+      primary: string;
+      secondary: string;
+      accent: string;
+    };
   };
+
   template_category?: string;
 }
-
 // ─── 1. Create job (POST /api/campaign/generate/) ────────────────────────────
 export async function createCampaignJob(imageFile: File | Blob): Promise<JobCreatedResponse> {
   const form = new FormData();
