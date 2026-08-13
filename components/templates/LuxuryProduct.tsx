@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import { Phone, Mail, CheckCircle2 } from "lucide-react";
 import { EditableText } from "@/components/EditableText";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 
@@ -13,6 +14,8 @@ export interface LuxuryProductProps {
   brandName?: string;
   website?: string;
   phone?: string;
+  email?: string;        // NEW — same fact-provenance as phone, from Gemini analysis
+  features?: string[];   // NEW — short spec/highlight lines (e.g. "5G", "256GB", "AMOLED")
   extraText?: string;
   instagram?: string;
   tiktok?: string;
@@ -23,10 +26,90 @@ export interface LuxuryProductProps {
     accent: string;
   };
   editable?: boolean;
-  /** field is one of: brandName | headline | subtext | ctaText | website | price | instagram */
+  /** field is one of: brandName | headline | subtext | ctaText | website | phone | email | price | instagram */
   onUpdate?: (field: string, value: string) => void;
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
+  // NEW — features is an array, so it needs its own callbacks (mirrors the
+  // pattern used for freeTexts/logoOverlay arrays in the editor page)
+  onUpdateFeature?: (index: number, value: string) => void;
+  onAddFeature?: () => void;
+  onRemoveFeature?: (index: number) => void;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SHARED — feature highlights + contact row
+   Used across all 12 variants below. Sized in cqi so they scale with
+   the same container-query system as everything else in this file.
+───────────────────────────────────────────────────────────────── */
+type SharedBlockProps = Pick<LuxuryProductProps,
+  "editable" | "onUpdate" | "onFocusEl" | "onBlurEl" | "onUpdateFeature" | "onAddFeature" | "onRemoveFeature"
+>;
+
+function FeatureList({
+  features, colors, editable, onUpdateFeature, onFocusEl, onBlurEl,
+  className = "",
+}: SharedBlockProps & {
+  features?: string[];
+  colors: LuxuryProductProps["colors"];
+  className?: string;
+}) {
+  if (!features || features.length === 0) return null;
+  return (
+    <div className={`flex flex-wrap gap-x-[3cqi] gap-y-[1cqi] ${className}`}>
+      {features.map((feat, i) => (
+        <div key={i} className="flex items-center gap-[0.8cqi]">
+          <CheckCircle2 size="1.6cqi" style={{ color: colors.accent, width: "1.6cqi", height: "1.6cqi", flexShrink: 0 }} />
+          <EditableText as="span" fieldId={`f-feature-${i}`} editable={editable} value={feat}
+            onChange={v => onUpdateFeature?.(i, v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
+            className="text-[1.9cqi] tracking-wide opacity-75" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ContactRow({
+  phone, email, website, colors, editable, onUpdate, onFocusEl, onBlurEl,
+  align = "left", className = "",
+}: SharedBlockProps & {
+  phone?: string;
+  email?: string;
+  website?: string;
+  colors: LuxuryProductProps["colors"];
+  align?: "left" | "right";
+  className?: string;
+}) {
+  // Skip entirely in read-only mode if there's genuinely nothing to show —
+  // in edit mode we still render phone so the "default number, tap to
+  // edit" affordance is always available.
+  if (!editable && !phone && !email && !website) return null;
+
+  return (
+    <div className={`flex flex-wrap items-center gap-[2cqi] ${align === "right" ? "justify-end" : ""} ${className}`}>
+      {(editable || phone) && (
+        <div className="flex items-center gap-[0.6cqi]">
+          <Phone size="1.5cqi" style={{ color: colors.accent, width: "1.5cqi", height: "1.5cqi", flexShrink: 0 }} />
+          <EditableText as="span" fieldId="f-phone" editable={editable} value={phone ?? ""}
+            onChange={v => onUpdate?.("phone", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
+            className="text-[1.6cqi] opacity-40 tracking-widest" />
+        </div>
+      )}
+      {(editable || email) && (
+        <div className="flex items-center gap-[0.6cqi]">
+          <Mail size="1.5cqi" style={{ color: colors.accent, width: "1.5cqi", height: "1.5cqi", flexShrink: 0 }} />
+          <EditableText as="span" fieldId="f-email" editable={editable} value={email ?? ""}
+            onChange={v => onUpdate?.("email", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
+            className="text-[1.6cqi] opacity-40 tracking-widest" />
+        </div>
+      )}
+      {website !== undefined && (
+        <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
+          onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
+          className="text-[1.6cqi] opacity-25 tracking-widest" />
+      )}
+    </div>
+  );
 }
 
 export function LuxuryProductTemplate(props: LuxuryProductProps) {
@@ -711,3 +794,208 @@ const VariantBorcelleSkincare = ({
 );
 
 
+
+"use client";
+// ════════════════════════════════════════════════════════════════════════════
+//  FLYER CONTENT BLOCKS — feature list + contact bar with icon chips
+//
+//  Drop these two components into any of your four template files
+//  (LuxuryProduct.tsx, SalePromotion.tsx, MinimalProduct.tsx, PremiumBrand.tsx).
+//  They match the visual language of the two reference flyers: small
+//  circular icon badges next to each line, editable inline like your
+//  existing headline/subtext fields.
+//
+//  Both accept "editable" + update callbacks so they slot into the same
+//  contract your templates already use via the `shared` object.
+// ════════════════════════════════════════════════════════════════════════════
+import { Phone, Mail, Globe, CheckCircle2, Plus, X } from "lucide-react";
+
+// You already have this component in your editor file — import it from
+// wherever you export it from (e.g. "@/components/editor/Editable"),
+// or copy its definition into your templates folder if templates render
+// outside the editor bundle.
+import { Editable } from "@/components/editor/Editable"; // adjust path to match your project
+
+// ─── FEATURE LIST ───────────────────────────────────────────────────────────
+// Renders your "OUR SERVICES" / "WHY CHOOSE US" style bullet list.
+// Each line has a small check-circle icon, matches reference image 1.
+
+type FeatureListProps = {
+  features: string[];
+  accentColor: string;   // pass data.colors.accent
+  textColor: string;     // pass data.colors.secondary
+  editable?: boolean;
+  onUpdateFeature?: (index: number, value: string) => void;
+  onAddFeature?: () => void;
+  onRemoveFeature?: (index: number) => void;
+  onFocusEl?: (el: HTMLElement) => void;
+  onBlurEl?: () => void;
+};
+
+export function FeatureList({
+  features, accentColor, textColor, editable = false,
+  onUpdateFeature, onAddFeature, onRemoveFeature, onFocusEl, onBlurEl,
+}: FeatureListProps) {
+  if (!features || features.length === 0) return null;
+
+  return (
+    <div className="flex flex-col gap-2">
+      {features.map((feat, i) => (
+        <div key={i} className="flex items-center gap-2 group/feature">
+          <span
+            className="flex items-center justify-center rounded-full shrink-0"
+            style={{ width: 18, height: 18, background: `${accentColor}22` }}
+          >
+            <CheckCircle2 size={12} style={{ color: accentColor }} />
+          </span>
+
+          {editable ? (
+            <Editable
+              id={`feature-${i}`}
+              value={feat}
+              onChange={(v) => onUpdateFeature?.(i, v)}
+              onFocus={onFocusEl}
+              onBlur={onBlurEl}
+              className="text-[13px] leading-snug"
+              style={{ color: textColor, minWidth: 40 }}
+            />
+          ) : (
+            <span className="text-[13px] leading-snug" style={{ color: textColor }}>
+              {feat}
+            </span>
+          )}
+
+          {editable && onRemoveFeature && (
+            <button
+              onClick={() => onRemoveFeature(i)}
+              className="opacity-0 group-hover/feature:opacity-100 transition-opacity shrink-0"
+              title="Remove"
+            >
+              <X size={11} className="text-red-400" />
+            </button>
+          )}
+        </div>
+      ))}
+
+      {editable && onAddFeature && (
+        <button
+          onClick={onAddFeature}
+          className="flex items-center gap-1.5 text-[11px] mt-0.5 opacity-60 hover:opacity-100 transition-opacity"
+          style={{ color: textColor }}
+        >
+          <Plus size={12} /> Add line
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── CONTACT BAR ────────────────────────────────────────────────────────────
+// Renders phone / website / email each behind a small icon circle,
+// matching the "CONTACT US" row in both reference flyers. Any field
+// left empty is simply skipped — nothing renders as "undefined".
+
+type ContactBarProps = {
+  phone?: string;
+  website?: string;
+  email?: string;
+  accentColor: string;
+  textColor: string;
+  editable?: boolean;
+  onUpdatePhone?: (v: string) => void;
+  onUpdateWebsite?: (v: string) => void;
+  onUpdateEmail?: (v: string) => void;
+  onFocusEl?: (el: HTMLElement) => void;
+  onBlurEl?: () => void;
+};
+
+function ContactItem({
+  icon, value, editable, onChange, onFocusEl, onBlurEl, id, accentColor, textColor,
+}: {
+  icon: React.ReactNode;
+  value: string;
+  editable?: boolean;
+  onChange?: (v: string) => void;
+  onFocusEl?: (el: HTMLElement) => void;
+  onBlurEl?: () => void;
+  id: string;
+  accentColor: string;
+  textColor: string;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span
+        className="flex items-center justify-center rounded-full shrink-0"
+        style={{ width: 20, height: 20, background: accentColor }}
+      >
+        {icon}
+      </span>
+      {editable ? (
+        <Editable
+          id={id}
+          value={value}
+          onChange={(v) => onChange?.(v)}
+          onFocus={onFocusEl}
+          onBlur={onBlurEl}
+          className="text-[10px]"
+          style={{ color: textColor, minWidth: 30 }}
+        />
+      ) : (
+        <span className="text-[10px]" style={{ color: textColor }}>{value}</span>
+      )}
+    </div>
+  );
+}
+
+export function ContactBar({
+  phone, website, email, accentColor, textColor, editable = false,
+  onUpdatePhone, onUpdateWebsite, onUpdateEmail, onFocusEl, onBlurEl,
+}: ContactBarProps) {
+  const iconStyle = { color: "#fff" };
+  const hasAny = phone || website || email || editable;
+  if (!hasAny) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+      {(phone || editable) && (
+        <ContactItem
+          id="contact-phone"
+          icon={<Phone size={11} style={iconStyle} />}
+          value={phone || ""}
+          editable={editable}
+          onChange={onUpdatePhone}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          accentColor={accentColor}
+          textColor={textColor}
+        />
+      )}
+      {(website || editable) && (
+        <ContactItem
+          id="contact-website"
+          icon={<Globe size={11} style={iconStyle} />}
+          value={website || ""}
+          editable={editable}
+          onChange={onUpdateWebsite}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          accentColor={accentColor}
+          textColor={textColor}
+        />
+      )}
+      {(email || editable) && (
+        <ContactItem
+          id="contact-email"
+          icon={<Mail size={11} style={iconStyle} />}
+          value={email || ""}
+          editable={editable}
+          onChange={onUpdateEmail}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          accentColor={accentColor}
+          textColor={textColor}
+        />
+      )}
+    </div>
+  );
+}

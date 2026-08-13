@@ -44,30 +44,40 @@ import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
 
 const TemplateRenderer = memo(function TemplateRenderer({
   data, onUpdate, onElementFocus, onElementBlur,
+  onUpdateFeature, onAddFeature, onRemoveFeature,   // NEW
 }: {
   data: FlyerState;
   onUpdate: (k: keyof FlyerState, v: any) => void;
   onElementFocus: (el: HTMLElement) => void;
   onElementBlur: () => void;
+  onUpdateFeature: (index: number, value: string) => void;  // NEW
+  onAddFeature: () => void;                                   // NEW
+  onRemoveFeature: (index: number) => void;                   // NEW
 }) {
-  const onFieldUpdate = (field: string, value: string) => {
-    onUpdate(field as keyof FlyerState, value);
-  };
 
-  const shared = {
-    name: data.templateVariant,
-    headline: data.headline,
-    ctaText: data.ctaText,
-    productImage: data.productImage,
-    brandName: data.brandName,
-    website: data.website,
-    price: data.price,
-    colors: data.colors,
-    editable: true,
-    onUpdate: onFieldUpdate,
-    onFocusEl: onElementFocus,
-    onBlurEl: onElementBlur,
-  } as const;
+const shared = {
+  name: data.templateVariant,
+  headline: data.headline,
+  ctaText: data.ctaText,
+  productImage: data.productImage,
+  brandName: data.brandName,
+  website: data.website,
+  price: data.price,
+  colors: data.colors,
+  // NEW — these three feed the ContactBar + FeatureList components (Step 4)
+  phone: data.phone,
+  email: data.email,
+  features: data.features,
+  editable: true,
+  onUpdate: onFieldUpdate,
+  onFocusEl: onElementFocus,
+  onBlurEl: onElementBlur,
+  // NEW — array-item callbacks; onFieldUpdate only knows how to replace a
+  // whole field, not edit one array entry, so these are separate
+  onUpdateFeature: onUpdateFeature,
+  onAddFeature: onAddFeature,
+  onRemoveFeature: onRemoveFeature,
+} as const;
 
   switch (data.templateCategory) {
     case "Luxury Product":
@@ -102,7 +112,6 @@ type Caption = {
   text:     string;
   color:    string;
 };
-
 type FlyerState = {
   headline:         string;
   subtext:          string;
@@ -111,6 +120,9 @@ type FlyerState = {
   price:            string;
   brandName:        string;
   website:          string;
+  phone:            string;   // NEW — parsed from Gemini analysis, always editable
+  email:            string;   // NEW — same pattern as phone, optional in templates
+  features:         string[]; // NEW — parsed from feature_highlights / features
   productImage:     string;
   logoImage:        string | null;
   templateVariant:  string;
@@ -911,10 +923,6 @@ function ToolBtn({ children, active, label, onClick }: {
     </button>
   );
 }
-
-// ════════════════════════════════════════════════════════════════════════════
-//  MAIN EDITOR CONTENT
-// ════════════════════════════════════════════════════════════════════════════
 const EMPTY_FLYER_STATE: FlyerState = {
   headline:         "",
   subtext:          "",
@@ -923,6 +931,13 @@ const EMPTY_FLYER_STATE: FlyerState = {
   price:            "",
   brandName:        "",
   website:          "",
+  phone:            "+1 234 567 890",   // NEW — visible placeholder, user taps to edit/replace
+  email:            "",                 // NEW — left blank; ContactBar hides empty fields (see Step 4)
+  features: [                            // NEW — 3 placeholders so the list never renders empty
+    "Feature One",
+    "Feature Two",
+    "Feature Three",
+  ],
   productImage:     "",
   logoImage:        null,
   templateVariant:  "",
@@ -999,10 +1014,27 @@ function EditorContent() {
 
   const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(null);
 
-  // ─── Update functions ──────────────────────────────────────────────────
   const update = useCallback((k: keyof FlyerState, v: any) => {
-    setFlyer(prev => ({ ...prev, [k]: v }));
-  }, []);
+  setFlyer(prev => ({ ...prev, [k]: v }));
+}, []);
+
+// NEW — features is an array, so it needs its own edit/add/remove handlers
+// rather than going through the generic `update` used for string fields.
+const updateFeature = useCallback((index: number, value: string) => {
+  setFlyer(prev => {
+    const next = [...prev.features];
+    next[index] = value;
+    return { ...prev, features: next };
+  });
+}, []);
+
+const addFeature = useCallback(() => {
+  setFlyer(prev => ({ ...prev, features: [...prev.features, "New feature"] }));
+}, []);
+
+const removeFeature = useCallback((index: number) => {
+  setFlyer(prev => ({ ...prev, features: prev.features.filter((_, i) => i !== index) }));
+}, []);
 
   const [pendingUploads, setPendingUploads] = useState(0);
 
@@ -1147,23 +1179,27 @@ useEffect(() => {
       return;
     }
 
-    if (result) {
-      setJobId(result.job_id || urlJobId || null);
-      setFlyer(prev => ({
-        ...prev,
-        ...(result.flyer && {
-          headline:   result.flyer.headline    || prev.headline,
-          subtext:    result.flyer.subheadline || result.flyer.subtext || prev.subtext,
-          ctaText:    result.flyer.cta         || result.flyer.ctaText || prev.ctaText,
-          badgeText:  result.flyer.badgeText   || prev.badgeText,
-          brandName:  result.flyer.brand_name  || result.flyer.brandName || prev.brandName,
-          price:      result.flyer.price_text  || prev.price,
-          colors:     result.flyer.colors      || prev.colors,
-        }),
-        productImage: result.png_url || prev.productImage,
-        templateVariant:  urlVariant  || result.flyer?.name || prev.templateVariant,
-        templateCategory: urlCategory || (result.template_category as FlyerState["templateCategory"]) || prev.templateCategory,
-      }));
+if (result) {
+  setJobId(result.job_id || urlJobId || null);
+  setFlyer(prev => ({
+    ...prev,
+    ...(result.flyer && {
+      headline:   result.flyer.headline    || prev.headline,
+      subtext:    result.flyer.subheadline || result.flyer.subtext || prev.subtext,
+      ctaText:    result.flyer.cta         || result.flyer.ctaText || prev.ctaText,
+      badgeText:  result.flyer.badgeText   || prev.badgeText,
+      brandName:  result.flyer.brand_name  || result.flyer.brandName || prev.brandName,
+      price:      result.flyer.price_text  || prev.price,
+      colors:     result.flyer.colors      || prev.colors,
+      // NEW — matches flyer_builder.py's props.phone / props.features
+      phone:      result.flyer.phone       || prev.phone,
+      email:      result.flyer.email       || prev.email,
+      features:   (result.flyer.features && result.flyer.features.length > 0)
+                    ? result.flyer.features
+                    : (result.flyer.feature_highlights && result.flyer.feature_highlights.length > 0)
+                      ? result.flyer.feature_highlights
+                      : prev.features,
+    }),
 
       if (result.captions) {
         setCaptions(result.captions.map((c) => ({
@@ -1387,11 +1423,14 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
             <div ref={flyerNodeRef} className="relative" style={{ width: canvasSize.w, height: canvasSize.h }}>
               {/* Template – logo and badge are hidden */}
               <TemplateRenderer
-                data={{ ...flyer, logoImage: null, badgeText: "" }}
-                onUpdate={update}
-                onElementFocus={(el) => { setFocusedEl(el); setShowFtb(true); }}
-                onElementBlur={() => setTimeout(() => setShowFtb(false), 150)}
-              />
+  data={{ ...flyer, logoImage: null, badgeText: "" }}
+  onUpdate={update}
+  onElementFocus={(el) => { setFocusedEl(el); setShowFtb(true); }}
+  onElementBlur={() => setTimeout(() => setShowFtb(false), 150)}
+  onUpdateFeature={updateFeature}
+  onAddFeature={addFeature}
+  onRemoveFeature={removeFeature}
+/>
 
               {/* ─── Overlays ──────────────────────────────────────────────── */}
               {/* Logo */}
@@ -1655,4 +1694,13 @@ export default function FlyerEditor() {
     </Suspense>
   );
 }
+
+
+
+
+
+
+
+
+
 

@@ -1,469 +1,1308 @@
-import React from "react";
+"use client";
+
+import React, { useMemo } from "react";
 import Image from "next/image";
+import {
+  FeatureList,
+  ContactBar,
+  parseFlyerContent,
+} from "./FlyerContentBlocks";
+
 import { EditableText } from "@/components/EditableText";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 
 export interface PremiumBrandProps {
   name?: string;
+
   headline: string;
   subtext: string;
   ctaText: string;
+
   badgeText?: string;
   extraText?: string;
+
   productImage: string;
+
   brandName?: string;
   website?: string;
   price?: string;
+
+  phone?: string;
+  email?: string;
+
   colors: {
     primary: string;
     secondary: string;
     accent: string;
   };
-  /** When true, every text field renders as an in-place editable node wired to onUpdate. */
+
   editable?: boolean;
-  /** field is one of: brandName | headline | subtext | ctaText | badgeText | website | price */
+
   onUpdate?: (field: string, value: string) => void;
+
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
 }
 
+/* ============================================================================
+   SMALL DESIGN HELPERS
+============================================================================ */
+
+function hexToRgba(hex: string, alpha: number) {
+  if (!hex) return `rgba(0,0,0,${alpha})`;
+
+  const value = hex.replace("#", "");
+
+  if (value.length !== 6) {
+    return hex;
+  }
+
+  const r = parseInt(value.slice(0, 2), 16);
+  const g = parseInt(value.slice(2, 4), 16);
+  const b = parseInt(value.slice(4, 6), 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function safeText(value?: string) {
+  return value?.trim() || "";
+}
+
+/* ============================================================================
+   MAIN TEMPLATE
+============================================================================ */
+
 export function PremiumBrandTemplate(props: PremiumBrandProps) {
-  if (!props.headline || !props.productImage || !props.colors) {
+  const {
+    headline,
+    productImage,
+    colors,
+  } = props;
+
+  if (!headline || !productImage || !colors) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
+      <div className="w-full h-full flex items-center justify-center bg-neutral-100 text-neutral-400 text-sm">
         Loading template...
       </div>
     );
   }
-  const { name = "Grand Opening" } = props;
+
+  const name = props.name || "Grand Opening";
+
   switch (name) {
-    case "Grand Opening":    return <VariantGrandOpening   {...props} />;
-    case "Digital Agency":   return <VariantDigitalAgency  {...props} />;
-    case "Premium Gold":     return <VariantPremiumGold    {...props} />;
-    case "Cleaning Service": return <VariantCleaningService {...props} />;
-    case "Organic Deal":     return <VariantOrganicDeal    {...props} />;
-    default:                 return <VariantGrandOpening   {...props} />;
+    case "Grand Opening":
+      return <VariantGrandOpening {...props} />;
+
+    case "Digital Agency":
+      return <VariantDigitalAgency {...props} />;
+
+    case "Premium Gold":
+      return <VariantPremiumGold {...props} />;
+
+    case "Cleaning Service":
+      return <VariantCleaningService {...props} />;
+
+    case "Organic Deal":
+      return <VariantOrganicDeal {...props} />;
+
+    default:
+      return <VariantGrandOpening {...props} />;
   }
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   1. GRAND OPENING — bold announcement, full-bleed drama
-───────────────────────────────────────────────────────────────── */
-const VariantGrandOpening = ({
-  headline, subtext, ctaText, productImage, brandName, website, price, badgeText,
-  colors, editable, onUpdate, onFocusEl, onBlurEl,
-}: PremiumBrandProps) => (
-  <div className="@container w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+/* ============================================================================
+   SHARED HEADER
+============================================================================ */
 
-    <div className="absolute top-0 right-0 w-[70cqi] h-[70cqi] rounded-full pointer-events-none z-0"
-      style={{ background: `radial-gradient(circle, ${colors.accent}18 0%, transparent 70%)` }} />
+function BrandHeader({
+  brandName,
+  website,
+  editable,
+  onUpdate,
+  onFocusEl,
+  onBlurEl,
+  colors,
+}: PremiumBrandProps) {
+  return (
+    <header className="flex items-center justify-between px-[6cqi] pt-[5cqi] relative z-20">
+      <EditableText
+        as="p"
+        fieldId="f-brand"
+        editable={editable}
+        value={brandName ?? ""}
+        onChange={(v) => onUpdate?.("brandName", v)}
+        onFocusEl={onFocusEl}
+        onBlurEl={onBlurEl}
+        className="
+          text-[2.25cqi]
+          font-semibold
+          tracking-[0.18em]
+          uppercase
+          leading-none
+        "
+        style={{
+          color: colors.secondary,
+        }}
+      />
 
-    <div className="shrink-0 flex items-center justify-between px-[5cqi] pt-[4cqi] pb-[3cqi] z-10 relative">
-      <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
-        onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="text-[2.2cqi] font-black uppercase tracking-[0.35em]" />
-      <div className="flex items-center gap-[2cqi]">
-        <div className="w-[2cqi] h-[2cqi] rounded-full" style={{ backgroundColor: colors.accent }} />
-        <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
-          onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="text-[1.8cqi] opacity-30 tracking-widest uppercase" />
-      </div>
-    </div>
-
-    <div className="shrink-0 px-[5cqi] pb-[1cqi] z-10 relative">
-      <h1 className="font-black uppercase leading-[0.82] tracking-tighter" style={{ fontSize: '12cqi', color: colors.secondary }}>
-        <EditableHeadlineLines
-          value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          onChange={v => onUpdate?.("headline", v)}
-          renderLine={(line, i, node) => (
-            <span className="block" style={i % 2 === 1 ? { color: colors.accent } : {}}>{node}</span>
-          )}
+      {website && (
+        <EditableText
+          as="p"
+          fieldId="f-web"
+          editable={editable}
+          value={website}
+          onChange={(v) => onUpdate?.("website", v)}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          className="
+            text-[1.65cqi]
+            tracking-[0.08em]
+            leading-none
+            opacity-50
+          "
+          style={{
+            color: colors.secondary,
+          }}
         />
-      </h1>
+      )}
+    </header>
+  );
+}
+
+/* ============================================================================
+   CTA
+============================================================================ */
+
+function SmartCTA({
+  value,
+  editable,
+  onUpdate,
+  onFocusEl,
+  onBlurEl,
+  colors,
+  rounded = true,
+}: {
+  value: string;
+  editable?: boolean;
+  onUpdate?: (field: string, value: string) => void;
+  onFocusEl?: (el: HTMLElement) => void;
+  onBlurEl?: () => void;
+  colors: PremiumBrandProps["colors"];
+  rounded?: boolean;
+}) {
+  return (
+    <div
+      className={[
+        "inline-flex items-center",
+        "px-[4.5cqi] py-[2.4cqi]",
+        "text-[2.15cqi]",
+        "font-semibold",
+        "tracking-[0.08em]",
+        "uppercase",
+        rounded ? "rounded-full" : "",
+      ].join(" ")}
+      style={{
+        backgroundColor: colors.accent,
+        color: colors.primary,
+      }}
+    >
+      <EditableText
+        as="span"
+        fieldId="f-cta"
+        editable={editable}
+        value={value}
+        onChange={(v) => onUpdate?.("ctaText", v)}
+        onFocusEl={onFocusEl}
+        onBlurEl={onBlurEl}
+      />
+
+      <span className="ml-[2cqi] opacity-60">↗</span>
     </div>
+  );
+}
 
-    <div className="mx-[5cqi] h-[0.2cqi] z-10 relative shrink-0 my-[2cqi]"
-      style={{ backgroundColor: `${colors.secondary}15` }} />
+/* ============================================================================
+   1. GRAND OPENING
 
-    <div className="flex-1 relative z-10">
-      <Image src={productImage} alt="Product" fill
-        className="object-contain object-center"
-        crossOrigin="anonymous" />
-      <div className="absolute bottom-0 left-0 right-0 h-[35%]"
-        style={{ background: `linear-gradient(to top, ${colors.primary}, transparent)` }} />
-    </div>
+   Editorial / luxury launch style.
+============================================================================ */
 
-    <div className="shrink-0 px-[5cqi] pb-[4cqi] z-10 relative">
-      <div className="flex items-end justify-between">
-        <div>
-          {price !== undefined && price !== "" && (
-            <EditableText as="p" fieldId="f-price" editable={editable} value={price}
-              onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-              className="text-[8cqi] font-black leading-none" style={{ color: colors.accent }} />
-          )}
-          <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext}
-            onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="text-[2.2cqi] opacity-50 mt-[0.5cqi] max-w-[45cqi]" />
-        </div>
-        <div className="flex flex-col items-end gap-[1.5cqi]">
-          {badgeText && (
-            <EditableText as="div" fieldId="f-badge" editable={editable} value={badgeText.split('\n')[0]}
-              onChange={v => onUpdate?.("badgeText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-              className="px-[3cqi] py-[1cqi] text-[2cqi] font-black uppercase tracking-wider rounded-full"
-              style={{ backgroundColor: `${colors.accent}20`, color: colors.accent, border: `0.2cqi solid ${colors.accent}40` }} />
-          )}
-          <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
-            onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="px-[5cqi] py-[2.5cqi] text-[2.4cqi] font-black uppercase tracking-widest"
-            style={{ backgroundColor: colors.accent, color: colors.primary }} />
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-/* ─────────────────────────────────────────────────────────────────
-   2. DIGITAL AGENCY — tech-forward, asymmetric, confident
-───────────────────────────────────────────────────────────────── */
-const VariantDigitalAgency = ({
-  headline, subtext, ctaText, badgeText, extraText, productImage, brandName, website, price,
-  colors, editable, onUpdate, onFocusEl, onBlurEl,
-}: PremiumBrandProps) => {
-  const services = (badgeText ?? "").replace('Our Services\n', '').split('\n').filter(Boolean).slice(0, 4);
-
-  const setService = (i: number, v: string) => {
-    if (!onUpdate) return;
-    const all = (badgeText ?? "").split('\n');
-    // account for the stripped "Our Services" header line when present
-    const offset = (badgeText ?? "").startsWith('Our Services\n') ? 1 : 0;
-    all[i + offset] = v;
-    onUpdate("badgeText", all.join('\n'));
-  };
+function VariantGrandOpening({
+  headline,
+  subtext,
+  ctaText,
+  productImage,
+  brandName,
+  website,
+  price,
+  badgeText,
+  extraText,
+  phone,
+  email,
+  colors,
+  editable,
+  onUpdate,
+  onFocusEl,
+  onBlurEl,
+}: PremiumBrandProps) {
+  const parsed = useMemo(
+    () => parseFlyerContent({ badgeText, extraText }),
+    [badgeText, extraText]
+  );
 
   return (
-    <div className="@container w-full h-full relative overflow-hidden flex flex-col font-sans"
-      style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+    <div
+      className="@container w-full h-full overflow-hidden relative font-sans"
+      style={{
+        backgroundColor: colors.primary,
+        color: colors.secondary,
+      }}
+    >
+      {/* subtle editorial border */}
+      <div
+        className="absolute inset-[3cqi] pointer-events-none"
+        style={{
+          border: `1px solid ${hexToRgba(colors.secondary, 0.08)}`,
+        }}
+      />
 
-      {[0, 1, 2].map(i => (
-        <div key={i} className="absolute top-0 bottom-0 w-[0.8cqi] z-0"
-          style={{ right: `${(i + 1) * 4}cqi`, backgroundColor: colors.accent, opacity: 0.12 + i * 0.06 }} />
-      ))}
+      <BrandHeader
+        brandName={brandName}
+        website={website}
+        editable={editable}
+        onUpdate={onUpdate}
+        onFocusEl={onFocusEl}
+        onBlurEl={onBlurEl}
+        colors={colors}
+      />
 
-      <div className="shrink-0 flex items-center justify-between px-[5cqi] pt-[4cqi] pb-[3cqi] z-10 relative">
-        <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
-          onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="text-[2.4cqi] font-black uppercase tracking-[0.3em]" />
-        <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
-          onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="text-[1.8cqi] opacity-25 tracking-widest uppercase" />
-      </div>
+      {/* HERO */}
+      <main className="absolute inset-x-0 top-[14cqi] bottom-0">
+        {/* image */}
+        <div className="absolute inset-x-[5cqi] top-[8cqi] bottom-[23cqi] overflow-hidden">
+          <Image
+            src={productImage}
+            alt=""
+            fill
+            priority
+            crossOrigin="anonymous"
+            className="object-contain object-center"
+          />
 
-      <div className="flex-1 flex z-10 relative">
-        <div className="w-[55%] flex flex-col justify-between px-[5cqi] pb-[4cqi]">
-          <div>
-            <div className="flex items-center gap-[2cqi] mb-[2.5cqi]">
-              <div className="w-[4cqi] h-[0.2cqi]" style={{ backgroundColor: colors.accent }} />
-              <p className="text-[1.8cqi] tracking-[0.3em] uppercase opacity-40">Services</p>
-            </div>
-
-            <h1 className="text-[8.5cqi] font-black leading-[0.85] tracking-tighter uppercase mb-[3cqi]">
-              <EditableHeadlineLines
-                value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                onChange={v => onUpdate?.("headline", v)}
-                renderLine={(line, i, node) => (
-                  <span className="block" style={i === 1 ? { color: colors.accent } : {}}>{node}</span>
-                )}
-              />
-            </h1>
-
-            <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext}
-              onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-              className="text-[2.2cqi] leading-relaxed opacity-55 mb-[3cqi]" />
-
-            {badgeText && (
-              <div className="space-y-[1.5cqi]">
-                {services.map((item, i) => (
-                  <div key={i} className="flex items-center gap-[2cqi]">
-                    <div className="w-[1.5cqi] h-[1.5cqi] rounded-full shrink-0" style={{ backgroundColor: colors.accent }} />
-                    <EditableText as="p" fieldId={`f-service-${i}`} editable={editable} value={item}
-                      onChange={v => setService(i, v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                      className="text-[2.2cqi] font-medium opacity-70" />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div>
-            {price !== undefined && price !== "" && (
-              <EditableText as="p" fieldId="f-price" editable={editable} value={price}
-                onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                className="text-[6cqi] font-black leading-none mb-[2cqi]" style={{ color: colors.accent }} />
-            )}
-            <div className="inline-flex items-center gap-[2cqi] px-[4cqi] py-[2.5cqi] text-[2.4cqi] font-black uppercase tracking-widest"
-              style={{ backgroundColor: colors.accent, color: colors.primary }}>
-              <EditableText as="span" fieldId="f-cta" editable={editable} value={ctaText}
-                onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl} />
-              <span className="opacity-70">→</span>
-            </div>
-            {extraText && (
-              <p className="text-[1.8cqi] opacity-30 mt-[1.5cqi]">{extraText.split('\n')[0]}</p>
-            )}
-          </div>
+          {/* quiet fade */}
+          <div
+            className="absolute inset-x-0 bottom-0 h-[18%]"
+            style={{
+              background: `linear-gradient(
+                to top,
+                ${colors.primary},
+                transparent
+              )`,
+            }}
+          />
         </div>
 
-        <div className="w-[45%] relative">
-          <Image src={productImage} alt="Product" fill
-            className="object-cover object-center"
-            crossOrigin="anonymous" />
-          <div className="absolute inset-0"
-            style={{ background: `linear-gradient(to right, ${colors.primary} 0%, transparent 30%)` }} />
+        {/* headline */}
+        <div className="absolute left-[6cqi] right-[6cqi] top-0 z-10">
+          <p
+            className="text-[1.65cqi] uppercase tracking-[0.25em] mb-[2cqi] opacity-45"
+            style={{ color: colors.secondary }}
+          >
+            {parsed.kicker || "New"}
+          </p>
+
+          <h1
+            className="
+              font-semibold
+              uppercase
+              tracking-[-0.055em]
+              leading-[0.86]
+            "
+            style={{
+              fontSize: "10cqi",
+              color: colors.secondary,
+            }}
+          >
+            <EditableHeadlineLines
+              value={headline}
+              editable={editable}
+              onChange={(v) => onUpdate?.("headline", v)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              renderLine={(line, index, node) => (
+                <span
+                  className="block"
+                  style={
+                    index % 2 === 1
+                      ? { color: colors.accent }
+                      : undefined
+                  }
+                >
+                  {node}
+                </span>
+              )}
+            />
+          </h1>
+        </div>
+
+        {/* bottom information */}
+        <div className="absolute left-[6cqi] right-[6cqi] bottom-[5cqi] z-20">
+          <div className="flex items-end justify-between gap-[4cqi]">
+            <div className="max-w-[52%]">
+              {price && (
+                <EditableText
+                  as="p"
+                  fieldId="f-price"
+                  editable={editable}
+                  value={price}
+                  onChange={(v) => onUpdate?.("price", v)}
+                  onFocusEl={onFocusEl}
+                  onBlurEl={onBlurEl}
+                  className="
+                    font-semibold
+                    leading-none
+                    tracking-[-0.04em]
+                    text-[6.5cqi]
+                  "
+                  style={{ color: colors.accent }}
+                />
+              )}
+
+              <EditableText
+                as="p"
+                fieldId="f-sub"
+                editable={editable}
+                value={subtext}
+                onChange={(v) => onUpdate?.("subtext", v)}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                className="
+                  mt-[1cqi]
+                  text-[2cqi]
+                  leading-[1.35]
+                  opacity-55
+                "
+              />
+            </div>
+
+            <SmartCTA
+              value={ctaText}
+              editable={editable}
+              onUpdate={onUpdate}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              colors={colors}
+            />
+          </div>
+
+          <div className="mt-[3cqi]">
+            <ContactBar
+              phone={phone}
+              website={website}
+              email={email}
+              accentColor={colors.accent}
+              textColor={colors.secondary}
+              editable={editable}
+              onUpdatePhone={(v) => onUpdate?.("phone", v)}
+              onUpdateWebsite={(v) => onUpdate?.("website", v)}
+              onUpdateEmail={(v) => onUpdate?.("email", v)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+            />
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+/* ============================================================================
+   2. DIGITAL AGENCY
+
+   Modern Swiss / Apple editorial grid.
+============================================================================ */
+
+function VariantDigitalAgency({
+  headline,
+  subtext,
+  ctaText,
+  badgeText,
+  extraText,
+  productImage,
+  brandName,
+  website,
+  price,
+  phone,
+  email,
+  colors,
+  editable,
+  onUpdate,
+  onFocusEl,
+  onBlurEl,
+}: PremiumBrandProps) {
+  const parsed = useMemo(
+    () => parseFlyerContent({ badgeText, extraText }),
+    [badgeText, extraText]
+  );
+
+  return (
+    <div
+      className="@container w-full h-full relative overflow-hidden font-sans"
+      style={{
+        backgroundColor: colors.primary,
+        color: colors.secondary,
+      }}
+    >
+      <BrandHeader
+        brandName={brandName}
+        website={website}
+        editable={editable}
+        onUpdate={onUpdate}
+        onFocusEl={onFocusEl}
+        onBlurEl={onBlurEl}
+        colors={colors}
+      />
+
+      <div className="absolute left-[6cqi] right-[6cqi] top-[17cqi] bottom-[6cqi]">
+        {/* vertical grid */}
+        <div
+          className="absolute left-[58%] top-0 bottom-0 w-px"
+          style={{
+            backgroundColor: hexToRgba(colors.secondary, 0.08),
+          }}
+        />
+
+        {/* COPY */}
+        <section className="absolute left-0 top-0 w-[52%] pr-[5cqi]">
+          <div className="flex items-center gap-[1.5cqi] mb-[3cqi]">
+            <span
+              className="w-[3.5cqi] h-[1px]"
+              style={{ backgroundColor: colors.accent }}
+            />
+
+            <span
+              className="text-[1.65cqi] uppercase tracking-[0.25em] opacity-45"
+              style={{ color: colors.secondary }}
+            >
+              {parsed.kicker || "Services"}
+            </span>
+          </div>
+
+          <h1
+            className="
+              font-semibold
+              uppercase
+              tracking-[-0.055em]
+              leading-[0.88]
+            "
+            style={{
+              fontSize: "8.3cqi",
+            }}
+          >
+            <EditableHeadlineLines
+              value={headline}
+              editable={editable}
+              onChange={(v) => onUpdate?.("headline", v)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              renderLine={(line, index, node) => (
+                <span
+                  className="block"
+                  style={
+                    index === 1
+                      ? { color: colors.accent }
+                      : undefined
+                  }
+                >
+                  {node}
+                </span>
+              )}
+            />
+          </h1>
+
+          <EditableText
+            as="p"
+            fieldId="f-sub"
+            editable={editable}
+            value={subtext}
+            onChange={(v) => onUpdate?.("subtext", v)}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            className="
+              mt-[4cqi]
+              text-[2.15cqi]
+              leading-[1.45]
+              opacity-55
+              max-w-[85%]
+            "
+          />
+
+          <div className="mt-[5cqi]">
+            <FeatureList
+              features={parsed.features}
+              accentColor={colors.accent}
+              textColor={colors.secondary}
+              editable={editable}
+              onUpdateFeature={(index, value) =>
+                onUpdate?.(
+                  "badgeText",
+                  parsed.updateFeature(index, value)
+                )
+              }
+              onAddFeature={() => {
+                onUpdate?.(
+                  "badgeText",
+                  parsed.addFeature()
+                );
+              }}
+              onRemoveFeature={(index) => {
+                onUpdate?.(
+                  "badgeText",
+                  parsed.removeFeature(index)
+                );
+              }}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+            />
+          </div>
+
+          <div className="mt-[5cqi] flex items-end gap-[3cqi]">
+            {price && (
+              <EditableText
+                as="p"
+                fieldId="f-price"
+                editable={editable}
+                value={price}
+                onChange={(v) => onUpdate?.("price", v)}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                className="text-[5cqi] font-semibold tracking-tight"
+                style={{
+                  color: colors.accent,
+                }}
+              />
+            )}
+
+            <SmartCTA
+              value={ctaText}
+              editable={editable}
+              onUpdate={onUpdate}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              colors={colors}
+            />
+          </div>
+        </section>
+
+        {/* IMAGE */}
+        <section className="absolute right-0 top-0 bottom-[12%] w-[38%]">
+          <div className="absolute inset-[2cqi] overflow-hidden rounded-[2cqi]">
+            <Image
+              src={productImage}
+              alt=""
+              fill
+              priority
+              crossOrigin="anonymous"
+              className="object-cover"
+            />
+          </div>
+
+          <div
+            className="absolute -bottom-[2cqi] -left-[2cqi] w-[10cqi] h-[10cqi] rounded-full"
+            style={{
+              backgroundColor: colors.accent,
+              opacity: 0.9,
+            }}
+          />
+        </section>
+
+        <div className="absolute left-0 right-0 bottom-0">
+          <ContactBar
+            phone={phone}
+            website={website}
+            email={email}
+            accentColor={colors.accent}
+            textColor={colors.secondary}
+            editable={editable}
+            onUpdatePhone={(v) => onUpdate?.("phone", v)}
+            onUpdateWebsite={(v) => onUpdate?.("website", v)}
+            onUpdateEmail={(v) => onUpdate?.("email", v)}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+          />
         </div>
       </div>
     </div>
   );
-};
+}
 
-/* ─────────────────────────────────────────────────────────────────
-   3. PREMIUM GOLD — opulent, jewellery-store gravitas
-───────────────────────────────────────────────────────────────── */
-const VariantPremiumGold = ({
-  headline, subtext, ctaText, website, productImage, brandName, price,
-  colors, editable, onUpdate, onFocusEl, onBlurEl,
-}: PremiumBrandProps) => (
-  <div className="@container w-full h-full relative overflow-hidden flex flex-col font-sans"
-    style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+/* ============================================================================
+   3. PREMIUM GOLD
 
-    <div className="absolute inset-[3cqi] border-[0.2cqi] pointer-events-none z-20"
-      style={{ borderColor: `${colors.accent}40` }} />
+   High-end fashion / jewellery editorial.
+============================================================================ */
 
-    <div className="shrink-0 text-center pt-[6cqi] pb-[2cqi] z-10 relative">
-      <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
-        onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="text-[2cqi] tracking-[0.6em] uppercase font-medium opacity-40" />
-      <div className="flex items-center justify-center gap-[3cqi] mt-[1.5cqi]">
-        <div className="flex-1 h-[0.1cqi] max-w-[15cqi]" style={{ backgroundColor: `${colors.accent}50` }} />
-        <div className="w-[2cqi] h-[2cqi] rotate-45" style={{ backgroundColor: colors.accent, opacity: 0.5 }} />
-        <div className="flex-1 h-[0.1cqi] max-w-[15cqi]" style={{ backgroundColor: `${colors.accent}50` }} />
-      </div>
-    </div>
-
-    <div className="shrink-0 px-[7cqi] z-10 relative text-center">
-      <h1 className="text-[8cqi] font-black uppercase leading-[0.9] tracking-tight">
-        <EditableHeadlineLines
-          value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          onChange={v => onUpdate?.("headline", v)}
-          renderLine={(line, i, node) => (
-            <span className="block" style={i === 1 ? { color: colors.accent } : {}}>{node}</span>
-          )}
-        />
-      </h1>
-    </div>
-
-    <div className="flex-1 relative z-10 px-[5cqi] py-[2cqi]">
-      <Image src={productImage} alt="Product" fill
-        className="object-contain object-center"
-        crossOrigin="anonymous" />
-      <div className="absolute bottom-0 left-[20%] right-[20%] h-[30%] blur-[4cqi] z-0 rounded-full"
-        style={{ backgroundColor: colors.accent, opacity: 0.08 }} />
-    </div>
-
-    <div className="shrink-0 px-[6cqi] pb-[5cqi] z-10 relative">
-      <div className="flex items-center justify-center gap-[3cqi] mb-[2.5cqi]">
-        <div className="flex-1 h-[0.1cqi]" style={{ backgroundColor: `${colors.accent}30` }} />
-        <div className="w-[2cqi] h-[2cqi] rotate-45" style={{ backgroundColor: colors.accent, opacity: 0.4 }} />
-        <div className="flex-1 h-[0.1cqi]" style={{ backgroundColor: `${colors.accent}30` }} />
-      </div>
-      <div className="flex items-end justify-between">
-        <div>
-          {price !== undefined && price !== "" && (
-            <EditableText as="p" fieldId="f-price" editable={editable} value={price}
-              onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-              className="text-[7cqi] font-black leading-none" style={{ color: colors.accent }} />
-          )}
-          <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext}
-            onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="text-[2cqi] opacity-45 mt-[0.5cqi]" />
-        </div>
-        <div className="text-right">
-          <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
-            onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="inline-block px-[5cqi] py-[2.5cqi] text-[2.2cqi] font-black uppercase tracking-widest mb-[1cqi]"
-            style={{ backgroundColor: colors.accent, color: colors.primary }} />
-          <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
-            onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="text-[1.6cqi] opacity-20 tracking-widest uppercase" />
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-/* ─────────────────────────────────────────────────────────────────
-   4. CLEANING SERVICE — professional, trustworthy, clean grid
-───────────────────────────────────────────────────────────────── */
-const VariantCleaningService = ({
-  headline, subtext, badgeText, extraText, productImage, brandName, website, price, ctaText,
-  colors, editable, onUpdate, onFocusEl, onBlurEl,
-}: PremiumBrandProps) => {
-  const cleanedHeadline = headline.replace('PROFESSIONAL\n', '');
-  const services = (badgeText ?? "").replace('OUR SERVICES :\n\n', '').split('\n').filter(Boolean).slice(0, 4);
-
-  const setService = (i: number, v: string) => {
-    if (!onUpdate) return;
-    const all = (badgeText ?? "").split('\n');
-    const prefixLines = (badgeText ?? "").startsWith('OUR SERVICES :\n\n') ? 2 : 0;
-    all[i + prefixLines] = v;
-    onUpdate("badgeText", all.join('\n'));
-  };
+function VariantPremiumGold({
+  headline,
+  subtext,
+  ctaText,
+  website,
+  productImage,
+  brandName,
+  price,
+  badgeText,
+  extraText,
+  phone,
+  email,
+  colors,
+  editable,
+  onUpdate,
+  onFocusEl,
+  onBlurEl,
+}: PremiumBrandProps) {
+  const parsed = useMemo(
+    () => parseFlyerContent({ badgeText, extraText }),
+    [badgeText, extraText]
+  );
 
   return (
-    <div className="@container w-full h-full relative overflow-hidden flex flex-col font-sans"
-      style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+    <div
+      className="@container w-full h-full relative overflow-hidden font-serif"
+      style={{
+        backgroundColor: colors.primary,
+        color: colors.secondary,
+      }}
+    >
+      <div
+        className="absolute inset-[4cqi] pointer-events-none"
+        style={{
+          border: `1px solid ${hexToRgba(colors.accent, 0.35)}`,
+        }}
+      />
 
-      <div className="shrink-0 flex items-center justify-between px-[5cqi] py-[3cqi] z-10 relative"
-        style={{ backgroundColor: colors.accent }}>
-        <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
-          onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="text-[2.4cqi] font-black uppercase tracking-[0.3em]" style={{ color: colors.primary }} />
-        <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
-          onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="text-[1.8cqi] font-bold opacity-60 tracking-widest uppercase" style={{ color: colors.primary }} />
-      </div>
+      <header className="relative z-20 text-center pt-[7cqi]">
+        <EditableText
+          as="p"
+          fieldId="f-brand"
+          editable={editable}
+          value={brandName ?? ""}
+          onChange={(v) => onUpdate?.("brandName", v)}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          className="
+            text-[2.2cqi]
+            uppercase
+            tracking-[0.45em]
+            opacity-55
+          "
+        />
 
-      <div className="flex-1 flex z-10 relative">
-        <div className="w-[50%] flex flex-col justify-between px-[5cqi] py-[4cqi]">
-          <div>
-            <p className="text-[2cqi] tracking-[0.4em] uppercase opacity-40 mb-[2cqi]">Professional</p>
-            <h1 className="text-[9cqi] font-black uppercase leading-[0.85] tracking-tight mb-[3cqi]">
-              <EditableHeadlineLines
-                value={cleanedHeadline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                onChange={v => onUpdate?.("headline", v)}
-                renderLine={(line, i, node) => (
-                  <span className="block" style={i === 1 ? { color: colors.accent } : {}}>{node}</span>
-                )}
-              />
-            </h1>
-            <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext}
-              onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-              className="text-[2.2cqi] opacity-55 leading-relaxed mb-[3cqi]" />
+        <div className="flex justify-center items-center gap-[2cqi] mt-[2cqi]">
+          <span
+            className="w-[10cqi] h-px"
+            style={{
+              backgroundColor: hexToRgba(colors.accent, 0.4),
+            }}
+          />
 
-            {badgeText && (
-              <div className="space-y-[1.5cqi]">
-                <p className="text-[1.8cqi] tracking-[0.3em] uppercase opacity-40 mb-[1.5cqi]">What we do</p>
-                {services.map((s, i) => (
-                  <div key={i} className="flex items-center gap-[2cqi]">
-                    <div className="w-[1.5cqi] h-[1.5cqi] rounded-full shrink-0" style={{ backgroundColor: colors.accent }} />
-                    <EditableText as="p" fieldId={`f-service-${i}`} editable={editable} value={s}
-                      onChange={v => setService(i, v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                      className="text-[2.2cqi] font-medium opacity-65" />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <span
+            className="w-[0.9cqi] h-[0.9cqi] rotate-45"
+            style={{
+              backgroundColor: colors.accent,
+            }}
+          />
 
-          <div>
-            {price !== undefined && price !== "" && (
-              <EditableText as="p" fieldId="f-price" editable={editable} value={price}
-                onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                className="text-[6cqi] font-black leading-none mb-[2cqi]" style={{ color: colors.accent }} />
-            )}
-            <div className="inline-flex items-center gap-[2cqi] px-[4cqi] py-[2.5cqi] text-[2.4cqi] font-black uppercase tracking-widest"
-              style={{ backgroundColor: colors.accent, color: colors.primary }}>
-              <EditableText as="span" fieldId="f-cta" editable={editable} value={ctaText}
-                onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl} />
-              <span className="opacity-70">→</span>
-            </div>
-            {extraText && (
-              <p className="text-[1.8cqi] opacity-30 mt-[1.5cqi]">{extraText.split('\n')[0]}</p>
-            )}
-          </div>
+          <span
+            className="w-[10cqi] h-px"
+            style={{
+              backgroundColor: hexToRgba(colors.accent, 0.4),
+            }}
+          />
+        </div>
+      </header>
+
+      <div className="absolute inset-x-[8cqi] top-[20cqi] bottom-[6cqi]">
+        <div className="text-center relative z-20">
+          <h1
+            className="
+              font-medium
+              uppercase
+              tracking-[-0.04em]
+              leading-[0.9]
+            "
+            style={{
+              fontSize: "8cqi",
+            }}
+          >
+            <EditableHeadlineLines
+              value={headline}
+              editable={editable}
+              onChange={(v) => onUpdate?.("headline", v)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              renderLine={(line, index, node) => (
+                <span
+                  className="block"
+                  style={
+                    index === 1
+                      ? { color: colors.accent }
+                      : undefined
+                  }
+                >
+                  {node}
+                </span>
+              )}
+            />
+          </h1>
         </div>
 
-        <div className="w-[50%] relative">
-          <Image src={productImage} alt="Product" fill
-            className="object-cover object-center"
-            crossOrigin="anonymous" />
-          <div className="absolute inset-0"
-            style={{ background: `linear-gradient(to right, ${colors.primary} 0%, transparent 25%)` }} />
+        <div className="absolute inset-x-[8%] top-[15%] bottom-[22%]">
+          <Image
+            src={productImage}
+            alt=""
+            fill
+            priority
+            crossOrigin="anonymous"
+            className="object-contain"
+          />
+        </div>
+
+        <div className="absolute left-0 right-0 bottom-0">
+          <div
+            className="w-full h-px mb-[3cqi]"
+            style={{
+              backgroundColor: hexToRgba(colors.accent, 0.25),
+            }}
+          />
+
+          <div className="flex items-end justify-between">
+            <div className="max-w-[55%]">
+              {price && (
+                <EditableText
+                  as="p"
+                  fieldId="f-price"
+                  editable={editable}
+                  value={price}
+                  onChange={(v) => onUpdate?.("price", v)}
+                  onFocusEl={onFocusEl}
+                  onBlurEl={onBlurEl}
+                  className="
+                    text-[6.2cqi]
+                    font-medium
+                    leading-none
+                  "
+                  style={{
+                    color: colors.accent,
+                  }}
+                />
+              )}
+
+              <EditableText
+                as="p"
+                fieldId="f-sub"
+                editable={editable}
+                value={subtext}
+                onChange={(v) => onUpdate?.("subtext", v)}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                className="
+                  mt-[1cqi]
+                  text-[1.95cqi]
+                  leading-[1.4]
+                  opacity-50
+                "
+              />
+            </div>
+
+            <SmartCTA
+              value={ctaText}
+              editable={editable}
+              onUpdate={onUpdate}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              colors={colors}
+              rounded={false}
+            />
+          </div>
+
+          <div className="mt-[2.5cqi]">
+            <ContactBar
+              phone={phone}
+              website={website}
+              email={email}
+              accentColor={colors.accent}
+              textColor={colors.secondary}
+              editable={editable}
+              onUpdatePhone={(v) => onUpdate?.("phone", v)}
+              onUpdateWebsite={(v) => onUpdate?.("website", v)}
+              onUpdateEmail={(v) => onUpdate?.("email", v)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+            />
+          </div>
         </div>
       </div>
     </div>
   );
-};
+}
 
-/* ─────────────────────────────────────────────────────────────────
-   5. ORGANIC DEAL — natural, earthy, wellness brand
-───────────────────────────────────────────────────────────────── */
-const VariantOrganicDeal = ({
-  headline, subtext, ctaText, website, productImage, brandName, price,
-  colors, editable, onUpdate, onFocusEl, onBlurEl,
-}: PremiumBrandProps) => (
-  <div className="@container w-full h-full relative overflow-hidden flex flex-col font-sans"
-    style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+/* ============================================================================
+   4. CLEANING SERVICE
 
-    <div className="absolute top-[-10cqi] right-[-10cqi] w-[50cqi] h-[50cqi] rounded-full pointer-events-none z-0"
-      style={{ backgroundColor: colors.accent, opacity: 0.06 }} />
-    <div className="absolute bottom-[-5cqi] left-[-5cqi] w-[30cqi] h-[30cqi] rounded-full pointer-events-none z-0"
-      style={{ backgroundColor: colors.accent, opacity: 0.04 }} />
+   Clean corporate / hospitality layout.
+============================================================================ */
 
-    <div className="shrink-0 flex items-center justify-between px-[5cqi] pt-[4cqi] pb-[2cqi] z-10 relative">
-      <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
-        onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="text-[2.2cqi] font-black uppercase tracking-[0.35em]" />
-      <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
-        onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="text-[1.8cqi] opacity-25 tracking-widest uppercase" />
-    </div>
+function VariantCleaningService({
+  headline,
+  subtext,
+  badgeText,
+  extraText,
+  productImage,
+  brandName,
+  website,
+  price,
+  ctaText,
+  phone,
+  email,
+  colors,
+  editable,
+  onUpdate,
+  onFocusEl,
+  onBlurEl,
+}: PremiumBrandProps) {
+  const parsed = useMemo(
+    () => parseFlyerContent({ badgeText, extraText }),
+    [badgeText, extraText]
+  );
 
-    <div className="mx-[5cqi] h-[0.2cqi] shrink-0 z-10 relative"
-      style={{ backgroundColor: `${colors.secondary}15` }} />
+  return (
+    <div
+      className="@container w-full h-full relative overflow-hidden font-sans"
+      style={{
+        backgroundColor: colors.primary,
+        color: colors.secondary,
+      }}
+    >
+      {/* accent header */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[15cqi]"
+        style={{
+          backgroundColor: colors.accent,
+        }}
+      />
 
-    <div className="flex-1 relative z-10 px-[4cqi] pt-[2cqi]">
-      <Image src={productImage} alt="Product" fill
-        className="object-contain object-center"
-        crossOrigin="anonymous" />
-      <div className="absolute bottom-0 left-0 right-0 h-[40%]"
-        style={{ background: `linear-gradient(to top, ${colors.primary}, transparent)` }} />
-    </div>
+      <div className="relative z-10 px-[6cqi] pt-[5cqi]">
+        <div className="flex justify-between items-center">
+          <EditableText
+            as="p"
+            fieldId="f-brand"
+            editable={editable}
+            value={brandName ?? ""}
+            onChange={(v) => onUpdate?.("brandName", v)}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            className="
+              text-[2.25cqi]
+              font-bold
+              uppercase
+              tracking-[0.18em]
+            "
+            style={{
+              color: colors.primary,
+            }}
+          />
 
-    <div className="shrink-0 px-[5cqi] pb-[5cqi] z-10 relative">
-      <div className="flex items-center gap-[2cqi] mb-[2cqi]">
-        <div className="w-[4cqi] h-[0.2cqi]" style={{ backgroundColor: colors.accent }} />
-        <p className="text-[1.8cqi] tracking-[0.4em] uppercase opacity-40">{subtext.split(' ').slice(0, 3).join(' ')}</p>
+          {website && (
+            <EditableText
+              as="p"
+              fieldId="f-web"
+              editable={editable}
+              value={website}
+              onChange={(v) => onUpdate?.("website", v)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              className="text-[1.7cqi] opacity-65"
+              style={{
+                color: colors.primary,
+              }}
+            />
+          )}
+        </div>
       </div>
 
-      <h1 className="text-[8.5cqi] font-black uppercase leading-[0.85] tracking-tighter mb-[2.5cqi]">
-        <EditableHeadlineLines
-          value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          onChange={v => onUpdate?.("headline", v)}
-          renderLine={(line, i, node) => (
-            <span className="block" style={i === 1 ? { color: colors.accent } : {}}>{node}</span>
-          )}
-        />
-      </h1>
+      <div className="absolute inset-x-0 top-[15cqi] bottom-0">
+        {/* image */}
+        <div className="absolute right-0 top-0 bottom-0 w-[47%] overflow-hidden">
+          <Image
+            src={productImage}
+            alt=""
+            fill
+            priority
+            crossOrigin="anonymous"
+            className="object-cover"
+          />
 
-      <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext}
-        onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="text-[2.2cqi] opacity-50 leading-relaxed mb-[3cqi] max-w-[65cqi]" />
+          <div
+            className="absolute inset-y-0 left-0 w-[30%]"
+            style={{
+              background: `linear-gradient(
+                to right,
+                ${colors.primary},
+                transparent
+              )`,
+            }}
+          />
+        </div>
 
-      <div className="flex items-center justify-between">
-        {price !== undefined && price !== ""
-          ? <EditableText as="p" fieldId="f-price" editable={editable} value={price}
-              onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-              className="text-[6cqi] font-black leading-none" style={{ color: colors.accent }} />
-          : <div />
-        }
-        <div className="inline-flex items-center gap-[2cqi] px-[5cqi] py-[2.5cqi] text-[2.4cqi] font-black uppercase tracking-widest rounded-full"
-          style={{ backgroundColor: colors.accent, color: colors.primary }}>
-          <EditableText as="span" fieldId="f-cta" editable={editable} value={ctaText}
-            onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl} />
-          <span className="opacity-70">→</span>
+        {/* content */}
+        <div className="absolute left-[6cqi] top-[6cqi] w-[52%] bottom-[5cqi]">
+          <p
+            className="text-[1.7cqi] uppercase tracking-[0.28em] opacity-45 mb-[2.5cqi]"
+            style={{
+              color: colors.secondary,
+            }}
+          >
+            {parsed.kicker || "Professional service"}
+          </p>
+
+          <h1
+            className="
+              font-semibold
+              uppercase
+              tracking-[-0.05em]
+              leading-[0.88]
+            "
+            style={{
+              fontSize: "8.2cqi",
+            }}
+          >
+            <EditableHeadlineLines
+              value={headline}
+              editable={editable}
+              onChange={(v) => onUpdate?.("headline", v)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              renderLine={(line, index, node) => (
+                <span
+                  className="block"
+                  style={
+                    index === 1
+                      ? { color: colors.accent }
+                      : undefined
+                  }
+                >
+                  {node}
+                </span>
+              )}
+            />
+          </h1>
+
+          <EditableText
+            as="p"
+            fieldId="f-sub"
+            editable={editable}
+            value={subtext}
+            onChange={(v) => onUpdate?.("subtext", v)}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            className="
+              mt-[3.5cqi]
+              text-[2.1cqi]
+              leading-[1.45]
+              opacity-55
+              max-w-[85%]
+            "
+          />
+
+          <div className="mt-[4cqi]">
+            <FeatureList
+              features={parsed.features}
+              accentColor={colors.accent}
+              textColor={colors.secondary}
+              editable={editable}
+              onUpdateFeature={(index, value) =>
+                onUpdate?.(
+                  "badgeText",
+                  parsed.updateFeature(index, value)
+                )
+              }
+              onAddFeature={() =>
+                onUpdate?.("badgeText", parsed.addFeature())
+              }
+              onRemoveFeature={(index) =>
+                onUpdate?.(
+                  "badgeText",
+                  parsed.removeFeature(index)
+                )
+              }
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+            />
+          </div>
+
+          <div className="absolute bottom-0 left-0 right-0">
+            <div className="flex items-center justify-between">
+              {price && (
+                <EditableText
+                  as="p"
+                  fieldId="f-price"
+                  editable={editable}
+                  value={price}
+                  onChange={(v) => onUpdate?.("price", v)}
+                  onFocusEl={onFocusEl}
+                  onBlurEl={onBlurEl}
+                  className="text-[5cqi] font-semibold"
+                  style={{
+                    color: colors.accent,
+                  }}
+                />
+              )}
+
+              <SmartCTA
+                value={ctaText}
+                editable={editable}
+                onUpdate={onUpdate}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                colors={colors}
+              />
+            </div>
+
+            <div className="mt-[2.5cqi]">
+              <ContactBar
+                phone={phone}
+                website={website}
+                email={email}
+                accentColor={colors.accent}
+                textColor={colors.secondary}
+                editable={editable}
+                onUpdatePhone={(v) => onUpdate?.("phone", v)}
+                onUpdateWebsite={(v) => onUpdate?.("website", v)}
+                onUpdateEmail={(v) => onUpdate?.("email", v)}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+}
 
+/* ============================================================================
+   5. ORGANIC DEAL
 
+   Modern wellness / food / lifestyle.
+============================================================================ */
+
+function VariantOrganicDeal({
+  headline,
+  subtext,
+  ctaText,
+  website,
+  productImage,
+  brandName,
+  price,
+  badgeText,
+  extraText,
+  phone,
+  email,
+  colors,
+  editable,
+  onUpdate,
+  onFocusEl,
+  onBlurEl,
+}: PremiumBrandProps) {
+  const parsed = useMemo(
+    () => parseFlyerContent({ badgeText, extraText }),
+    [badgeText, extraText]
+  );
+
+  return (
+    <div
+      className="@container w-full h-full relative overflow-hidden font-sans"
+      style={{
+        backgroundColor: colors.primary,
+        color: colors.secondary,
+      }}
+    >
+      {/* organic shape */}
+      <div
+        className="absolute -right-[15cqi] -top-[12cqi] w-[55cqi] h-[55cqi] rounded-full"
+        style={{
+          backgroundColor: colors.accent,
+          opacity: 0.07,
+        }}
+      />
+
+      <BrandHeader
+        brandName={brandName}
+        website={website}
+        editable={editable}
+        onUpdate={onUpdate}
+        onFocusEl={onFocusEl}
+        onBlurEl={onBlurEl}
+        colors={colors}
+      />
+
+      <div className="absolute inset-x-[6cqi] top-[17cqi] bottom-[6cqi]">
+        {/* image */}
+        <div className="absolute right-0 top-0 w-[58%] h-[50%]">
+          <Image
+            src={productImage}
+            alt=""
+            fill
+            priority
+            crossOrigin="anonymous"
+            className="object-contain"
+          />
+        </div>
+
+        {/* headline */}
+        <div className="absolute left-0 top-[3cqi] w-[67%] z-10">
+          <p
+            className="text-[1.7cqi] uppercase tracking-[0.3em] opacity-45 mb-[2cqi]"
+            style={{
+              color: colors.secondary,
+            }}
+          >
+            {parsed.kicker || "Naturally better"}
+          </p>
+
+          <h1
+            className="
+              font-semibold
+              uppercase
+              tracking-[-0.055em]
+              leading-[0.88]
+            "
+            style={{
+              fontSize: "8.7cqi",
+            }}
+          >
+            <EditableHeadlineLines
+              value={headline}
+              editable={editable}
+              onChange={(v) => onUpdate?.("headline", v)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              renderLine={(line, index, node) => (
+                <span
+                  className="block"
+                  style={
+                    index === 1
+                      ? { color: colors.accent }
+                      : undefined
+                  }
+                >
+                  {node}
+                </span>
+              )}
+            />
+          </h1>
+        </div>
+
+        {/* bottom information */}
+        <div className="absolute left-0 right-0 bottom-0">
+          <div className="w-full h-px mb-[4cqi]" style={{
+            backgroundColor: hexToRgba(colors.secondary, 0.1),
+          }} />
+
+          <EditableText
+            as="p"
+            fieldId="f-sub"
+            editable={editable}
+            value={subtext}
+            onChange={(v) => onUpdate?.("subtext", v)}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            className="
+              text-[2.15cqi]
+              leading-[1.45]
+              opacity-55
+              max-w-[72%]
+            "
+          />
+
+          {parsed.features.length > 0 && (
+            <div className="mt-[3cqi]">
+              <FeatureList
+                features={parsed.features}
+                accentColor={colors.accent}
+                textColor={colors.secondary}
+                editable={editable}
+                onUpdateFeature={(index, value) =>
+                  onUpdate?.(
+                    "badgeText",
+                    parsed.updateFeature(index, value)
+                  )
+                }
+                onAddFeature={() =>
+                  onUpdate?.("badgeText", parsed.addFeature())
+                }
+                onRemoveFeature={(index) =>
+                  onUpdate?.(
+                    "badgeText",
+                    parsed.removeFeature(index)
+                  )
+                }
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+              />
+            </div>
+          )}
+
+          <div className="flex items-center justify-between mt-[4cqi]">
+            {price ? (
+              <EditableText
+                as="p"
+                fieldId="f-price"
+                editable={editable}
+                value={price}
+                onChange={(v) => onUpdate?.("price", v)}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                className="
+                  text-[5.5cqi]
+                  font-semibold
+                  tracking-[-0.03em]
+                "
+                style={{
+                  color: colors.accent,
+                }}
+              />
+            ) : (
+              <div />
+            )}
+
+            <SmartCTA
+              value={ctaText}
+              editable={editable}
+              onUpdate={onUpdate}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              colors={colors}
+            />
+          </div>
+
+          <div className="mt-[2.5cqi]">
+            <ContactBar
+              phone={phone}
+              website={website}
+              email={email}
+              accentColor={colors.accent}
+              textColor={colors.secondary}
+              editable={editable}
+              onUpdatePhone={(v) => onUpdate?.("phone", v)}
+              onUpdateWebsite={(v) => onUpdate?.("website", v)}
+              onUpdateEmail={(v) => onUpdate?.("email", v)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
