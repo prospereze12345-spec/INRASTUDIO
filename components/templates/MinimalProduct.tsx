@@ -87,6 +87,21 @@ export interface SleekFlyerProps {
 onUpdateWhyChooseUs?: (index: number, value: string) => void;
 onAddWhyChooseUs?: () => void;
 onRemoveWhyChooseUs?: (index: number) => void;
+
+featuresVisible?: boolean;
+whyChooseUsVisible?: boolean;
+phoneVisible?: boolean;
+emailVisible?: boolean;
+websiteVisible?: boolean;
+
+onRestoreFeatures?: () => void;
+onRestoreWhyChooseUs?: () => void;
+onRemovePhone?: () => void;
+onRemoveEmail?: () => void;
+onRemoveWebsite?: () => void;
+onRestorePhone?: () => void;
+onRestoreEmail?: () => void;
+onRestoreWebsite?: () => void;
 }
 
 
@@ -159,7 +174,19 @@ const VariantMonoSplit = ({
   onUpdateWebsite,
   onUpdateEmail,
   onUpdatePhone,
-
+  featuresVisible,
+  whyChooseUsVisible,
+  phoneVisible,
+  emailVisible,
+  websiteVisible,
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
   onFocusEl,
   onBlurEl,
 }: SleekFlyerProps) => (
@@ -319,25 +346,29 @@ const VariantMonoSplit = ({
 
         {/* Product features */}
         <FeatureList
-          features={features}
-          colors={colors}
-          editable={editable}
-          onUpdateFeature={onUpdateFeature}
-          onAddFeature={onAddFeature}
-          onRemoveFeature={onRemoveFeature}
-          onFocusEl={onFocusEl}
-          onBlurEl={onBlurEl}
-        />
+  features={features}
+  colors={colors}
+  editable={editable}
+  onUpdateFeature={onUpdateFeature}
+  onAddFeature={onAddFeature}
+  onRemoveFeature={onRemoveFeature}
+  onFocusEl={onFocusEl}
+  onBlurEl={onBlurEl}
+  visible={featuresVisible}
+  onRestoreSection={onRestoreFeatures}
+/>
         <WhyChooseUsList
-            items={whyChooseUs}
-            colors={colors}
-            editable={editable}
-            onUpdate={onUpdateWhyChooseUs}
-            onAdd={onAddWhyChooseUs}
-            onRemove={onRemoveWhyChooseUs}
-            onFocusEl={onFocusEl}
-            onBlurEl={onBlurEl}
-          />
+    items={whyChooseUs}
+    colors={colors}
+    editable={editable}
+    onUpdate={onUpdateWhyChooseUs}
+    onAdd={onAddWhyChooseUs}
+    onRemove={onRemoveWhyChooseUs}
+    onFocusEl={onFocusEl}
+    onBlurEl={onBlurEl}
+    visible={whyChooseUsVisible}
+    onRestoreSection={onRestoreWhyChooseUs}
+  />
 
         {/* Price */}
         {price !== undefined && price !== "" && (
@@ -424,18 +455,27 @@ const VariantMonoSplit = ({
 
         {/* Contact */}
         <ContactBar
-          phone={phone}
-          website={website}
-          email={email}
-          accentColor={colors.accent}
-          textColor={colors.secondary}
-          editable={editable}
-          onUpdatePhone={onUpdatePhone}
-          onUpdateWebsite={onUpdateWebsite}
-          onUpdateEmail={onUpdateEmail}
-          onFocusEl={onFocusEl}
-          onBlurEl={onBlurEl}
-        />
+  phone={phone}
+  website={website}
+  email={email}
+  accentColor={colors.accent}
+  textColor={colors.secondary}
+  editable={editable}
+  onUpdatePhone={onUpdatePhone}
+  onUpdateWebsite={onUpdateWebsite}
+  onUpdateEmail={onUpdateEmail}
+  onFocusEl={onFocusEl}
+  onBlurEl={onBlurEl}
+  phoneVisible={phoneVisible}
+  websiteVisible={websiteVisible}
+  emailVisible={emailVisible}
+  onRemovePhone={onRemovePhone}
+  onRemoveWebsite={onRemoveWebsite}
+  onRemoveEmail={onRemoveEmail}
+  onRestorePhone={onRestorePhone}
+  onRestoreWebsite={onRestoreWebsite}
+  onRestoreEmail={onRestoreEmail}
+/>
       </div>
     </div>
   </div>
@@ -478,7 +518,19 @@ const VariantEditorialArc = ({
   onUpdatePhone,
   onUpdateWebsite,
   onUpdateEmail,
-
+  featuresVisible,
+  whyChooseUsVisible,
+  phoneVisible,
+  emailVisible,
+  websiteVisible,
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
   onFocusEl,
   onBlurEl,
 }: SleekFlyerProps) => {
@@ -710,6 +762,8 @@ const VariantEditorialArc = ({
             onRemoveFeature={onRemoveFeature}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
+            visible={featuresVisible}
+onRestoreSection={onRestoreFeatures}
           />
               <WhyChooseUsList
       items={whyChooseUs}
@@ -720,6 +774,8 @@ const VariantEditorialArc = ({
       onRemove={onRemoveWhyChooseUs}
       onFocusEl={onFocusEl}
       onBlurEl={onBlurEl}
+      visible={whyChooseUsVisible}
+onRestoreSection={onRestoreWhyChooseUs}
     />
 
           {price !== undefined && price !== "" && (
@@ -788,6 +844,15 @@ const VariantEditorialArc = ({
             onUpdateEmail={onUpdateEmail}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
+            phoneVisible={phoneVisible}
+websiteVisible={websiteVisible}
+emailVisible={emailVisible}
+onRemovePhone={onRemovePhone}
+onRemoveWebsite={onRemoveWebsite}
+onRemoveEmail={onRemoveEmail}
+onRestorePhone={onRestorePhone}
+onRestoreWebsite={onRestoreWebsite}
+onRestoreEmail={onRestoreEmail}
           />
         </div>
       </div>
@@ -832,7 +897,19 @@ const VariantNegativeSpace = ({
   onUpdatePhone,
   onUpdateWebsite,
   onUpdateEmail,
-
+  featuresVisible,
+  whyChooseUsVisible,
+  phoneVisible,
+  emailVisible,
+  websiteVisible,
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
   onFocusEl,
   onBlurEl,
 }: SleekFlyerProps) => (
@@ -1032,6 +1109,8 @@ const VariantNegativeSpace = ({
               onRemoveFeature={onRemoveFeature}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
+              visible={featuresVisible}
+onRestoreSection={onRestoreFeatures}
             />
             <WhyChooseUsList
   items={whyChooseUs}
@@ -1042,6 +1121,8 @@ const VariantNegativeSpace = ({
   onRemove={onRemoveWhyChooseUs}
   onFocusEl={onFocusEl}
   onBlurEl={onBlurEl}
+  visible={whyChooseUsVisible}
+onRestoreSection={onRestoreWhyChooseUs}
 />
           </div>
         </div>
@@ -1110,6 +1191,15 @@ const VariantNegativeSpace = ({
             onUpdateEmail={onUpdateEmail}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
+            phoneVisible={phoneVisible}
+websiteVisible={websiteVisible}
+emailVisible={emailVisible}
+onRemovePhone={onRemovePhone}
+onRemoveWebsite={onRemoveWebsite}
+onRemoveEmail={onRemoveEmail}
+onRestorePhone={onRestorePhone}
+onRestoreWebsite={onRestoreWebsite}
+onRestoreEmail={onRestoreEmail}
           />
         </div>
       </div>
@@ -1153,7 +1243,19 @@ const VariantStudioGrid = ({
   onUpdatePhone,
   onUpdateWebsite,
   onUpdateEmail,
-
+featuresVisible,
+  whyChooseUsVisible,
+  phoneVisible,
+  emailVisible,
+  websiteVisible,
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
   onFocusEl,
   onBlurEl,
 }: SleekFlyerProps) => (
@@ -1396,6 +1498,8 @@ const VariantStudioGrid = ({
         onRemoveFeature={onRemoveFeature}
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
+        visible={featuresVisible}
+onRestoreSection={onRestoreFeatures}
       />
       <WhyChooseUsList
   items={whyChooseUs}
@@ -1406,6 +1510,8 @@ const VariantStudioGrid = ({
   onRemove={onRemoveWhyChooseUs}
   onFocusEl={onFocusEl}
   onBlurEl={onBlurEl}
+  visible={whyChooseUsVisible}
+onRestoreSection={onRestoreWhyChooseUs}
 />
 
       {/* Price */}
@@ -1483,6 +1589,15 @@ const VariantStudioGrid = ({
         onUpdateEmail={onUpdateEmail}
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
+        phoneVisible={phoneVisible}
+websiteVisible={websiteVisible}
+emailVisible={emailVisible}
+onRemovePhone={onRemovePhone}
+onRemoveWebsite={onRemoveWebsite}
+onRemoveEmail={onRemoveEmail}
+onRestorePhone={onRestorePhone}
+onRestoreWebsite={onRestoreWebsite}
+onRestoreEmail={onRestoreEmail}
       />
     </div>
   </div>
@@ -1525,7 +1640,19 @@ const VariantKoan = ({
   onUpdatePhone,
   onUpdateWebsite,
   onUpdateEmail,
-
+featuresVisible,
+  whyChooseUsVisible,
+  phoneVisible,
+  emailVisible,
+  websiteVisible,
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
   onFocusEl,
   onBlurEl,
 }: SleekFlyerProps) => (
@@ -1749,6 +1876,8 @@ const VariantKoan = ({
           onRemoveFeature={onRemoveFeature}
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
+          visible={featuresVisible}
+          onRestoreSection={onRestoreFeatures}
         />
         <WhyChooseUsList
   items={whyChooseUs}
@@ -1759,6 +1888,8 @@ const VariantKoan = ({
   onRemove={onRemoveWhyChooseUs}
   onFocusEl={onFocusEl}
   onBlurEl={onBlurEl}
+  visible={whyChooseUsVisible}
+onRestoreSection={onRestoreWhyChooseUs}
 />
       </div>
 
@@ -1829,6 +1960,15 @@ const VariantKoan = ({
         onUpdateEmail={onUpdateEmail}
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
+        phoneVisible={phoneVisible}
+websiteVisible={websiteVisible}
+emailVisible={emailVisible}
+onRemovePhone={onRemovePhone}
+onRemoveWebsite={onRemoveWebsite}
+onRemoveEmail={onRemoveEmail}
+onRestorePhone={onRestorePhone}
+onRestoreWebsite={onRestoreWebsite}
+onRestoreEmail={onRestoreEmail}
       />
     </div>
   </div>
