@@ -23,7 +23,7 @@ const Player = dynamic(
     ssr: false,
     loading: () => (
       <div className="w-full h-full flex items-center justify-center text-zinc-600 text-[11px]">
-        Loading previewâ€¦
+        Loading preview
       </div>
     ),
   },
