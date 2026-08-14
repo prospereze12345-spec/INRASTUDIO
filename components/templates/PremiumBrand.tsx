@@ -6,6 +6,8 @@ import {
   FeatureList,
   ContactBar,
   parseFlyerContent,
+  WhyChooseUsList,      // ← add
+
 } from "./FlyerContentBlocks";
 
 import { EditableText } from "@/components/EditableText";
@@ -42,6 +44,10 @@ export interface PremiumBrandProps {
 
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
+  whyChooseUs?: string[];
+onUpdateWhyChooseUs?: (index: number, value: string) => void;
+onAddWhyChooseUs?: () => void;
+onRemoveWhyChooseUs?: (index: number) => void;
 }
 
 /* ============================================================================
@@ -430,7 +436,6 @@ function VariantGrandOpening({
 
    Modern Swiss / Apple editorial grid.
 ============================================================================ */
-
 function VariantDigitalAgency({
   headline,
   subtext,
@@ -448,6 +453,10 @@ function VariantDigitalAgency({
   onUpdate,
   onFocusEl,
   onBlurEl,
+  whyChooseUs,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
 }: PremiumBrandProps) {
   const parsed = useMemo(
     () => parseFlyerContent(badgeText, extraText),
@@ -572,6 +581,17 @@ function VariantDigitalAgency({
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
             />
+            <WhyChooseUsList
+  items={whyChooseUs}
+  colors={colors}
+  editable={editable}
+  onUpdate={onUpdateWhyChooseUs}
+  onAdd={onAddWhyChooseUs}
+  onRemove={onRemoveWhyChooseUs}
+  onFocusEl={onFocusEl}
+  onBlurEl={onBlurEl}
+/>
+            
           </div>
 
           <div className="mt-[5cqi] flex items-end gap-[3cqi]">
@@ -589,6 +609,7 @@ function VariantDigitalAgency({
                   color: colors.accent,
                 }}
               />
+              
             )}
 
             <SmartCTA
@@ -599,6 +620,7 @@ function VariantDigitalAgency({
               onBlurEl={onBlurEl}
               colors={colors}
             />
+          
           </div>
         </section>
 
@@ -859,7 +881,6 @@ function VariantPremiumGold({
 
    Clean corporate / hospitality layout.
 ============================================================================ */
-
 function VariantCleaningService({
   headline,
   subtext,
@@ -877,6 +898,10 @@ function VariantCleaningService({
   onUpdate,
   onFocusEl,
   onBlurEl,
+  whyChooseUs,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
 }: PremiumBrandProps) {
   const parsed = useMemo(
     () => parseFlyerContent(badgeText, extraText),
@@ -1045,6 +1070,16 @@ function VariantCleaningService({
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
             />
+            <WhyChooseUsList
+  items={whyChooseUs}
+  colors={colors}
+  editable={editable}
+  onUpdate={onUpdateWhyChooseUs}
+  onAdd={onAddWhyChooseUs}
+  onRemove={onRemoveWhyChooseUs}
+  onFocusEl={onFocusEl}
+  onBlurEl={onBlurEl}
+/>
           </div>
 
           <div className="absolute bottom-0 left-0 right-0">
@@ -1120,6 +1155,10 @@ function VariantOrganicDeal({
   onUpdate,
   onFocusEl,
   onBlurEl,
+  whyChooseUs,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
 }: PremiumBrandProps) {
   const parsed = useMemo(
     () => parseFlyerContent(badgeText, extraText),
@@ -1256,6 +1295,16 @@ function VariantOrganicDeal({
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
               />
+              <WhyChooseUsList
+  items={whyChooseUs}
+  colors={colors}
+  editable={editable}
+  onUpdate={onUpdateWhyChooseUs}
+  onAdd={onAddWhyChooseUs}
+  onRemove={onRemoveWhyChooseUs}
+  onFocusEl={onFocusEl}
+  onBlurEl={onBlurEl}
+/>
             </div>
           )}
 

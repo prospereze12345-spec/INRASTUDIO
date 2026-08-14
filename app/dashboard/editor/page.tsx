@@ -4,21 +4,19 @@ import {
 } from "react";
 import type { PromoVideoProps } from "@/remotion/PromoVideo";
 import dynamic from "next/dynamic";
-
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ArrowLeft, Download, Pointer, Type, Palette,
-  Video, MessageSquare, Check, Copy, Bold, Italic,
-  AlignLeft, AlignCenter, AlignRight, Plus, Minus, Package,
+  Video, MessageSquare, Check, Copy, Bold, Italic,ListChecks,
+  AlignLeft, AlignCenter, AlignRight, Plus, Minus, Package,GripVertical,X,
   UploadCloud, Film, Square, Smartphone, Monitor, Image as ImageIcon, Loader2,
 } from "lucide-react";
 import { loadJobResult, fetchJobById, ApiError } from "@/lib/campaign-api";
 import type { PlayerRef } from "@remotion/player";
 import { Logo } from "@/components/Logo";
 
-// â”€â”€â”€ Heavy / non-critical deps are code-split â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const Player = dynamic(
   () => import("@remotion/player").then(m => m.Player),
   {
@@ -36,7 +34,6 @@ const PromoVideo = dynamic<PromoVideoProps>(
   { ssr: false },
 );
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
 import { SalePromotionTemplate } from "@/components/templates/SalePromotion";
 import { SleekFlyerTemplate as MinimalProductTemplate } from "@/components/templates/MinimalProduct";
@@ -49,7 +46,10 @@ const TemplateRenderer = memo(function TemplateRenderer({
   onUpdateFeature,
   onAddFeature,
   onRemoveFeature,
-}: {
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
+}:  {
   data: FlyerState;
   onUpdate: (field: string, value: any) => void;
   onElementFocus: (el: HTMLElement) => void;
@@ -58,6 +58,9 @@ const TemplateRenderer = memo(function TemplateRenderer({
   onUpdateFeature: (index: number, value: string) => void;
   onAddFeature: () => void;
   onRemoveFeature: (index: number) => void;
+  onUpdateWhyChooseUs: (index: number, value: string) => void;   // add
+  onAddWhyChooseUs: () => void;                                   // add
+  onRemoveWhyChooseUs: (index: number) => void;
 }) {
   const shared = {
   headline: data.headline,
@@ -93,6 +96,19 @@ const TemplateRenderer = memo(function TemplateRenderer({
   onUpdateFeature,
   onAddFeature,
   onRemoveFeature,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
+
+onRestoreFeatures:    () => onUpdate("featuresVisible", true),
+onRestoreWhyChooseUs: () => onUpdate("whyChooseUsVisible", true),
+
+onRemovePhone:    () => onUpdate("phoneVisible", false),
+onRemoveEmail:    () => onUpdate("emailVisible", false),
+onRemoveWebsite:  () => onUpdate("websiteVisible", false),
+onRestorePhone:   () => onUpdate("phoneVisible", true),
+onRestoreEmail:   () => onUpdate("emailVisible", true),
+onRestoreWebsite: () => onUpdate("websiteVisible", true),
 };
 
   switch (data.templateCategory) {
@@ -137,9 +153,9 @@ const TemplateRenderer = memo(function TemplateRenderer({
       );
   }
 });
-type RsbTab     = "design" | "video" | "captions";
 type Tool       = "select" | "text";
 type ColorLayer = "bg" | "accent" | "text";
+type RsbTab = "design" | "content" | "video" | "captions";
 
 type BackendCaptions = {
   instagram?: string;
@@ -433,8 +449,8 @@ function Movable({
                          flex items-center justify-center text-black shadow-lg cursor-grab touch-none"
               style={{ touchAction: "none" }}
             >
-              â ¿
-            </div>
+              <GripVertical size={14} />
+              </div>
           )}
           {onDelete && (
             <button
@@ -444,7 +460,7 @@ function Movable({
               className="absolute -top-3 -left-3 w-6 h-6 rounded-full bg-red-500 text-white text-[12px]
                          flex items-center justify-center shadow-lg touch-manipulation"
             >
-              âœ•
+             <X size={12} />
             </button>
           )}
           <div
@@ -628,7 +644,7 @@ function FloatingTextToolbar({ onClose }: { onClose: () => void }) {
                    hover:bg-zinc-700 hover:text-white transition-colors touch-manipulation"
         title="Close"
       >
-        âœ•
+        <X size={12} />
       </button>
     </motion.div>
   );
@@ -644,10 +660,6 @@ function FtbBtn({ children, active, onClick }: { children: React.ReactNode; acti
   );
 }
 function FtbSep() { return <div className="w-px h-4 bg-zinc-700 mx-0.5 shrink-0"/>; }
-
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-//  RIGHT SIDEBAR PANELS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const DesignPanel = memo(function DesignPanel({ data, onUpdate, onLogoUpload, badge, onBadgeChange }: {
   data: FlyerState;
@@ -755,7 +767,45 @@ const DesignPanel = memo(function DesignPanel({ data, onUpdate, onLogoUpload, ba
   );
 });
 
-// â”€â”€ Video panel â€” updated to accept overlays â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const ContentPanel = memo(function ContentPanel({
+  data, onUpdate,
+}: { data: FlyerState; onUpdate: (k: keyof FlyerState, v: any) => void }) {
+  return (
+    <div className="space-y-5">
+      <div>
+        <Label>Sections</Label>
+        <SectionToggle title="Features"      active={data.featuresVisible ?? true}    onToggle={v => onUpdate("featuresVisible", v)} />
+        <SectionToggle title="Why choose us" active={data.whyChooseUsVisible ?? true} onToggle={v => onUpdate("whyChooseUsVisible", v)} />
+      </div>
+      <Divider/>
+      <div>
+        <Label>Contact details</Label>
+        <SectionToggle title="Phone"   active={data.phoneVisible}   onToggle={v => onUpdate("phoneVisible", v)} />
+        <SectionToggle title="Email"   active={data.emailVisible}   onToggle={v => onUpdate("emailVisible", v)} />
+        <SectionToggle title="Website" active={data.websiteVisible} onToggle={v => onUpdate("websiteVisible", v)} />
+      </div>
+    </div>
+  );
+});
+
+function SectionToggle({ title, active, onToggle }: {
+  title: string; active: boolean; onToggle: (v: boolean) => void;
+}) {
+  return (
+    <button
+      onClick={() => onToggle(!active)}
+      className="w-full flex items-center justify-between px-3 py-3 rounded-lg bg-zinc-900
+                 border border-zinc-800 mb-2 touch-manipulation"
+    >
+      <span className="text-[13px] text-zinc-200">{title}</span>
+      <span className={`w-9 h-5 rounded-full relative transition-colors ${active ? "bg-cyan-400" : "bg-zinc-700"}`}>
+        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${active ? "left-[18px]" : "left-0.5"}`} />
+      </span>
+    </button>
+  );
+}
+
+
 interface VideoPanelProps {
   flyer: FlyerState;
   activeFormatId: FormatId;
@@ -927,7 +977,6 @@ const handleDownload = async () => {
   );
 });
 
-// â”€â”€ Captions panel (unchanged) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Caption[] }) {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -980,7 +1029,6 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
   );
 });
 
-// â”€â”€â”€ Shared primitives â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Label({ children }: { children: React.ReactNode }) {
   return <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">{children}</p>;
 }
@@ -1039,6 +1087,28 @@ const EMPTY_FLYER_STATE: FlyerState = {
 const VALID_CATEGORIES: FlyerState["templateCategory"][] = [
   "Luxury Product", "Sale Promotion", "Minimal Product", "Premium Brand",
 ];
+
+
+async function saveOrShareFile(blob: Blob, filename: string, mimeType: string) {
+  const file = new File([blob], filename, { type: mimeType });
+
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: filename });
+      return; // user got the native Save to Photos / Files / Share sheet
+    } catch {
+    }
+  }
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 async function uploadAsset(file: File): Promise<string> {
   const form = new FormData();
@@ -1208,7 +1278,6 @@ const removeFeature = useCallback((index: number) => {
     [update]
   );
 
-  // â”€â”€â”€ Export logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [exportingFormat, setExportingFormat] = useState<"png" | "jpg" | "pdf" | null>(null);
 
@@ -1226,19 +1295,14 @@ const removeFeature = useCallback((index: number) => {
       const { toPng, toJpeg } = await import("html-to-image");
       const snapshotOpts = { pixelRatio: 3, cacheBust: true };
 
-      if (format === "png" || format === "jpg") {
-        const dataUrl = format === "png"
-          ? await toPng(flyerNodeRef.current, snapshotOpts)
-          : await toJpeg(flyerNodeRef.current, { ...snapshotOpts, quality: 0.95, backgroundColor: "#ffffff" });
-
-        const a = document.createElement("a");
-        a.href = dataUrl;
-        a.download = `flyer-${Date.now()}.${format}`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        return;
-      }
+        if (format === "png" || format === "jpg") {
+  const dataUrl = format === "png"
+    ? await toPng(flyerNodeRef.current, snapshotOpts)
+    : await toJpeg(flyerNodeRef.current, { ...snapshotOpts, quality: 0.95, backgroundColor: "#ffffff" });
+  const blob = await (await fetch(dataUrl)).blob();
+  await saveOrShareFile(blob, `flyer-${Date.now()}.${format}`, blob.type);
+  return;
+}
 
       // PDF
       const [{ default: jsPDF }, dataUrl] = await Promise.all([
@@ -1248,14 +1312,18 @@ const removeFeature = useCallback((index: number) => {
       const img = new Image();
       img.src = dataUrl;
       await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+img.src = dataUrl;
+await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
 
-      const pdf = new jsPDF({
-        orientation: img.width >= img.height ? "landscape" : "portrait",
-        unit: "px",
-        format: [img.width, img.height],
-      });
-      pdf.addImage(dataUrl, "PNG", 0, 0, img.width, img.height);
-      pdf.save(`flyer-${Date.now()}.pdf`);
+const pdf = new jsPDF({
+  orientation: img.width >= img.height ? "landscape" : "portrait",
+  unit: "px",
+  format: [img.width, img.height],
+});
+pdf.addImage(dataUrl, "PNG", 0, 0, img.width, img.height);
+
+      const pdfBlob = pdf.output("blob");
+      await saveOrShareFile(pdfBlob, `flyer-${Date.now()}.pdf`, "application/pdf");
 
     } catch (err) {
       console.error(err);
@@ -1268,7 +1336,6 @@ const removeFeature = useCallback((index: number) => {
       setExportingFormat(null);
     }
   };
-// â”€â”€â”€ Load initial data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 useEffect(() => {
   let cancelled = false;
 
@@ -1484,6 +1551,7 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
 
   const TABS: { id: RsbTab; icon: React.ReactNode; label: string }[] = [
     { id: "design",   icon: <Palette size={16}/>,       label: "Design"   },
+    { id: "content", icon: <ListChecks size={16}/>, label: "Content" },
     { id: "video",    icon: <Video size={16}/>,         label: "Video"    },
     { id: "captions", icon: <MessageSquare size={16}/>, label: "Captions" },
   ];
@@ -1635,7 +1703,6 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
             onClick={handleCanvasClick}
           >
             <div ref={flyerNodeRef} className="relative" style={{ width: canvasSize.w, height: canvasSize.h }}>
-              {/* Template â€“ logo and badge are hidden */}
               <TemplateRenderer
   data={{ ...flyer, logoImage: null, badgeText: "" }}
   onUpdate={update}
@@ -1644,9 +1711,11 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
   onUpdateFeature={updateFeature}
   onAddFeature={addFeature}
   onRemoveFeature={removeFeature}
+  onUpdateWhyChooseUs={updateWhyChooseUs}
+  onAddWhyChooseUs= {addWhyChooseUs}                               // add
+  onRemoveWhyChooseUs={removeWhyChooseUs}
 />
 
-              {/* â”€â”€â”€ Overlays â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               {/* Logo */}
               {logoOverlay.image && (
                 <Movable
@@ -1875,6 +1944,7 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
                 {activeTab === "captions" && (
                   <CaptionsPanel captions={captions} />
                 )}
+                {activeTab === "content" && <ContentPanel data={flyer} onUpdate={update} />}
               </motion.div>
             </AnimatePresence>
           </div>

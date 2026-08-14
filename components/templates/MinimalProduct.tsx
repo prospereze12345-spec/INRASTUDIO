@@ -5,7 +5,7 @@ import { EditableText } from "@/components/EditableText";
 import React from "react";
 import Image from "next/image";
 import { Phone, Mail, Globe, CheckCircle2, Plus, X } from "lucide-react";
-
+import { FeatureList, ContactBar, WhyChooseUsList } from "./FlyerContentBlocks";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -83,6 +83,10 @@ export interface SleekFlyerProps {
 
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
+  whyChooseUs?: string[];
+onUpdateWhyChooseUs?: (index: number, value: string) => void;
+onAddWhyChooseUs?: () => void;
+onRemoveWhyChooseUs?: (index: number) => void;
 }
 
 
@@ -91,376 +95,6 @@ export interface SleekFlyerProps {
    Product-focused selling points / benefits.
 ═══════════════════════════════════════════════════════════════════════════ */
 
-interface FeatureListProps {
-  features?: string[];
-
-  accentColor: string;
-  textColor: string;
-
-  editable?: boolean;
-
-  onUpdateFeature?: (index: number, value: string) => void;
-  onAddFeature?: () => void;
-  onRemoveFeature?: (index: number) => void;
-
-  onFocusEl?: (el: HTMLElement) => void;
-  onBlurEl?: () => void;
-}
-
-export function FeatureList({
-  features = [],
-  accentColor,
-  textColor,
-  editable = false,
-  onUpdateFeature,
-  onAddFeature,
-  onRemoveFeature,
-  onFocusEl,
-  onBlurEl,
-}: FeatureListProps) {
-  /*
-   * If there are no features and we're not editing,
-   * don't reserve any space in the flyer.
-   *
-   * When editing, we still render the component so the
-   * user can add their first feature.
-   */
-  if (!features.length && !editable) {
-    return null;
-  }
-
-  return (
-    <div
-      className="flex flex-col"
-      style={{
-        gap: "1.1cqi",
-      }}
-    >
-      {features.map((feature, index) => (
-        <div
-          key={`feature-${index}`}
-          className="flex items-center group/feature"
-          style={{
-            gap: "1.2cqi",
-          }}
-        >
-          {/* Feature icon */}
-          <span
-            className="flex items-center justify-center rounded-full shrink-0"
-            style={{
-              width: "3.2cqi",
-              height: "3.2cqi",
-              minWidth: "14px",
-              minHeight: "14px",
-              backgroundColor: `${accentColor}22`,
-            }}
-          >
-            <CheckCircle2
-              style={{
-                width: "2cqi",
-                height: "2cqi",
-                minWidth: "9px",
-                minHeight: "9px",
-                color: accentColor,
-              }}
-            />
-          </span>
-
-          {/* Editable feature text */}
-          {editable ? (
-            <EditableText
-              fieldId={`feature-${index}`}
-              value={feature}
-              onChange={(value) =>
-                onUpdateFeature?.(index, value)
-              }
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-              className="leading-snug"
-              style={{
-                color: textColor,
-                fontSize: "1.9cqi",
-                lineHeight: 1.3,
-                minWidth: "40px",
-                flex: 1,
-              }}
-            />
-          ) : (
-            <span
-              className="leading-snug"
-              style={{
-                color: textColor,
-                fontSize: "1.9cqi",
-                lineHeight: 1.3,
-              }}
-            >
-              {feature}
-            </span>
-          )}
-
-          {/* Remove feature */}
-          {editable && onRemoveFeature && (
-            <button
-              type="button"
-              onClick={() => onRemoveFeature(index)}
-              className="opacity-0 group-hover/feature:opacity-100 transition-opacity shrink-0"
-              title="Remove feature"
-              aria-label={`Remove feature ${index + 1}`}
-            >
-              <X
-                style={{
-                  width: "1.8cqi",
-                  height: "1.8cqi",
-                  minWidth: "9px",
-                  minHeight: "9px",
-                }}
-                className="text-red-400"
-              />
-            </button>
-          )}
-        </div>
-      ))}
-
-      {/* Add feature */}
-      {editable && onAddFeature && (
-        <button
-          type="button"
-          onClick={onAddFeature}
-          className="flex items-center opacity-60 hover:opacity-100 transition-opacity"
-          style={{
-            gap: "0.5cqi",
-            fontSize: "1.6cqi",
-            color: textColor,
-            marginTop: "0.2cqi",
-          }}
-        >
-          <Plus
-            style={{
-              width: "1.8cqi",
-              height: "1.8cqi",
-              minWidth: "9px",
-              minHeight: "9px",
-            }}
-          />
-
-          Add feature
-        </button>
-      )}
-    </div>
-  );
-}
-
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   CONTACT ITEM
-═══════════════════════════════════════════════════════════════════════════ */
-
-interface ContactItemProps {
-  icon: React.ReactNode;
-  value: string;
-
-  editable?: boolean;
-
-  onChange?: (value: string) => void;
-
-  onFocusEl?: (el: HTMLElement) => void;
-  onBlurEl?: () => void;
-
-  id: string;
-
-  accentColor: string;
-  textColor: string;
-}
-
-function ContactItem({
-  icon,
-  value,
-  editable = false,
-  onChange,
-  onFocusEl,
-  onBlurEl,
-  id,
-  accentColor,
-  textColor,
-}: ContactItemProps) {
-  return (
-    <div
-      className="flex items-center shrink-0"
-      style={{
-        gap: "0.8cqi",
-      }}
-    >
-      {/* Icon */}
-      <span
-        className="flex items-center justify-center rounded-full shrink-0"
-        style={{
-          width: "3.2cqi",
-          height: "3.2cqi",
-          minWidth: "14px",
-          minHeight: "14px",
-          backgroundColor: accentColor,
-        }}
-      >
-        {icon}
-      </span>
-
-      {/* Value */}
-      {editable ? (
-        <EditableText
-          fieldId={id}
-          value={value}
-          onChange={(nextValue) => onChange?.(nextValue)}
-          onFocusEl={onFocusEl}
-          onBlurEl={onBlurEl}
-          className="leading-none"
-          style={{
-            color: textColor,
-            fontSize: "1.6cqi",
-            minWidth: "30px",
-          }}
-        />
-      ) : (
-        <span
-          className="leading-none"
-          style={{
-            color: textColor,
-            fontSize: "1.6cqi",
-          }}
-        >
-          {value}
-        </span>
-      )}
-    </div>
-  );
-}
-
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   CONTACT BAR
-═══════════════════════════════════════════════════════════════════════════ */
-
-interface ContactBarProps {
-  phone?: string;
-  website?: string;
-  email?: string;
-
-  accentColor: string;
-  textColor: string;
-
-  editable?: boolean;
-
-  onUpdatePhone?: (value: string) => void;
-  onUpdateWebsite?: (value: string) => void;
-  onUpdateEmail?: (value: string) => void;
-
-  onFocusEl?: (el: HTMLElement) => void;
-  onBlurEl?: () => void;
-}
-
-export function ContactBar({
-  phone,
-  website,
-  email,
-  accentColor,
-  textColor,
-  editable = false,
-  onUpdatePhone,
-  onUpdateWebsite,
-  onUpdateEmail,
-  onFocusEl,
-  onBlurEl,
-}: ContactBarProps) {
-  const hasAnyContact =
-    Boolean(phone) ||
-    Boolean(website) ||
-    Boolean(email);
-
-  /*
-   * Nothing to render when there are no contact fields
-   * and we're not in editing mode.
-   */
-  if (!hasAnyContact && !editable) {
-    return null;
-  }
-
-  const iconStyle = {
-    color: "#fff",
-  };
-
-  return (
-    <div
-      className="flex flex-wrap items-center"
-      style={{
-        gap: "1.8cqi",
-      }}
-    >
-      {/* Phone */}
-      {(phone || editable) && (
-        <ContactItem
-          id="contact-phone"
-          icon={
-            <Phone
-              size={11}
-              style={iconStyle}
-            />
-          }
-          value={phone || ""}
-          editable={editable}
-          onChange={onUpdatePhone}
-          onFocusEl={onFocusEl}
-          onBlurEl={onBlurEl}
-          accentColor={accentColor}
-          textColor={textColor}
-        />
-      )}
-
-      {/* Website */}
-      {(website || editable) && (
-        <ContactItem
-          id="contact-website"
-          icon={
-            <Globe
-              size={11}
-              style={iconStyle}
-            />
-          }
-          value={website || ""}
-          editable={editable}
-          onChange={onUpdateWebsite}
-          onFocusEl={onFocusEl}
-          onBlurEl={onBlurEl}
-          accentColor={accentColor}
-          textColor={textColor}
-        />
-      )}
-
-      {/* Email */}
-      {(email || editable) && (
-        <ContactItem
-          id="contact-email"
-          icon={
-            <Mail
-              size={11}
-              style={iconStyle}
-            />
-          }
-          value={email || ""}
-          editable={editable}
-          onChange={onUpdateEmail}
-          onFocusEl={onFocusEl}
-          onBlurEl={onBlurEl}
-          accentColor={accentColor}
-          textColor={textColor}
-        />
-      )}
-    </div>
-  );
-}
-
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   TEMPLATE ROUTER
-═══════════════════════════════════════════════════════════════════════════ */
 
 export function SleekFlyerTemplate(
   props: SleekFlyerProps
@@ -514,14 +148,17 @@ const VariantMonoSplit = ({
   editable,
 
   onUpdate,
-
   onUpdateFeature,
   onAddFeature,
   onRemoveFeature,
 
-  onUpdatePhone,
+  whyChooseUs,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
   onUpdateWebsite,
   onUpdateEmail,
+  onUpdatePhone,
 
   onFocusEl,
   onBlurEl,
@@ -683,8 +320,7 @@ const VariantMonoSplit = ({
         {/* Product features */}
         <FeatureList
           features={features}
-          accentColor={colors.accent}
-          textColor={colors.secondary}
+          colors={colors}
           editable={editable}
           onUpdateFeature={onUpdateFeature}
           onAddFeature={onAddFeature}
@@ -692,6 +328,16 @@ const VariantMonoSplit = ({
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
         />
+        <WhyChooseUsList
+            items={whyChooseUs}
+            colors={colors}
+            editable={editable}
+            onUpdate={onUpdateWhyChooseUs}
+            onAdd={onAddWhyChooseUs}
+            onRemove={onRemoveWhyChooseUs}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+          />
 
         {/* Price */}
         {price !== undefined && price !== "" && (
@@ -824,6 +470,10 @@ const VariantEditorialArc = ({
   onUpdateFeature,
   onAddFeature,
   onRemoveFeature,
+  whyChooseUs,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
 
   onUpdatePhone,
   onUpdateWebsite,
@@ -1053,8 +703,7 @@ const VariantEditorialArc = ({
           {/* Features */}
           <FeatureList
             features={features}
-            accentColor={colors.primary}
-            textColor={colors.primary}
+            colors={colors}
             editable={editable}
             onUpdateFeature={onUpdateFeature}
             onAddFeature={onAddFeature}
@@ -1062,6 +711,16 @@ const VariantEditorialArc = ({
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
           />
+              <WhyChooseUsList
+      items={whyChooseUs}
+      colors={colors}
+      editable={editable}
+      onUpdate={onUpdateWhyChooseUs}
+      onAdd={onAddWhyChooseUs}
+      onRemove={onRemoveWhyChooseUs}
+      onFocusEl={onFocusEl}
+      onBlurEl={onBlurEl}
+    />
 
           {price !== undefined && price !== "" && (
             <EditableText
@@ -1166,6 +825,10 @@ const VariantNegativeSpace = ({
   onAddFeature,
   onRemoveFeature,
 
+  whyChooseUs,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
   onUpdatePhone,
   onUpdateWebsite,
   onUpdateEmail,
@@ -1362,8 +1025,7 @@ const VariantNegativeSpace = ({
           >
             <FeatureList
               features={features}
-              accentColor={colors.accent}
-              textColor={colors.secondary}
+              colors={colors}
               editable={editable}
               onUpdateFeature={onUpdateFeature}
               onAddFeature={onAddFeature}
@@ -1371,6 +1033,16 @@ const VariantNegativeSpace = ({
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
             />
+            <WhyChooseUsList
+  items={whyChooseUs}
+  colors={colors}
+  editable={editable}
+  onUpdate={onUpdateWhyChooseUs}
+  onAdd={onAddWhyChooseUs}
+  onRemove={onRemoveWhyChooseUs}
+  onFocusEl={onFocusEl}
+  onBlurEl={onBlurEl}
+/>
           </div>
         </div>
 
@@ -1474,7 +1146,10 @@ const VariantStudioGrid = ({
   onUpdateFeature,
   onAddFeature,
   onRemoveFeature,
-
+  whyChooseUs,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
   onUpdatePhone,
   onUpdateWebsite,
   onUpdateEmail,
@@ -1714,8 +1389,7 @@ const VariantStudioGrid = ({
       {/* Features */}
       <FeatureList
         features={features}
-        accentColor={colors.accent}
-        textColor={colors.secondary}
+        colors={colors}
         editable={editable}
         onUpdateFeature={onUpdateFeature}
         onAddFeature={onAddFeature}
@@ -1723,6 +1397,16 @@ const VariantStudioGrid = ({
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
       />
+      <WhyChooseUsList
+  items={whyChooseUs}
+  colors={colors}
+  editable={editable}
+  onUpdate={onUpdateWhyChooseUs}
+  onAdd={onAddWhyChooseUs}
+  onRemove={onRemoveWhyChooseUs}
+  onFocusEl={onFocusEl}
+  onBlurEl={onBlurEl}
+/>
 
       {/* Price */}
       {price !== undefined && price !== "" && (
@@ -1833,7 +1517,11 @@ const VariantKoan = ({
   onUpdateFeature,
   onAddFeature,
   onRemoveFeature,
-
+  whyChooseUs,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
+  
   onUpdatePhone,
   onUpdateWebsite,
   onUpdateEmail,
@@ -2054,8 +1742,7 @@ const VariantKoan = ({
       >
         <FeatureList
           features={features}
-          accentColor={colors.accent}
-          textColor={colors.secondary}
+          colors={colors}
           editable={editable}
           onUpdateFeature={onUpdateFeature}
           onAddFeature={onAddFeature}
@@ -2063,6 +1750,16 @@ const VariantKoan = ({
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
         />
+        <WhyChooseUsList
+  items={whyChooseUs}
+  colors={colors}
+  editable={editable}
+  onUpdate={onUpdateWhyChooseUs}
+  onAdd={onAddWhyChooseUs}
+  onRemove={onRemoveWhyChooseUs}
+  onFocusEl={onFocusEl}
+  onBlurEl={onBlurEl}
+/>
       </div>
 
       {/* Price + CTA */}
