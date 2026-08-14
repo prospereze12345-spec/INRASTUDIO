@@ -58,8 +58,8 @@ const TemplateRenderer = memo(function TemplateRenderer({
   onUpdateFeature: (index: number, value: string) => void;
   onAddFeature: () => void;
   onRemoveFeature: (index: number) => void;
-  onUpdateWhyChooseUs: (index: number, value: string) => void;   // add
-  onAddWhyChooseUs: () => void;                                   // add
+  onUpdateWhyChooseUs: (index: number, value: string) => void;
+  onAddWhyChooseUs: () => void;
   onRemoveWhyChooseUs: (index: number) => void;
 }) {
   const shared = {
@@ -100,15 +100,16 @@ const TemplateRenderer = memo(function TemplateRenderer({
   onAddWhyChooseUs,
   onRemoveWhyChooseUs,
 
-onRestoreFeatures:    () => onUpdate("featuresVisible", true),
-onRestoreWhyChooseUs: () => onUpdate("whyChooseUsVisible", true),
-
-onRemovePhone:    () => onUpdate("phoneVisible", false),
-onRemoveEmail:    () => onUpdate("emailVisible", false),
-onRemoveWebsite:  () => onUpdate("websiteVisible", false),
-onRestorePhone:   () => onUpdate("phoneVisible", true),
-onRestoreEmail:   () => onUpdate("emailVisible", true),
-onRestoreWebsite: () => onUpdate("websiteVisible", true),
+  // FIX: Removed onRestoreFeatures / onRestoreWhyChooseUs / onRestorePhone /
+  // onRestoreEmail / onRestoreWebsite. These used to be passed unconditionally,
+  // which made FlyerContentBlocks render a "+ Add features section" / "+ Email"
+  // ghost chip on the canvas itself the moment a section was toggled off from
+  // the Content tab. Restoring a hidden section/field is now handled ONLY by
+  // the toggle switches in the Content panel (see ContentPanel below) - when a
+  // field is off, it is simply gone from the canvas, full stop.
+  onRemovePhone:    () => onUpdate("phoneVisible", false),
+  onRemoveEmail:    () => onUpdate("emailVisible", false),
+  onRemoveWebsite:  () => onUpdate("websiteVisible", false),
 };
 
   switch (data.templateCategory) {
@@ -191,7 +192,7 @@ type FlyerState = {
   featuresVisible?: boolean;
   whyChooseUsVisible?: boolean;
 
-  
+
   onUpdateWhyChooseUs?: (
     index: number,
     value: string
@@ -224,7 +225,7 @@ type FlyerState = {
 
 type CanvasSize = { w: number; h: number };
 
-// â”€â”€â”€ Social format definitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Social format definitions --------------------------------------------
 const SOCIAL_FORMATS = [
   { id: "ig",     label: "Instagram", icon: ImageIcon,    ratio: "4:5",  rw: 4,  rh: 5,  fps: 30, durationS: 12 },
   { id: "square", label: "Square",    icon: Square,       ratio: "1:1",  rw: 1,  rh: 1,  fps: 30, durationS: 12 },
@@ -249,7 +250,7 @@ function calcCanvasSize(
 }
 
 
-// â”€â”€â”€ Caption platform metadata â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Caption platform metadata ---------------------------------------------
 const PLATFORM_META: { key: keyof BackendCaptions; label: string; color: string }[] = [
   { key: "instagram", label: "Instagram", color: "text-pink-400"    },
   { key: "tiktok",    label: "TikTok",    color: "text-purple-400"  },
@@ -278,7 +279,7 @@ const MARKETING_FONTS = [
   { label: "Archivo Black",    value: "var(--font-archivo), sans-serif" },
 ];
 
-// â”€â”€â”€ Template themes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Template themes ---------------------------------------------------
 const TEMPLATE_THEMES = [
   { label: "Gold",      bg: "#0a0a0a", accent: "#c9a84c", text: "#ffffff" },
   { label: "Violet",    bg: "#0f0a1e", accent: "#a78bfa", text: "#ffffff" },
@@ -299,9 +300,9 @@ const COLOR_SWATCHES = [
   "#e07a5f", "#c9a84c", "#4a5d43", "#a78bfa", "#fca5a5",
 ];
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-//  EDITABLE â€” inline contenteditable
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// =============================================================================
+//  EDITABLE - inline contenteditable
+// =============================================================================
 type EditableProps = {
   id: string;
   value: string;
@@ -345,9 +346,9 @@ function Editable({
   );
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-//  MOVABLE â€” drag + resize for overlays
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// =============================================================================
+//  MOVABLE - drag + resize for overlays
+// =============================================================================
 type Transform = { x: number; y: number; scale: number };
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
@@ -477,9 +478,9 @@ function Movable({
   );
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-//  DISCOUNT BADGE â€” sunburst sticker
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// =============================================================================
+//  DISCOUNT BADGE - sunburst sticker
+// =============================================================================
 type DiscountBadge = {
   visible: boolean;
   text: string;
@@ -558,9 +559,9 @@ function DiscountBadgeSticker({
   );
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// =============================================================================
 //  FLOATING TEXT TOOLBAR (unchanged)
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// =============================================================================
 function FloatingTextToolbar({ onClose }: { onClose: () => void }) {
   const [bold,   setBold]   = useState(false);
   const [italic, setItalic] = useState(false);
@@ -754,7 +755,7 @@ const DesignPanel = memo(function DesignPanel({ data, onUpdate, onLogoUpload, ba
         <label className="flex flex-col items-center gap-1.5 border-[1.5px] border-dashed border-zinc-700
                           rounded-xl p-4 cursor-pointer hover:border-zinc-500 hover:bg-zinc-900/50 transition-all touch-manipulation">
           <UploadCloud size={18} className="text-zinc-500"/>
-          <span className="text-[11px] text-zinc-500 text-center">Upload logo â€” PNG recommended</span>
+          <span className="text-[11px] text-zinc-500 text-center">Upload logo - PNG recommended</span>
           <input type="file" accept="image/*" className="hidden"
             onChange={e => { const f = e.target.files?.[0]; if(f) onLogoUpload(f); }}/>
         </label>
@@ -814,10 +815,6 @@ interface VideoPanelProps {
   badgeOverlay: DiscountBadge;
 }
 
-
-
-
-
 const VideoPanel = memo(function VideoPanel({
   flyer,
   activeFormatId,
@@ -837,7 +834,6 @@ const VideoPanel = memo(function VideoPanel({
   const COMP_H = isWide ? Math.round(BASE * (fmt.rh / fmt.rw)) : BASE;
   const durationInFrames = fmt.fps * fmt.durationS;
 
-  // Extended promo props â€“ include overlays
   const promoProps = {
     headline:     flyer.headline,
     subtext:      flyer.subtext,
@@ -1095,7 +1091,7 @@ async function saveOrShareFile(blob: Blob, filename: string, mimeType: string) {
   if (navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: filename });
-      return; // user got the native Save to Photos / Files / Share sheet
+      return;
     } catch {
     }
   }
@@ -1146,7 +1142,7 @@ function EditorContent() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [sheetExpanded, setSheetExpanded] = useState(false);
 
-  // â”€â”€â”€ Overlay states â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // --- Overlay states ---------------------------------------------------
   const [logoOverlay, setLogoOverlay] = useState<{
     image: string | null;
     transform: Transform;
@@ -1192,8 +1188,6 @@ function EditorContent() {
   []
 );
 
-// NEW â€” features is an array, so it needs its own edit/add/remove handlers
-// rather than going through the generic `update` used for string fields.
 const updateFeature = useCallback((index: number, value: string) => {
   setFlyer(prev => {
     const next = [...prev.features];
@@ -1247,14 +1241,12 @@ const removeFeature = useCallback((index: number) => {
 
   const [pendingUploads, setPendingUploads] = useState(0);
 
-  // Handle image upload â€“ for logo, set overlay; for product, update flyer
   const handleImageUpload = useCallback(
     async (file: File, field: "productImage" | "logoImage") => {
       if (!file) return;
       const blobUrl = URL.createObjectURL(file);
       if (field === "logoImage") {
         setLogoOverlay(prev => ({ ...prev, image: blobUrl }));
-        // Hide template logo
         update("logoImage", null);
       } else {
         update("productImage", blobUrl);
@@ -1284,7 +1276,7 @@ const removeFeature = useCallback((index: number) => {
   const handleExportFlyer = async (format: "png" | "jpg" | "pdf") => {
     if (!flyerNodeRef.current) return;
     if (pendingUploads > 0) {
-      return setExportError("Still uploading your image â€” please wait a moment and try again.");
+      return setExportError("Still uploading your image - please wait a moment and try again.");
     }
 
     setExportingFormat(format);
@@ -1304,7 +1296,6 @@ const removeFeature = useCallback((index: number) => {
   return;
 }
 
-      // PDF
       const [{ default: jsPDF }, dataUrl] = await Promise.all([
         import("jspdf"),
         toPng(flyerNodeRef.current, snapshotOpts),
@@ -1329,7 +1320,7 @@ pdf.addImage(dataUrl, "PNG", 0, 0, img.width, img.height);
       console.error(err);
       setExportError(
         err instanceof Error
-          ? `${err.message} â€” this is usually a CORS issue with your product image.`
+          ? `${err.message} - this is usually a CORS issue with your product image.`
           : "Export failed."
       );
     } finally {
@@ -1356,7 +1347,6 @@ useEffect(() => {
         if (cancelled) return;
 
         if (err instanceof ApiError && err.status === 401) {
-          // Genuinely logged out â€” send to login with a way back here.
           const redirect = encodeURIComponent(
             `${window.location.pathname}${window.location.search}`
           );
@@ -1364,9 +1354,6 @@ useEffect(() => {
           return;
         }
 
-        // Real failure (network blip, 404, 5xx) â€” don't silently bounce
-        // to /dashboard, which would then bounce to /login and look
-        // identical to an auth failure from the user's perspective.
         console.error("Failed to load job", urlJobId, err);
         setLoading(false);
         setExportError(
@@ -1391,7 +1378,6 @@ if (result) {
     ...prev,
 
     ...(result.flyer && {
-      // MAIN CONTENT
       headline:
         result.flyer.headline ||
         prev.headline,
@@ -1423,7 +1409,6 @@ if (result) {
         result.flyer.colors ||
         prev.colors,
 
-      // CONTACT INFORMATION
       phone:
         result.flyer.phone ??
         prev.phone,
@@ -1440,7 +1425,6 @@ if (result) {
         result.flyer.address ??
         prev.address,
 
-      // FEATURES
       features:
         Array.isArray(result.flyer.features) &&
         result.flyer.features.length > 0
@@ -1450,7 +1434,6 @@ if (result) {
             ? result.flyer.feature_highlights
             : prev.features,
 
-      // WHY CHOOSE US
       whyChooseUs:
         Array.isArray(result.flyer.why_choose_us) &&
         result.flyer.why_choose_us.length > 0
@@ -1461,7 +1444,6 @@ if (result) {
             : prev.whyChooseUs,
     }),
 
-    // MUST REMAIN OUTSIDE result.flyer
     productImage:
       result.png_url ||
       prev.productImage,
@@ -1477,7 +1459,6 @@ if (result) {
       prev.templateCategory,
   }));
 
-  // IMPORTANT: this is STILL INSIDE if (result)
   if (result.captions) {
     setCaptions(result.captions.map((c) => ({
       platform: c.platform,
@@ -1506,7 +1487,7 @@ if (result) {
 }, [router, searchParams]);
 
 
-  // â”€â”€â”€ Canvas size recalculation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // --- Canvas size recalculation -----------------------------------------
   useEffect(() => {
     const recalc = () => {
       if (!canvasWrapRef.current) return;
@@ -1520,7 +1501,6 @@ if (result) {
     return () => ro.disconnect();
   }, [activeFormat, sheetExpanded]);
 const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-  // Deselect any overlay when clicking on the canvas background
   setSelectedOverlayId(null);
 
   if (activeTool !== "text") return;
@@ -1560,7 +1540,7 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     return (
       <div className="h-[100dvh] w-screen bg-zinc-950 flex items-center justify-center
                       text-cyan-400 font-mono tracking-widest text-sm">
-        Loading your flyerâ€¦
+        Loading your flyer...
       </div>
     );
   }
@@ -1568,7 +1548,7 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
   return (
     <div className="h-[100dvh] w-screen bg-zinc-950 text-zinc-50 font-sans flex flex-col overflow-hidden overscroll-none">
 
-      {/* â”€â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* --- Header --- */}
       <header className="h-[52px] shrink-0 flex items-center justify-between gap-2 px-2 md:px-4
                          bg-[#111113] border-b border-zinc-800 z-40"
         style={{ paddingTop: "env(safe-area-inset-top)" }}>
@@ -1670,7 +1650,7 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         </div>
       )}
 
-      {/* â”€â”€â”€ Main area â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* --- Main area --- */}
       <div className="flex flex-1 overflow-hidden relative">
 
         <aside className="hidden md:flex w-[52px] shrink-0 bg-[#111113] border-r border-zinc-800
@@ -1702,7 +1682,27 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
             }}
             onClick={handleCanvasClick}
           >
-            <div ref={flyerNodeRef} className="relative" style={{ width: canvasSize.w, height: canvasSize.h }}>
+            <div
+              ref={flyerNodeRef}
+              className="relative"
+              style={{
+                width: canvasSize.w,
+                height: canvasSize.h,
+                // FIX (root cause of missing Features / Why Choose Us / contact
+                // rows on both desktop and mobile): FlyerContentBlocks.tsx styles
+                // its text and icons with container-query units (cqi/cqb), e.g.
+                // `text-[2.5cqi]`. Those units only compute a real size if some
+                // ancestor establishes CSS containment via `container-type`. This
+                // div wraps the entire rendered flyer, so it MUST declare a
+                // container here - otherwise every cqi value resolves toward 0
+                // and those sections render as invisible zero-size elements even
+                // though the data is present in the DOM. This single fix should
+                // make features / why-choose-us / contact rows visible again,
+                // consistently, on every device and browser.
+                containerType: "size",
+                containerName: "flyer-canvas",
+              } as React.CSSProperties}
+            >
               <TemplateRenderer
   data={{ ...flyer, logoImage: null, badgeText: "" }}
   onUpdate={update}
@@ -1712,7 +1712,7 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
   onAddFeature={addFeature}
   onRemoveFeature={removeFeature}
   onUpdateWhyChooseUs={updateWhyChooseUs}
-  onAddWhyChooseUs= {addWhyChooseUs}                               // add
+  onAddWhyChooseUs= {addWhyChooseUs}
   onRemoveWhyChooseUs={removeWhyChooseUs}
 />
 
@@ -1971,31 +1971,10 @@ export default function FlyerEditor() {
     <Suspense fallback={
       <div className="h-[100dvh] w-screen bg-zinc-950 flex items-center justify-center
                       text-cyan-400 font-mono tracking-widest text-sm">
-        Loading editorâ€¦
+        Loading editor...
       </div>
     }>
       <EditorContent/>
     </Suspense>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

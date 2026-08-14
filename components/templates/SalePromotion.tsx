@@ -14,6 +14,7 @@ import {
 
 import { EditableText } from "@/components/EditableText";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
+import { WhyChooseUsList, ContactBar } from "./FlyerContentBlocks";
 
 /* ============================================================================
    SALE PROMOTION — MODERN EDITORIAL / CANVA STYLE
@@ -49,6 +50,29 @@ export interface SalePromotionProps {
   oldPrice?: string;
 
   features?: string[];
+  onUpdateFeature?: (index: number, value: string) => void;
+  onAddFeature?: () => void;
+  onRemoveFeature?: (index: number) => void;
+
+  whyChooseUs?: string[];
+  onUpdateWhyChooseUs?: (index: number, value: string) => void;
+  onAddWhyChooseUs?: () => void;
+  onRemoveWhyChooseUs?: (index: number) => void;
+
+  featuresVisible?: boolean;
+  whyChooseUsVisible?: boolean;
+  phoneVisible?: boolean;
+  emailVisible?: boolean;
+  websiteVisible?: boolean;
+
+  onRestoreFeatures?: () => void;
+  onRestoreWhyChooseUs?: () => void;
+  onRemovePhone?: () => void;
+  onRemoveEmail?: () => void;
+  onRemoveWebsite?: () => void;
+  onRestorePhone?: () => void;
+  onRestoreEmail?: () => void;
+  onRestoreWebsite?: () => void;
 
   colors: {
     primary: string;
@@ -87,7 +111,6 @@ export function SalePromotionTemplate(props: SalePromotionProps) {
 /* ============================================================================
    MAIN DESIGN
 ============================================================================ */
-
 function ModernSalesPromotion({
   headline,
   subtext,
@@ -102,6 +125,26 @@ function ModernSalesPromotion({
   price,
   oldPrice,
   features,
+  onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
+  whyChooseUs,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
+  featuresVisible,
+  whyChooseUsVisible,
+  phoneVisible,
+  emailVisible,
+  websiteVisible,
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
   colors,
   editable,
   onUpdate,
@@ -509,13 +552,12 @@ function ModernSalesPromotion({
                       editable={editable}
                       value={feature}
                       onChange={(v) => {
+                        // Update the feature at this index
+                        onUpdateFeature?.(index, v);
+                        // Also update the full features string in the parent state
                         const updated = [...safeFeatures];
                         updated[index] = v;
-
-                        update(
-                          "features",
-                          updated.join("\n")
-                        );
+                        update("features", updated.join("\n"));
                       }}
                       onFocusEl={onFocusEl}
                       onBlurEl={onBlurEl}
@@ -529,6 +571,19 @@ function ModernSalesPromotion({
                 ))}
               </div>
             )}
+
+            <WhyChooseUsList
+              items={whyChooseUs}
+              colors={colors}
+              editable={editable}
+              onUpdate={onUpdateWhyChooseUs}
+              onAdd={onAddWhyChooseUs}
+              onRemove={onRemoveWhyChooseUs}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              visible={whyChooseUsVisible}
+              onRestoreSection={onRestoreWhyChooseUs}
+            />
 
             {/* ============================================================
                OFFER CARD
@@ -711,90 +766,44 @@ function ModernSalesPromotion({
              CONTACT INFORMATION
           ================================================================ */}
 
-          {(phone || email || website) && (
-            <div
-              className="
-                absolute
-                right-0
-                bottom-0
-                z-30
-                flex
-                items-center
-                gap-[2.5cqi]
-              "
-            >
-
-              {phone && (
-                <ContactMini
-                  icon={
-                    <Phone
-                      size={11}
-                      strokeWidth={2.5}
-                    />
-                  }
-                  value={phone}
-                  fieldId="sale-phone"
-                  editable={editable}
-                  onChange={(v) =>
-                    update("phone", v)
-                  }
-                  onFocusEl={onFocusEl}
-                  onBlurEl={onBlurEl}
-                  colors={colors}
-                />
-              )}
-
-              {email && (
-                <ContactMini
-                  icon={
-                    <Mail
-                      size={11}
-                      strokeWidth={2.5}
-                    />
-                  }
-                  value={email}
-                  fieldId="sale-email"
-                  editable={editable}
-                  onChange={(v) =>
-                    update("email", v)
-                  }
-                  onFocusEl={onFocusEl}
-                  onBlurEl={onBlurEl}
-                  colors={colors}
-                />
-              )}
-
-              {website && (
-                <ContactMini
-                  icon={
-                    <Globe
-                      size={11}
-                      strokeWidth={2.5}
-                    />
-                  }
-                  value={website}
-                  fieldId="sale-contact-website"
-                  editable={editable}
-                  onChange={(v) =>
-                    update("website", v)
-                  }
-                  onFocusEl={onFocusEl}
-                  onBlurEl={onBlurEl}
-                  colors={colors}
-                />
-              )}
-            </div>
-          )}
+          <div
+            className="
+              absolute
+              right-0
+              bottom-0
+              z-30
+            "
+          >
+            <ContactBar
+              phone={phone}
+              website={website}
+              email={email}
+              accentColor={colors.accent}
+              textColor={colors.secondary}
+              editable={editable}
+              onUpdatePhone={(v) => update("phone", v)}
+              onUpdateWebsite={(v) => update("website", v)}
+              onUpdateEmail={(v) => update("email", v)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              phoneVisible={phoneVisible}
+              websiteVisible={websiteVisible}
+              emailVisible={emailVisible}
+              onRemovePhone={onRemovePhone}
+              onRemoveWebsite={onRemoveWebsite}
+              onRemoveEmail={onRemoveEmail}
+              onRestorePhone={onRestorePhone}
+              onRestoreWebsite={onRestoreWebsite}
+              onRestoreEmail={onRestoreEmail}
+            />
+          </div>
         </div>
       </main>
     </div>
   );
 }
 
-/* ============================================================================
-   CONTACT MINI
-============================================================================ */
-
+// Helper component (unchanged)
 function ContactMini({
   icon,
   value,

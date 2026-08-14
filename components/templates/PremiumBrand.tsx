@@ -6,8 +6,7 @@ import {
   FeatureList,
   ContactBar,
   parseFlyerContent,
-  WhyChooseUsList,      // ← add
-
+  WhyChooseUsList,
 } from "./FlyerContentBlocks";
 
 import { EditableText } from "@/components/EditableText";
@@ -45,24 +44,29 @@ export interface PremiumBrandProps {
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
   whyChooseUs?: string[];
-onUpdateWhyChooseUs?: (index: number, value: string) => void;
-onAddWhyChooseUs?: () => void;
-onRemoveWhyChooseUs?: (index: number) => void;
+  onUpdateWhyChooseUs?: (index: number, value: string) => void;
+  onAddWhyChooseUs?: () => void;
+  onRemoveWhyChooseUs?: (index: number) => void;
 
-featuresVisible?: boolean;
-whyChooseUsVisible?: boolean;
-phoneVisible?: boolean;
-emailVisible?: boolean;
-websiteVisible?: boolean;
+  featuresVisible?: boolean;
+  whyChooseUsVisible?: boolean;
+  phoneVisible?: boolean;
+  emailVisible?: boolean;
+  websiteVisible?: boolean;
 
-onRestoreFeatures?: () => void;
-onRestoreWhyChooseUs?: () => void;
-onRemovePhone?: () => void;
-onRemoveEmail?: () => void;
-onRemoveWebsite?: () => void;
-onRestorePhone?: () => void;
-onRestoreEmail?: () => void;
-onRestoreWebsite?: () => void;
+  onRestoreFeatures?: () => void;
+  onRestoreWhyChooseUs?: () => void;
+  onRemovePhone?: () => void;
+  onRemoveEmail?: () => void;
+  onRemoveWebsite?: () => void;
+  onRestorePhone?: () => void;
+  onRestoreEmail?: () => void;
+  onRestoreWebsite?: () => void;
+
+  features?: string[];
+  onUpdateFeature?: (index: number, value: string) => void;
+  onAddFeature?: () => void;
+  onRemoveFeature?: (index: number) => void;
 }
 
 /* ============================================================================
@@ -246,15 +250,13 @@ function SmartCTA({
         onBlurEl={onBlurEl}
       />
 
-      <span className="ml-[2cqi] opacity-60">â†—</span>
+      <span className="ml-[2cqi] opacity-60">→</span>
     </div>
   );
 }
 
 /* ============================================================================
    1. GRAND OPENING
-
-   Editorial / luxury launch style.
 ============================================================================ */
 
 function VariantGrandOpening({
@@ -275,30 +277,26 @@ function VariantGrandOpening({
   onFocusEl,
   onBlurEl,
   featuresVisible,
-
   whyChooseUsVisible,
-
   phoneVisible,
-
   emailVisible,
-
   websiteVisible,
-
   onRestoreFeatures,
-
   onRestoreWhyChooseUs,
-
   onRemovePhone,
-
   onRemoveEmail,
-
   onRemoveWebsite,
-
   onRestorePhone,
-
   onRestoreEmail,
-
   onRestoreWebsite,
+  features,
+  onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
+  whyChooseUs,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
 }: PremiumBrandProps) {
   const parsed = useMemo(
     () => parseFlyerContent(badgeText, extraText),
@@ -438,6 +436,31 @@ function VariantGrandOpening({
                   opacity-55
                 "
               />
+
+              <FeatureList
+                features={features}
+                colors={colors}
+                editable={editable}
+                onUpdateFeature={onUpdateFeature}
+                onAddFeature={onAddFeature}
+                onRemoveFeature={onRemoveFeature}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                visible={featuresVisible}
+                onRestoreSection={onRestoreFeatures}
+              />
+              <WhyChooseUsList
+                items={whyChooseUs}
+                colors={colors}
+                editable={editable}
+                onUpdate={onUpdateWhyChooseUs}
+                onAdd={onAddWhyChooseUs}
+                onRemove={onRemoveWhyChooseUs}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                visible={whyChooseUsVisible}
+                onRestoreSection={onRestoreWhyChooseUs}
+              />
             </div>
 
             <SmartCTA
@@ -452,27 +475,27 @@ function VariantGrandOpening({
 
           <div className="mt-[3cqi]">
             <ContactBar
-  phone={phone}
-  website={website}
-  email={email}
-  accentColor={colors.accent}
-  textColor={colors.secondary}
-  editable={editable}
-  onUpdatePhone={(v) => onUpdate?.("phone", v)}
-  onUpdateWebsite={(v) => onUpdate?.("website", v)}
-  onUpdateEmail={(v) => onUpdate?.("email", v)}
-  onFocusEl={onFocusEl}
-  onBlurEl={onBlurEl}
-  phoneVisible={phoneVisible}
-  websiteVisible={websiteVisible}
-  emailVisible={emailVisible}
-  onRemovePhone={onRemovePhone}
-  onRemoveWebsite={onRemoveWebsite}
-  onRemoveEmail={onRemoveEmail}
-  onRestorePhone={onRestorePhone}
-  onRestoreWebsite={onRestoreWebsite}
-  onRestoreEmail={onRestoreEmail}
-/>
+              phone={phone}
+              website={website}
+              email={email}
+              accentColor={colors.accent}
+              textColor={colors.secondary}
+              editable={editable}
+              onUpdatePhone={(v) => onUpdate?.("phone", v)}
+              onUpdateWebsite={(v) => onUpdate?.("website", v)}
+              onUpdateEmail={(v) => onUpdate?.("email", v)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              phoneVisible={phoneVisible}
+              websiteVisible={websiteVisible}
+              emailVisible={emailVisible}
+              onRemovePhone={onRemovePhone}
+              onRemoveWebsite={onRemoveWebsite}
+              onRemoveEmail={onRemoveEmail}
+              onRestorePhone={onRestorePhone}
+              onRestoreWebsite={onRestoreWebsite}
+              onRestoreEmail={onRestoreEmail}
+            />
           </div>
         </div>
       </main>
@@ -482,8 +505,6 @@ function VariantGrandOpening({
 
 /* ============================================================================
    2. DIGITAL AGENCY
-
-   Modern Swiss / Apple editorial grid.
 ============================================================================ */
 function VariantDigitalAgency({
   headline,
@@ -642,22 +663,21 @@ function VariantDigitalAgency({
               }}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
-            visible={featuresVisible}
-  onRestoreSection={onRestoreFeatures}
-/>
+              visible={featuresVisible}
+              onRestoreSection={onRestoreFeatures}
+            />
             <WhyChooseUsList
-  items={whyChooseUs}
-  colors={colors}
-  editable={editable}
-  onUpdate={onUpdateWhyChooseUs}
-  onAdd={onAddWhyChooseUs}
-  onRemove={onRemoveWhyChooseUs}
-  onFocusEl={onFocusEl}
-  onBlurEl={onBlurEl}
-  visible={whyChooseUsVisible}
-  onRestoreSection={onRestoreWhyChooseUs}
-/>
-            
+              items={whyChooseUs}
+              colors={colors}
+              editable={editable}
+              onUpdate={onUpdateWhyChooseUs}
+              onAdd={onAddWhyChooseUs}
+              onRemove={onRemoveWhyChooseUs}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              visible={whyChooseUsVisible}
+              onRestoreSection={onRestoreWhyChooseUs}
+            />
           </div>
 
           <div className="mt-[5cqi] flex items-end gap-[3cqi]">
@@ -675,7 +695,6 @@ function VariantDigitalAgency({
                   color: colors.accent,
                 }}
               />
-              
             )}
 
             <SmartCTA
@@ -686,7 +705,6 @@ function VariantDigitalAgency({
               onBlurEl={onBlurEl}
               colors={colors}
             />
-          
           </div>
         </section>
 
@@ -714,27 +732,27 @@ function VariantDigitalAgency({
 
         <div className="absolute left-0 right-0 bottom-0">
           <ContactBar
-  phone={phone}
-  website={website}
-  email={email}
-  accentColor={colors.accent}
-  textColor={colors.secondary}
-  editable={editable}
-  onUpdatePhone={(v) => onUpdate?.("phone", v)}
-  onUpdateWebsite={(v) => onUpdate?.("website", v)}
-  onUpdateEmail={(v) => onUpdate?.("email", v)}
-  onFocusEl={onFocusEl}
-  onBlurEl={onBlurEl}
-  phoneVisible={phoneVisible}
-  websiteVisible={websiteVisible}
-  emailVisible={emailVisible}
-  onRemovePhone={onRemovePhone}
-  onRemoveWebsite={onRemoveWebsite}
-  onRemoveEmail={onRemoveEmail}
-  onRestorePhone={onRestorePhone}
-  onRestoreWebsite={onRestoreWebsite}
-  onRestoreEmail={onRestoreEmail}
-/>
+            phone={phone}
+            website={website}
+            email={email}
+            accentColor={colors.accent}
+            textColor={colors.secondary}
+            editable={editable}
+            onUpdatePhone={(v) => onUpdate?.("phone", v)}
+            onUpdateWebsite={(v) => onUpdate?.("website", v)}
+            onUpdateEmail={(v) => onUpdate?.("email", v)}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            phoneVisible={phoneVisible}
+            websiteVisible={websiteVisible}
+            emailVisible={emailVisible}
+            onRemovePhone={onRemovePhone}
+            onRemoveWebsite={onRemoveWebsite}
+            onRemoveEmail={onRemoveEmail}
+            onRestorePhone={onRestorePhone}
+            onRestoreWebsite={onRestoreWebsite}
+            onRestoreEmail={onRestoreEmail}
+          />
         </div>
       </div>
     </div>
@@ -743,8 +761,6 @@ function VariantDigitalAgency({
 
 /* ============================================================================
    3. PREMIUM GOLD
-
-   High-end fashion / jewellery editorial.
 ============================================================================ */
 
 function VariantPremiumGold({
@@ -765,31 +781,18 @@ function VariantPremiumGold({
   onFocusEl,
   onBlurEl,
   featuresVisible,
-
   whyChooseUsVisible,
-
   phoneVisible,
-
   emailVisible,
-
   websiteVisible,
-
   onRestoreFeatures,
-
   onRestoreWhyChooseUs,
-
   onRemovePhone,
-
   onRemoveEmail,
-
   onRemoveWebsite,
-
   onRestorePhone,
-
   onRestoreEmail,
-
   onRestoreWebsite,
-  
 }: PremiumBrandProps) {
   const parsed = useMemo(
     () => parseFlyerContent(badgeText, extraText),
@@ -958,27 +961,27 @@ function VariantPremiumGold({
 
           <div className="mt-[2.5cqi]">
             <ContactBar
-  phone={phone}
-  website={website}
-  email={email}
-  accentColor={colors.accent}
-  textColor={colors.secondary}
-  editable={editable}
-  onUpdatePhone={(v) => onUpdate?.("phone", v)}
-  onUpdateWebsite={(v) => onUpdate?.("website", v)}
-  onUpdateEmail={(v) => onUpdate?.("email", v)}
-  onFocusEl={onFocusEl}
-  onBlurEl={onBlurEl}
-  phoneVisible={phoneVisible}
-  websiteVisible={websiteVisible}
-  emailVisible={emailVisible}
-  onRemovePhone={onRemovePhone}
-  onRemoveWebsite={onRemoveWebsite}
-  onRemoveEmail={onRemoveEmail}
-  onRestorePhone={onRestorePhone}
-  onRestoreWebsite={onRestoreWebsite}
-  onRestoreEmail={onRestoreEmail}
-/>
+              phone={phone}
+              website={website}
+              email={email}
+              accentColor={colors.accent}
+              textColor={colors.secondary}
+              editable={editable}
+              onUpdatePhone={(v) => onUpdate?.("phone", v)}
+              onUpdateWebsite={(v) => onUpdate?.("website", v)}
+              onUpdateEmail={(v) => onUpdate?.("email", v)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              phoneVisible={phoneVisible}
+              websiteVisible={websiteVisible}
+              emailVisible={emailVisible}
+              onRemovePhone={onRemovePhone}
+              onRemoveWebsite={onRemoveWebsite}
+              onRemoveEmail={onRemoveEmail}
+              onRestorePhone={onRestorePhone}
+              onRestoreWebsite={onRestoreWebsite}
+              onRestoreEmail={onRestoreEmail}
+            />
           </div>
         </div>
       </div>
@@ -988,8 +991,6 @@ function VariantPremiumGold({
 
 /* ============================================================================
    4. CLEANING SERVICE
-
-   Clean corporate / hospitality layout.
 ============================================================================ */
 function VariantCleaningService({
   headline,
@@ -1013,31 +1014,18 @@ function VariantCleaningService({
   onAddWhyChooseUs,
   onRemoveWhyChooseUs,
   featuresVisible,
-
   whyChooseUsVisible,
-
   phoneVisible,
-
   emailVisible,
-
   websiteVisible,
-
   onRestoreFeatures,
-
   onRestoreWhyChooseUs,
-
   onRemovePhone,
-
   onRemoveEmail,
-
   onRemoveWebsite,
-
   onRestorePhone,
-
   onRestoreEmail,
-
   onRestoreWebsite,
-  
 }: PremiumBrandProps) {
   const parsed = useMemo(
     () => parseFlyerContent(badgeText, extraText),
@@ -1205,21 +1193,21 @@ function VariantCleaningService({
               }
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
-            visible={featuresVisible}
-  onRestoreSection={onRestoreFeatures}
-/>
+              visible={featuresVisible}
+              onRestoreSection={onRestoreFeatures}
+            />
             <WhyChooseUsList
-  items={whyChooseUs}
-  colors={colors}
-  editable={editable}
-  onUpdate={onUpdateWhyChooseUs}
-  onAdd={onAddWhyChooseUs}
-  onRemove={onRemoveWhyChooseUs}
-  onFocusEl={onFocusEl}
-  onBlurEl={onBlurEl}
-  visible={whyChooseUsVisible}
-  onRestoreSection={onRestoreWhyChooseUs}
-/>
+              items={whyChooseUs}
+              colors={colors}
+              editable={editable}
+              onUpdate={onUpdateWhyChooseUs}
+              onAdd={onAddWhyChooseUs}
+              onRemove={onRemoveWhyChooseUs}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              visible={whyChooseUsVisible}
+              onRestoreSection={onRestoreWhyChooseUs}
+            />
           </div>
 
           <div className="absolute bottom-0 left-0 right-0">
@@ -1252,27 +1240,27 @@ function VariantCleaningService({
 
             <div className="mt-[2.5cqi]">
               <ContactBar
-  phone={phone}
-  website={website}
-  email={email}
-  accentColor={colors.accent}
-  textColor={colors.secondary}
-  editable={editable}
-  onUpdatePhone={(v) => onUpdate?.("phone", v)}
-  onUpdateWebsite={(v) => onUpdate?.("website", v)}
-  onUpdateEmail={(v) => onUpdate?.("email", v)}
-  onFocusEl={onFocusEl}
-  onBlurEl={onBlurEl}
-  phoneVisible={phoneVisible}
-  websiteVisible={websiteVisible}
-  emailVisible={emailVisible}
-  onRemovePhone={onRemovePhone}
-  onRemoveWebsite={onRemoveWebsite}
-  onRemoveEmail={onRemoveEmail}
-  onRestorePhone={onRestorePhone}
-  onRestoreWebsite={onRestoreWebsite}
-  onRestoreEmail={onRestoreEmail}
-/>
+                phone={phone}
+                website={website}
+                email={email}
+                accentColor={colors.accent}
+                textColor={colors.secondary}
+                editable={editable}
+                onUpdatePhone={(v) => onUpdate?.("phone", v)}
+                onUpdateWebsite={(v) => onUpdate?.("website", v)}
+                onUpdateEmail={(v) => onUpdate?.("email", v)}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                phoneVisible={phoneVisible}
+                websiteVisible={websiteVisible}
+                emailVisible={emailVisible}
+                onRemovePhone={onRemovePhone}
+                onRemoveWebsite={onRemoveWebsite}
+                onRemoveEmail={onRemoveEmail}
+                onRestorePhone={onRestorePhone}
+                onRestoreWebsite={onRestoreWebsite}
+                onRestoreEmail={onRestoreEmail}
+              />
             </div>
           </div>
         </div>
@@ -1283,8 +1271,6 @@ function VariantCleaningService({
 
 /* ============================================================================
    5. ORGANIC DEAL
-
-   Modern wellness / food / lifestyle.
 ============================================================================ */
 
 function VariantOrganicDeal({
@@ -1309,29 +1295,17 @@ function VariantOrganicDeal({
   onAddWhyChooseUs,
   onRemoveWhyChooseUs,
   featuresVisible,
-
   whyChooseUsVisible,
-
   phoneVisible,
-
   emailVisible,
-
   websiteVisible,
-
   onRestoreFeatures,
-
   onRestoreWhyChooseUs,
-
   onRemovePhone,
-
   onRemoveEmail,
-
   onRemoveWebsite,
-
   onRestorePhone,
-
   onRestoreEmail,
-
   onRestoreWebsite,
 }: PremiumBrandProps) {
   const parsed = useMemo(
@@ -1449,7 +1423,7 @@ function VariantOrganicDeal({
             <div className="mt-[3cqi]">
               <FeatureList
                 features={parsed.features}
-              colors={colors}
+                colors={colors}
                 editable={editable}
                 onUpdateFeature={(index, value) =>
                   onUpdate?.(
@@ -1468,21 +1442,21 @@ function VariantOrganicDeal({
                 }
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
-visible={featuresVisible}
-  onRestoreSection={onRestoreFeatures}
-/>
-             <WhyChooseUsList
-  items={whyChooseUs}
-  colors={colors}
-  editable={editable}
-  onUpdate={onUpdateWhyChooseUs}
-  onAdd={onAddWhyChooseUs}
-  onRemove={onRemoveWhyChooseUs}
-  onFocusEl={onFocusEl}
-  onBlurEl={onBlurEl}
-  visible={whyChooseUsVisible}
-  onRestoreSection={onRestoreWhyChooseUs}
-/>
+                visible={featuresVisible}
+                onRestoreSection={onRestoreFeatures}
+              />
+              <WhyChooseUsList
+                items={whyChooseUs}
+                colors={colors}
+                editable={editable}
+                onUpdate={onUpdateWhyChooseUs}
+                onAdd={onAddWhyChooseUs}
+                onRemove={onRemoveWhyChooseUs}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                visible={whyChooseUsVisible}
+                onRestoreSection={onRestoreWhyChooseUs}
+              />
             </div>
           )}
 
@@ -1521,35 +1495,32 @@ visible={featuresVisible}
 
           <div className="mt-[2.5cqi]">
             <ContactBar
-  phone={phone}
-  website={website}
-  email={email}
-  accentColor={colors.accent}
-  textColor={colors.secondary}
-  editable={editable}
-  onUpdatePhone={(v) => onUpdate?.("phone", v)}
-  onUpdateWebsite={(v) => onUpdate?.("website", v)}
-  onUpdateEmail={(v) => onUpdate?.("email", v)}
-  onFocusEl={onFocusEl}
-  onBlurEl={onBlurEl}
-  phoneVisible={phoneVisible}
-  websiteVisible={websiteVisible}
-  emailVisible={emailVisible}
-  onRemovePhone={onRemovePhone}
-  onRemoveWebsite={onRemoveWebsite}
-  onRemoveEmail={onRemoveEmail}
-  onRestorePhone={onRestorePhone}
-  onRestoreWebsite={onRestoreWebsite}
-  onRestoreEmail={onRestoreEmail}
-/>
+              phone={phone}
+              website={website}
+              email={email}
+              accentColor={colors.accent}
+              textColor={colors.secondary}
+              editable={editable}
+              onUpdatePhone={(v) => onUpdate?.("phone", v)}
+              onUpdateWebsite={(v) => onUpdate?.("website", v)}
+              onUpdateEmail={(v) => onUpdate?.("email", v)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              phoneVisible={phoneVisible}
+              websiteVisible={websiteVisible}
+              emailVisible={emailVisible}
+              onRemovePhone={onRemovePhone}
+              onRemoveWebsite={onRemoveWebsite}
+              onRemoveEmail={onRemoveEmail}
+              onRestorePhone={onRestorePhone}
+              onRestoreWebsite={onRestoreWebsite}
+              onRestoreEmail={onRestoreEmail}
+            />
           </div>
         </div>
       </div>
     </div>
   );
 }
-
-
-
 
 

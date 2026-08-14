@@ -13,7 +13,6 @@ import {
 import { EditableText } from "@/components/EditableText";
 
 
-
 export type FlyerColors = {
   primary: string;
   secondary: string;
@@ -49,9 +48,9 @@ type WhyChooseUsListProps = SharedBlockProps & {
   onRestoreSection?: () => void;
 };
 
-// ─────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
 // Small remove button (shared)
-// ─────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
 
 function RemoveButton({
   onClick,
@@ -79,9 +78,14 @@ function RemoveButton({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Restore placeholder — shown when a section is hidden (editor only)
-// ─────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Restore placeholder - only ever used when the caller explicitly passes
+// onClick. FIX: the editor page no longer passes onRestore* handlers for
+// contact fields / sections, so these components simply won't render for
+// those cases any more - a toggled-off field disappears completely instead
+// of leaving a "+ Email" ghost chip behind on the canvas. Restoring lives
+// only in the Content tab now, which is the single obvious place for it.
+// ---------------------------------------------------------------------------
 
 function RestoreSectionButton({
   label,
@@ -90,6 +94,8 @@ function RestoreSectionButton({
   label: string;
   onClick?: () => void;
 }) {
+  if (!onClick) return null;
+
   return (
     <button
       type="button"
@@ -105,9 +111,9 @@ function RestoreSectionButton({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
 // Feature list
-// ─────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
 
 export function FeatureList({
   features = [],
@@ -128,6 +134,12 @@ export function FeatureList({
   );
 
   if (!visible) {
+    // FIX: previously this fell through to <RestoreSectionButton editable ...>
+    // any time editable was true, regardless of whether the caller wanted a
+    // restore affordance on canvas. Now RestoreSectionButton itself no-ops
+    // when onRestoreSection is undefined (see above), and the editor no
+    // longer passes that handler - so a hidden section is just gone, and the
+    // Content tab toggle is the only way to bring it back.
     if (!editable) return null;
     return (
       <RestoreSectionButton
@@ -137,6 +149,14 @@ export function FeatureList({
     );
   }
 
+  // NOTE: FeatureList/WhyChooseUsList/ContactBar size everything with
+  // container-query units (cqi/cqb). These ONLY resolve correctly if an
+  // ancestor establishes CSS containment via `container-type`. The flyer
+  // canvas wrapper in the editor now sets `containerType: "size"` - if you
+  // ever render these blocks somewhere else (e.g. server-side PNG/PDF
+  // rendering, the video composition, or a future public "view flyer" page),
+  // make sure THAT root element also has `container-type` set, or these
+  // sections will silently render at 0 size again.
   if (!cleanFeatures.length && !editable) return null;
 
   return (
@@ -199,9 +219,9 @@ export function FeatureList({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
 // Why Choose Us
-// ─────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
 
 export function WhyChooseUsList({
   items = [],
@@ -293,9 +313,9 @@ export function WhyChooseUsList({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
 // Contact item
-// ─────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
 
 type ContactItemProps = {
   icon: React.ReactNode;
@@ -350,9 +370,9 @@ function ContactItem({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
 // Contact bar
-// ─────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
 
 export type ContactBarProps = {
   phone?: string;
@@ -431,9 +451,16 @@ export function ContactBar({
           accentColor={accentColor}
           textColor={textColor}
         />
-      ) : editable ? (
+      ) : (
+        // FIX: was `editable ? <RestoreChip .../> : null`, which put a
+        // "+ Phone" chip on the live canvas any time the field was hidden
+        // while editing. RestoreChip already no-ops without onClick, and the
+        // editor no longer passes onRestorePhone, so this now renders
+        // nothing - toggling a field off in the Content tab makes it vanish
+        // from the canvas completely, and toggling it back on is the only
+        // way to bring it back.
         <RestoreChip label="Phone" onClick={onRestorePhone} />
-      ) : null}
+      )}
 
       {websiteVisible ? (
         <ContactItem
@@ -448,9 +475,9 @@ export function ContactBar({
           accentColor={accentColor}
           textColor={textColor}
         />
-      ) : editable ? (
+      ) : (
         <RestoreChip label="Website" onClick={onRestoreWebsite} />
-      ) : null}
+      )}
 
       {emailVisible ? (
         <ContactItem
@@ -465,16 +492,16 @@ export function ContactBar({
           accentColor={accentColor}
           textColor={textColor}
         />
-      ) : editable ? (
+      ) : (
         <RestoreChip label="Email" onClick={onRestoreEmail} />
-      ) : null}
+      )}
     </section>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Flyer content parser (unchanged — was never broken)
-// ─────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Flyer content parser (unchanged logic - was never broken)
+// ---------------------------------------------------------------------------
 
 export interface ParsedFlyerContent {
   features: string[];
