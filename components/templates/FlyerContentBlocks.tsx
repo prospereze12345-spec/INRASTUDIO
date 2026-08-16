@@ -79,7 +79,12 @@ function RemoveButton({
 }
 
 // ---------------------------------------------------------------------------
-// Restore placeholder
+// Restore placeholder - only ever used when the caller explicitly passes
+// onClick. FIX: the editor page no longer passes onRestore* handlers for
+// contact fields / sections, so these components simply won't render for
+// those cases any more - a toggled-off field disappears completely instead
+// of leaving a "+ Email" ghost chip behind on the canvas. Restoring lives
+// only in the Content tab now, which is the single obvious place for it.
 // ---------------------------------------------------------------------------
 
 function RestoreSectionButton({
@@ -133,6 +138,12 @@ export function FeatureList({
   );
 
   if (!visible) {
+    // FIX: previously this fell through to <RestoreSectionButton editable ...>
+    // any time editable was true, regardless of whether the caller wanted a
+    // restore affordance on canvas. Now RestoreSectionButton itself no-ops
+    // when onRestoreSection is undefined (see above), and the editor no
+    // longer passes that handler - so a hidden section is just gone, and the
+    // Content tab toggle is the only way to bring it back.
     if (!editable) return null;
     return (
       <RestoreSectionButton
@@ -142,6 +153,15 @@ export function FeatureList({
     );
   }
 
+  // NOTE: FeatureList/WhyChooseUsList/ContactBar previously sized everything
+  // with container-query units (cqi/cqb), which require `container-type` on
+  // an ancestor AND container-query support in the browser (iOS 16+ only).
+  // They now use `calc(N * var(--ci))` / `calc(N * var(--cb))` instead - the
+  // canvas wrapper in the editor sets --ci / --cb as plain CSS custom
+  // properties (1% of the canvas width/height), which every browser back to
+  // iOS 9 supports. If you ever render these blocks somewhere else (SSR PNG
+  // export, video composition, a public "view flyer" page), make sure THAT
+  // root element also sets --ci and --cb, or these sections render at 0 size.
   if (!cleanFeatures.length && !editable) return null;
 
   return (
@@ -475,6 +495,13 @@ export function ContactBar({
           textColor={textColor}
         />
       ) : (
+        // FIX: was `editable ? <RestoreChip .../> : null`, which put a
+        // "+ Phone" chip on the live canvas any time the field was hidden
+        // while editing. RestoreChip already no-ops without onClick, and the
+        // editor no longer passes onRestorePhone, so this now renders
+        // nothing - toggling a field off in the Content tab makes it vanish
+        // from the canvas completely, and toggling it back on is the only
+        // way to bring it back.
         <RestoreChip label="Phone" onClick={onRestorePhone} />
       )}
 
@@ -516,7 +543,7 @@ export function ContactBar({
 }
 
 // ---------------------------------------------------------------------------
-// Flyer content parser (unchanged logic)
+// Flyer content parser (unchanged logic - was never broken)
 // ---------------------------------------------------------------------------
 
 export interface ParsedFlyerContent {
