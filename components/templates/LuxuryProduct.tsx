@@ -14,8 +14,8 @@ export interface LuxuryProductProps {
   brandName?: string;
   website?: string;
   phone?: string;
-  email?: string;
-  features?: string[];
+  email?: string;        // NEW — same fact-provenance as phone, from Gemini analysis
+  features?: string[];   // NEW — short spec/highlight lines (e.g. "5G", "256GB", "AMOLED")
   extraText?: string;
   instagram?: string;
   tiktok?: string;
@@ -26,9 +26,12 @@ export interface LuxuryProductProps {
     accent: string;
   };
   editable?: boolean;
+  /** field is one of: brandName | headline | subtext | ctaText | website | phone | email | price | instagram */
   onUpdate?: (field: string, value: string) => void;
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
+  // NEW — features is an array, so it needs its own callbacks (mirrors the
+  // pattern used for freeTexts/logoOverlay arrays in the editor page)
   onUpdateFeature?: (index: number, value: string) => void;
   onAddFeature?: () => void;
   onRemoveFeature?: (index: number) => void;
@@ -36,11 +39,8 @@ export interface LuxuryProductProps {
 
 /* ─────────────────────────────────────────────────────────────────
    SHARED — feature highlights + contact row
-   Sizing now uses calc(N * var(--ci)) / calc(N * var(--cb)) instead
-   of cqi/cqb container-query units. --ci and --cb are plain CSS
-   custom properties (1% of canvas width / height) set by the editor
-   canvas wrapper. This works on every browser back to iOS 9 — unlike
-   cqi/cqb, which require Safari 16+ and render as 0 on older iOS.
+   Used across all 12 variants below. Sized in cqi so they scale with
+   the same container-query system as everything else in this file.
 ───────────────────────────────────────────────────────────────── */
 type SharedBlockProps = Pick<LuxuryProductProps,
   "editable" | "onUpdate" | "onFocusEl" | "onBlurEl" | "onUpdateFeature" | "onAddFeature" | "onRemoveFeature"
@@ -56,18 +56,13 @@ function FeatureList({
 }) {
   if (!features || features.length === 0) return null;
   return (
-    <div
-      className={`flex flex-wrap ${className}`}
-      style={{ columnGap: "calc(3*var(--ci))", rowGap: "calc(1*var(--ci))" }}
-    >
+    <div className={`flex flex-wrap gap-x-[3cqi] gap-y-[1cqi] ${className}`}>
       {features.map((feat, i) => (
-        <div key={i} className="flex items-center" style={{ gap: "calc(0.8*var(--ci))" }}>
-          <CheckCircle2
-            style={{ color: colors.accent, width: "calc(1.6*var(--ci))", height: "calc(1.6*var(--ci))", flexShrink: 0 }}
-          />
+        <div key={i} className="flex items-center gap-[0.8cqi]">
+          <CheckCircle2 size="1.6cqi" style={{ color: colors.accent, width: "1.6cqi", height: "1.6cqi", flexShrink: 0 }} />
           <EditableText as="span" fieldId={`f-feature-${i}`} editable={editable} value={feat}
             onChange={v => onUpdateFeature?.(i, v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="tracking-wide opacity-75" style={{ fontSize: "calc(1.9*var(--ci))" }} />
+            className="text-[1.9cqi] tracking-wide opacity-75" />
         </div>
       ))}
     </div>
@@ -85,33 +80,33 @@ function ContactRow({
   align?: "left" | "right";
   className?: string;
 }) {
+  // Skip entirely in read-only mode if there's genuinely nothing to show —
+  // in edit mode we still render phone so the "default number, tap to
+  // edit" affordance is always available.
   if (!editable && !phone && !email && !website) return null;
 
   return (
-    <div
-      className={`flex flex-wrap items-center ${align === "right" ? "justify-end" : ""} ${className}`}
-      style={{ gap: "calc(2*var(--ci))" }}
-    >
+    <div className={`flex flex-wrap items-center gap-[2cqi] ${align === "right" ? "justify-end" : ""} ${className}`}>
       {(editable || phone) && (
-        <div className="flex items-center" style={{ gap: "calc(0.6*var(--ci))" }}>
-          <Phone style={{ color: colors.accent, width: "calc(1.5*var(--ci))", height: "calc(1.5*var(--ci))", flexShrink: 0 }} />
+        <div className="flex items-center gap-[0.6cqi]">
+          <Phone size="1.5cqi" style={{ color: colors.accent, width: "1.5cqi", height: "1.5cqi", flexShrink: 0 }} />
           <EditableText as="span" fieldId="f-phone" editable={editable} value={phone ?? ""}
             onChange={v => onUpdate?.("phone", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="opacity-40 tracking-widest" style={{ fontSize: "calc(1.6*var(--ci))" }} />
+            className="text-[1.6cqi] opacity-40 tracking-widest" />
         </div>
       )}
       {(editable || email) && (
-        <div className="flex items-center" style={{ gap: "calc(0.6*var(--ci))" }}>
-          <Mail style={{ color: colors.accent, width: "calc(1.5*var(--ci))", height: "calc(1.5*var(--ci))", flexShrink: 0 }} />
+        <div className="flex items-center gap-[0.6cqi]">
+          <Mail size="1.5cqi" style={{ color: colors.accent, width: "1.5cqi", height: "1.5cqi", flexShrink: 0 }} />
           <EditableText as="span" fieldId="f-email" editable={editable} value={email ?? ""}
             onChange={v => onUpdate?.("email", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="opacity-40 tracking-widest" style={{ fontSize: "calc(1.6*var(--ci))" }} />
+            className="text-[1.6cqi] opacity-40 tracking-widest" />
         </div>
       )}
       {website !== undefined && (
         <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
           onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="opacity-25 tracking-widest" style={{ fontSize: "calc(1.6*var(--ci))" }} />
+          className="text-[1.6cqi] opacity-25 tracking-widest" />
       )}
     </div>
   );
@@ -150,27 +145,24 @@ const VariantBlackGold = ({
   headline, subtext, ctaText, productImage, brandName, website, instagram, price,
   colors, editable, onUpdate, onFocusEl, onBlurEl,
 }: LuxuryProductProps) => (
-  <div className="w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
-    <div
-      className="shrink-0 flex items-center justify-between border-b"
-      style={{ borderColor: `${colors.accent}30`, padding: "calc(3*var(--cb)) calc(5*var(--ci))" }}
-    >
+  <div className="@container w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+    <div className="shrink-0 flex items-center justify-between px-[5cqi] py-[3cqi] border-b" style={{ borderColor: `${colors.accent}30` }}>
       <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
         onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="font-bold tracking-[0.4em] uppercase" style={{ fontSize: "calc(2*var(--ci))" }} />
+        className="text-[2cqi] font-bold tracking-[0.4em] uppercase" />
       <EditableText as="p" fieldId="f-instagram" editable={editable} value={instagram ?? ""}
         onChange={v => onUpdate?.("instagram", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="opacity-50 tracking-widest" style={{ fontSize: "calc(2*var(--ci))" }} />
+        className="text-[2cqi] opacity-50 tracking-widest" />
     </div>
 
-    <div className="shrink-0" style={{ padding: "calc(4*var(--cb)) calc(5*var(--ci)) calc(2*var(--cb))" }}>
+    <div className="shrink-0 px-[5cqi] pt-[4cqi] pb-[2cqi]">
       <EditableHeadlineLines value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
         onChange={v => onUpdate?.("headline", v)}
         renderLine={(line, i, node) => (
-          <p className="leading-[0.85]"
-            style={i === 0
-              ? { fontSize: "calc(11*var(--ci))", fontWeight: 900, letterSpacing: "-0.02em" }
-              : { fontSize: "calc(8*var(--ci))", fontWeight: 300, letterSpacing: "0.15em", textTransform: "uppercase", opacity: 0.7, color: colors.accent }}>
+          <p className={i === 0
+            ? "text-[11cqi] font-black leading-[0.85] tracking-tight"
+            : "text-[8cqi] font-light tracking-[0.15em] uppercase opacity-70"}
+            style={i === 1 ? { color: colors.accent } : {}}>
             {node}
           </p>
         )} />
@@ -181,32 +173,24 @@ const VariantBlackGold = ({
       <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at center bottom, ${colors.primary}60, transparent 70%)` }} />
     </div>
 
-    <div
-      className="shrink-0 flex items-center justify-between border-t"
-      style={{ borderColor: `${colors.accent}30`, backgroundColor: `${colors.accent}08`, padding: "calc(3.5*var(--cb)) calc(5*var(--ci))" }}
-    >
+    <div className="shrink-0 flex items-center justify-between px-[5cqi] py-[3.5cqi] border-t" style={{ borderColor: `${colors.accent}30`, backgroundColor: `${colors.accent}08` }}>
       <div>
         {price !== undefined && price !== "" && (
           <EditableText as="p" fieldId="f-price" editable={editable} value={price}
             onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="font-black" style={{ fontSize: "calc(5*var(--ci))", color: colors.accent }} />
+            className="text-[5cqi] font-black" style={{ color: colors.accent }} />
         )}
         <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext ?? ""}
           onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="opacity-50" style={{ fontSize: "calc(2*var(--ci))", marginTop: "calc(0.5*var(--cb))" }} />
+          className="text-[2cqi] opacity-50 mt-[0.5cqi]" />
       </div>
       <div>
         <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
           onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="font-black uppercase tracking-widest"
-          style={{
-            backgroundColor: colors.accent, color: colors.primary,
-            padding: "calc(2*var(--cb)) calc(4*var(--ci))", fontSize: "calc(2.2*var(--ci))",
-            marginBottom: "calc(1*var(--cb))",
-          }} />
+          className="px-[4cqi] py-[2cqi] text-[2.2cqi] font-black uppercase tracking-widest mb-[1cqi]" style={{ backgroundColor: colors.accent, color: colors.primary }} />
         <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
           onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="opacity-25 text-right tracking-widest" style={{ fontSize: "calc(1.8*var(--ci))" }} />
+          className="text-[1.8cqi] opacity-25 text-right tracking-widest" />
       </div>
     </div>
   </div>
@@ -224,65 +208,56 @@ const VariantWhiteGold = ({
   const rest = lines.slice(1).join(' ') || lines[0] || "";
 
   return (
-    <div className="w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
-      <div
-        className="absolute top-0 bottom-0 z-10"
-        style={{ left: "calc(12*var(--ci))", width: "calc(0.3*var(--ci))", backgroundColor: colors.accent, opacity: 0.4 }}
-      />
+    <div className="@container w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+      <div className="absolute left-[12cqi] top-0 bottom-0 w-[0.3cqi] z-10" style={{ backgroundColor: colors.accent, opacity: 0.4 }} />
 
-      <div
-        className="absolute top-1/2 -translate-y-1/2 -rotate-90 z-10"
-        style={{ left: "calc(6*var(--ci))" }}
-      >
+      <div className="absolute left-[6cqi] top-1/2 -translate-y-1/2 -rotate-90 z-10">
         <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
           onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="tracking-[0.5em] uppercase font-bold opacity-30 whitespace-nowrap" style={{ fontSize: "calc(2*var(--ci))" }} />
+          className="text-[2cqi] tracking-[0.5em] uppercase font-bold opacity-30 whitespace-nowrap" />
       </div>
 
-      <div
-        className="flex-1 flex flex-col"
-        style={{ paddingLeft: "calc(15*var(--ci))", paddingRight: "calc(5*var(--ci))", paddingTop: "calc(5*var(--cb))", paddingBottom: "calc(4*var(--cb))" }}
-      >
-        <div className="shrink-0" style={{ marginBottom: "calc(3*var(--cb))" }}>
+      <div className="flex-1 flex flex-col pl-[15cqi] pr-[5cqi] pt-[5cqi] pb-[4cqi]">
+        <div className="shrink-0 mb-[3cqi]">
           <EditableText as="p" fieldId="f-headline-0" editable={editable} value={eyebrow}
             onChange={v => {
+              // reconstruct the joined headline with just the eyebrow line replaced
               const next = [v, ...lines.slice(1)];
               onUpdate?.("headline", next.join('\n'));
             }} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="tracking-[0.4em] uppercase opacity-40" style={{ fontSize: "calc(2*var(--ci))", marginBottom: "calc(2*var(--cb))" }} />
-          <h1 className="font-black leading-[0.85] tracking-tight" style={{ fontSize: "calc(11*var(--ci))" }}>
+            className="text-[2cqi] tracking-[0.4em] uppercase opacity-40 mb-[2cqi]" />
+          <h1 className="text-[11cqi] font-black leading-[0.85] tracking-tight">
             <EditableText as="span" fieldId="f-headline-1" editable={editable} value={rest}
               onChange={v => {
                 const next = [lines[0] ?? "", v];
                 onUpdate?.("headline", next.join('\n'));
               }} onFocusEl={onFocusEl} onBlurEl={onBlurEl} />
           </h1>
-          <div style={{ width: "calc(8*var(--ci))", height: "calc(0.3*var(--ci))", marginTop: "calc(2*var(--cb))", backgroundColor: colors.accent }} />
+          <div className="w-[8cqi] h-[0.3cqi] mt-[2cqi]" style={{ backgroundColor: colors.accent }} />
         </div>
 
         <div className="flex-1 relative">
           <Image src={productImage} alt="Product" fill className="object-contain object-center" crossOrigin="anonymous" />
         </div>
 
-        <div className="shrink-0 flex items-end justify-between" style={{ paddingTop: "calc(2*var(--cb))" }}>
+        <div className="shrink-0 flex items-end justify-between pt-[2cqi]">
           <div>
             <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext ?? ""}
               onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-              className="opacity-50" style={{ fontSize: "calc(2.2*var(--ci))", marginBottom: "calc(1*var(--cb))", maxWidth: "calc(40*var(--ci))" }} />
+              className="text-[2.2cqi] opacity-50 mb-[1cqi] max-w-[40cqi]" />
             <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
               onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-              className="opacity-25 tracking-widest uppercase" style={{ fontSize: "calc(1.8*var(--ci))" }} />
+              className="text-[1.8cqi] opacity-25 tracking-widest uppercase" />
           </div>
           <div className="text-right">
             {price !== undefined && price !== "" && (
               <EditableText as="p" fieldId="f-price" editable={editable} value={price}
                 onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                className="font-black" style={{ fontSize: "calc(6*var(--ci))", marginBottom: "calc(1*var(--cb))", color: colors.accent }} />
+                className="text-[6cqi] font-black mb-[1cqi]" style={{ color: colors.accent }} />
             )}
             <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
               onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-              className="inline-block font-black uppercase tracking-widest"
-              style={{ backgroundColor: colors.accent, color: colors.primary, padding: "calc(2*var(--cb)) calc(4*var(--ci))", fontSize: "calc(2.2*var(--ci))" }} />
+              className="inline-block px-[4cqi] py-[2cqi] text-[2.2cqi] font-black uppercase tracking-widest" style={{ backgroundColor: colors.accent, color: colors.primary }} />
           </div>
         </div>
       </div>
@@ -297,49 +272,45 @@ const VariantNavyCyan = ({
   headline, subtext, ctaText, productImage, website, price,
   colors, editable, onUpdate, onFocusEl, onBlurEl,
 }: LuxuryProductProps) => (
-  <div className="w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+  <div className="@container w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
     <div className="absolute top-0 right-0 w-[60%] h-[60%] z-0" style={{ backgroundColor: colors.accent, clipPath: 'circle(50% at 100% 0%)', opacity: 0.08 }} />
 
-    <div className="shrink-0 flex items-center justify-between z-10 relative" style={{ padding: "calc(4*var(--cb)) calc(5*var(--ci)) calc(2*var(--cb))" }}>
+    <div className="shrink-0 px-[5cqi] pt-[4cqi] pb-[2cqi] flex items-center justify-between z-10 relative">
       <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
         onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="tracking-[0.4em] uppercase opacity-50" style={{ fontSize: "calc(2*var(--ci))" }} />
-      <div style={{ width: "calc(6*var(--ci))", height: "calc(0.3*var(--ci))", backgroundColor: colors.accent }} />
+        className="text-[2cqi] tracking-[0.4em] uppercase opacity-50" />
+      <div className="w-[6cqi] h-[0.3cqi]" style={{ backgroundColor: colors.accent }} />
     </div>
 
-    <div className="shrink-0 z-10 relative" style={{ padding: "0 calc(5*var(--ci))" }}>
+    <div className="shrink-0 px-[5cqi] z-10 relative">
       <EditableHeadlineLines value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
         onChange={v => onUpdate?.("headline", v)}
         renderLine={(line, i, node) => (
           <h1 className="font-black uppercase leading-[0.82] tracking-tighter"
-            style={{ fontSize: `calc(${14 - i * 1}*var(--ci))`, color: i === 0 ? colors.secondary : colors.accent }}>
+            style={{ fontSize: `${14 - i * 1}cqi`, color: i === 0 ? colors.secondary : colors.accent }}>
             {node}
           </h1>
         )} />
     </div>
 
-    <div className="flex-1 relative z-10" style={{ padding: "0 calc(4*var(--ci))" }}>
+    <div className="flex-1 relative z-10 px-[4cqi]">
       <Image src={productImage} alt="Product" fill className="object-contain object-center" crossOrigin="anonymous" />
     </div>
 
-    <div
-      className="shrink-0 z-10 flex items-center justify-between"
-      style={{ backgroundColor: colors.accent, padding: "calc(3.5*var(--cb)) calc(5*var(--ci))" }}
-    >
+    <div className="shrink-0 z-10 flex items-center justify-between px-[5cqi] py-[3.5cqi]" style={{ backgroundColor: colors.accent }}>
       <div>
         {price !== undefined && price !== "" && (
           <EditableText as="p" fieldId="f-price" editable={editable} value={price}
             onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="font-black leading-none" style={{ fontSize: "calc(5*var(--ci))", color: colors.primary }} />
+            className="text-[5cqi] font-black leading-none" style={{ color: colors.primary }} />
         )}
         <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext ?? ""}
           onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="opacity-60" style={{ fontSize: "calc(2*var(--ci))", marginTop: "calc(0.5*var(--cb))", color: colors.primary }} />
+          className="text-[2cqi] opacity-60 mt-[0.5cqi]" style={{ color: colors.primary }} />
       </div>
       <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
         onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="font-black uppercase tracking-widest"
-        style={{ backgroundColor: colors.primary, color: colors.accent, padding: "calc(2*var(--cb)) calc(4*var(--ci))", fontSize: "calc(2.4*var(--ci))" }} />
+        className="px-[4cqi] py-[2cqi] text-[2.4cqi] font-black uppercase tracking-widest" style={{ backgroundColor: colors.primary, color: colors.accent }} />
     </div>
   </div>
 );
@@ -351,21 +322,18 @@ const VariantDarkMarble = ({
   headline, subtext, ctaText, productImage, website, price, brandName,
   colors, editable, onUpdate, onFocusEl, onBlurEl,
 }: LuxuryProductProps) => (
-  <div className="w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+  <div className="@container w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
     <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/noise.png")' }} />
 
-    <div className="shrink-0 flex items-center justify-between z-10 relative" style={{ padding: "calc(4*var(--cb)) calc(5*var(--ci)) 0" }}>
+    <div className="shrink-0 px-[5cqi] pt-[4cqi] flex items-center justify-between z-10 relative">
       <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
         onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="tracking-[0.5em] uppercase font-bold opacity-30" style={{ fontSize: "calc(2*var(--ci))" }} />
-      <div
-        className="rounded-full"
-        style={{ width: "calc(4*var(--ci))", height: "calc(4*var(--ci))", border: `calc(0.3*var(--ci)) solid ${colors.accent}`, opacity: 0.5 }}
-      />
+        className="text-[2cqi] tracking-[0.5em] uppercase font-bold opacity-30" />
+      <div className="w-[4cqi] h-[4cqi] rounded-full border-[0.3cqi]" style={{ borderColor: colors.accent, opacity: 0.5 }} />
     </div>
 
-    <div className="shrink-0 z-10 relative" style={{ padding: "calc(3*var(--cb)) calc(5*var(--ci)) calc(2*var(--cb))" }}>
-      <h1 className="font-black leading-[0.85] tracking-tight uppercase" style={{ fontSize: "calc(10*var(--ci))" }}>
+    <div className="shrink-0 px-[5cqi] pt-[3cqi] pb-[2cqi] z-10 relative">
+      <h1 className="text-[10cqi] font-black leading-[0.85] tracking-tight uppercase">
         <EditableHeadlineLines value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
           onChange={v => onUpdate?.("headline", v)}
           renderLine={(line, i, node) => (
@@ -374,31 +342,30 @@ const VariantDarkMarble = ({
       </h1>
     </div>
 
-    <div className="z-10 relative" style={{ margin: "0 calc(5*var(--ci))", height: "calc(0.2*var(--ci))", backgroundColor: `${colors.secondary}20` }} />
+    <div className="mx-[5cqi] h-[0.2cqi] z-10 relative" style={{ backgroundColor: `${colors.secondary}20` }} />
 
     <div className="flex-1 relative z-10">
       <Image src={productImage} alt="Product" fill className="object-contain object-center" crossOrigin="anonymous" />
       <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at center, transparent 40%, ${colors.primary}80 100%)` }} />
     </div>
 
-    <div className="shrink-0 flex items-end justify-between z-10 relative" style={{ padding: "0 calc(5*var(--ci)) calc(4*var(--cb))" }}>
+    <div className="shrink-0 px-[5cqi] pb-[4cqi] flex items-end justify-between z-10 relative">
       <div>
         {price !== undefined && price !== "" && (
           <EditableText as="p" fieldId="f-price" editable={editable} value={price}
             onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="font-black leading-none" style={{ fontSize: "calc(7*var(--ci))", color: colors.accent }} />
+            className="text-[7cqi] font-black leading-none" style={{ color: colors.accent }} />
         )}
         <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext ?? ""}
           onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="opacity-40" style={{ fontSize: "calc(2*var(--ci))", marginTop: "calc(0.5*var(--cb))" }} />
+          className="text-[2cqi] opacity-40 mt-[0.5cqi]" />
         <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
           onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="opacity-20 tracking-widest uppercase" style={{ fontSize: "calc(1.6*var(--ci))", marginTop: "calc(1*var(--cb))" }} />
+          className="text-[1.6cqi] opacity-20 mt-[1cqi] tracking-widest uppercase" />
       </div>
       <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
         onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="font-black uppercase tracking-wider"
-        style={{ border: `calc(0.3*var(--ci)) solid ${colors.accent}`, color: colors.accent, padding: "calc(2.5*var(--cb)) calc(4*var(--ci))", fontSize: "calc(2.2*var(--ci))" }} />
+        className="px-[4cqi] py-[2.5cqi] text-[2.2cqi] font-black uppercase tracking-wider" style={{ border: `0.3cqi solid ${colors.accent}`, color: colors.accent }} />
     </div>
   </div>
 );
@@ -410,17 +377,17 @@ const VariantRoyalPurple = ({
   headline, subtext, ctaText, productImage, website, price,
   colors, editable, onUpdate, onFocusEl, onBlurEl,
 }: LuxuryProductProps) => (
-  <div className="w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+  <div className="@container w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
     <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 50% 60%, ${colors.accent}15 0%, transparent 65%)` }} />
 
-    <div className="shrink-0 z-10 relative" style={{ padding: "calc(5*var(--cb)) calc(5*var(--ci)) 0" }}>
-      <div className="flex items-center" style={{ gap: "calc(2*var(--ci))", marginBottom: "calc(3*var(--cb))" }}>
-        <div style={{ width: "calc(4*var(--ci))", height: "calc(0.2*var(--ci))", backgroundColor: colors.accent }} />
+    <div className="shrink-0 px-[5cqi] pt-[5cqi] z-10 relative">
+      <div className="flex items-center gap-[2cqi] mb-[3cqi]">
+        <div className="w-[4cqi] h-[0.2cqi]" style={{ backgroundColor: colors.accent }} />
         <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
           onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="tracking-[0.4em] uppercase opacity-50" style={{ fontSize: "calc(1.8*var(--ci))" }} />
+          className="text-[1.8cqi] tracking-[0.4em] uppercase opacity-50" />
       </div>
-      <h1 className="font-black leading-[0.85] tracking-tighter uppercase" style={{ fontSize: "calc(10.5*var(--ci))" }}>
+      <h1 className="text-[10.5cqi] font-black leading-[0.85] tracking-tighter uppercase">
         <EditableHeadlineLines value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
           onChange={v => onUpdate?.("headline", v)}
           renderLine={(line, i, node) => (
@@ -433,23 +400,22 @@ const VariantRoyalPurple = ({
       <Image src={productImage} alt="Product" fill className="object-contain object-center" crossOrigin="anonymous" />
     </div>
 
-    <div className="shrink-0 z-10 relative" style={{ padding: "0 calc(5*var(--ci)) calc(4*var(--cb))" }}>
-      <div style={{ width: "100%", height: "calc(0.2*var(--ci))", marginBottom: "calc(3*var(--cb))", backgroundColor: `${colors.accent}30` }} />
+    <div className="shrink-0 px-[5cqi] pb-[4cqi] z-10 relative">
+      <div className="w-full h-[0.2cqi] mb-[3cqi]" style={{ backgroundColor: `${colors.accent}30` }} />
       <div className="flex items-end justify-between">
         <div>
           {price !== undefined && price !== "" && (
             <EditableText as="p" fieldId="f-price" editable={editable} value={price}
               onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-              className="font-black leading-none" style={{ fontSize: "calc(8*var(--ci))", color: colors.accent }} />
+              className="text-[8cqi] font-black leading-none" style={{ color: colors.accent }} />
           )}
           <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext ?? ""}
             onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="opacity-50" style={{ fontSize: "calc(2.2*var(--ci))", marginTop: "calc(0.5*var(--cb))", maxWidth: "calc(40*var(--ci))" }} />
+            className="text-[2.2cqi] opacity-50 mt-[0.5cqi] max-w-[40cqi]" />
         </div>
         <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
           onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="font-black uppercase tracking-widest rounded-full"
-          style={{ backgroundColor: colors.accent, color: colors.primary, padding: "calc(2.5*var(--cb)) calc(5*var(--ci))", fontSize: "calc(2.4*var(--ci))" }} />
+          className="px-[5cqi] py-[2.5cqi] text-[2.4cqi] font-black uppercase tracking-widest rounded-full" style={{ backgroundColor: colors.accent, color: colors.primary }} />
       </div>
     </div>
   </div>
@@ -462,45 +428,41 @@ const VariantEmeraldGreen = ({
   headline, subtext, ctaText, productImage, brandName, website, price,
   colors, editable, onUpdate, onFocusEl, onBlurEl,
 }: LuxuryProductProps) => (
-  <div className="w-full h-full relative overflow-hidden flex font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
-    <div
-      className="w-[42%] h-full flex flex-col justify-between border-r z-10 relative"
-      style={{ borderColor: `${colors.secondary}15`, padding: "calc(5*var(--ci))" }}
-    >
+  <div className="@container w-full h-full relative overflow-hidden flex font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+    <div className="w-[42%] h-full flex flex-col justify-between p-[5cqi] border-r z-10 relative" style={{ borderColor: `${colors.secondary}15` }}>
       <div>
         <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
           onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="tracking-[0.5em] uppercase opacity-30" style={{ fontSize: "calc(1.8*var(--ci))", marginBottom: "calc(4*var(--cb))" }} />
-        <h1 className="font-black leading-[0.85] tracking-tight uppercase" style={{ fontSize: "calc(9*var(--ci))", marginBottom: "calc(3*var(--cb))" }}>
+          className="text-[1.8cqi] tracking-[0.5em] uppercase opacity-30 mb-[4cqi]" />
+        <h1 className="text-[9cqi] font-black leading-[0.85] tracking-tight uppercase mb-[3cqi]">
           <EditableHeadlineLines value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
             onChange={v => onUpdate?.("headline", v)}
             renderLine={(line, i, node) => (
               <span className="block" style={i === 1 ? { color: colors.accent } : {}}>{node}</span>
             )} />
         </h1>
-        <div style={{ width: "calc(6*var(--ci))", height: "calc(0.3*var(--ci))", marginBottom: "calc(3*var(--cb))", backgroundColor: colors.accent }} />
+        <div className="w-[6cqi] h-[0.3cqi] mb-[3cqi]" style={{ backgroundColor: colors.accent }} />
         <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext ?? ""}
           onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="leading-relaxed opacity-50" style={{ fontSize: "calc(2.2*var(--ci))" }} />
+          className="text-[2.2cqi] leading-relaxed opacity-50" />
       </div>
       <div>
         {price !== undefined && price !== "" && (
           <EditableText as="p" fieldId="f-price" editable={editable} value={price}
             onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="font-black leading-none" style={{ fontSize: "calc(7*var(--ci))", marginBottom: "calc(2*var(--cb))", color: colors.accent }} />
+            className="text-[7cqi] font-black leading-none mb-[2cqi]" style={{ color: colors.accent }} />
         )}
         <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
           onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="font-black uppercase tracking-widest"
-          style={{ backgroundColor: colors.accent, color: colors.primary, padding: "calc(2*var(--cb)) calc(3*var(--ci))", fontSize: "calc(2.2*var(--ci))", marginBottom: "calc(1.5*var(--cb))" }} />
+          className="px-[3cqi] py-[2cqi] text-[2.2cqi] font-black uppercase tracking-widest mb-[1.5cqi]" style={{ backgroundColor: colors.accent, color: colors.primary }} />
         <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
           onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="opacity-20 tracking-widest uppercase" style={{ fontSize: "calc(1.6*var(--ci))" }} />
+          className="text-[1.6cqi] opacity-20 tracking-widest uppercase" />
       </div>
     </div>
 
     <div className="w-[58%] relative">
-      <Image src={productImage} alt="Product" fill className="object-contain object-center" style={{ padding: "calc(3*var(--ci))" }} crossOrigin="anonymous" />
+      <Image src={productImage} alt="Product" fill className="object-contain object-center p-[3cqi]" crossOrigin="anonymous" />
     </div>
   </div>
 );
@@ -517,50 +479,49 @@ const VariantSoftSage = ({
   const main = lines[1] ?? lines[0] ?? "";
 
   return (
-    <div className="w-full h-full relative overflow-hidden flex flex-col items-center font-sans text-center" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
-      <div className="shrink-0 w-full flex items-center justify-between" style={{ padding: "calc(4*var(--cb)) calc(5*var(--ci)) calc(2*var(--cb))" }}>
+    <div className="@container w-full h-full relative overflow-hidden flex flex-col items-center font-sans text-center" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+      <div className="shrink-0 w-full flex items-center justify-between px-[5cqi] pt-[4cqi] pb-[2cqi]">
         <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
           onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="tracking-[0.5em] uppercase opacity-30" style={{ fontSize: "calc(1.8*var(--ci))" }} />
-        <div style={{ width: "calc(4*var(--ci))", height: "calc(0.2*var(--ci))", backgroundColor: `${colors.secondary}30` }} />
+          className="text-[1.8cqi] tracking-[0.5em] uppercase opacity-30" />
+        <div className="w-[4cqi] h-[0.2cqi]" style={{ backgroundColor: `${colors.secondary}30` }} />
         <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
           onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="tracking-[0.4em] uppercase opacity-30" style={{ fontSize: "calc(1.8*var(--ci))" }} />
+          className="text-[1.8cqi] tracking-[0.4em] uppercase opacity-30" />
       </div>
 
-      <div className="shrink-0" style={{ padding: "calc(2*var(--cb)) calc(6*var(--ci)) calc(3*var(--cb))" }}>
+      <div className="shrink-0 px-[6cqi] pt-[2cqi] pb-[3cqi]">
         <EditableText as="p" fieldId="f-headline-0" editable={editable} value={eyebrow}
           onChange={v => onUpdate?.("headline", [v, lines[1] ?? ""].join('\n'))}
           onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="tracking-[0.4em] uppercase opacity-40" style={{ fontSize: "calc(2*var(--ci))", marginBottom: "calc(2*var(--cb))" }} />
-        <h1 className="font-black leading-[0.85] tracking-tight uppercase" style={{ fontSize: "calc(10*var(--ci))" }}>
+          className="text-[2cqi] tracking-[0.4em] uppercase opacity-40 mb-[2cqi]" />
+        <h1 className="text-[10cqi] font-black leading-[0.85] tracking-tight uppercase">
           <EditableText as="span" fieldId="f-headline-1" editable={editable} value={main}
             onChange={v => onUpdate?.("headline", [lines[0] ?? "", v].join('\n'))}
             onFocusEl={onFocusEl} onBlurEl={onBlurEl} />
         </h1>
-        <div style={{ width: "calc(6*var(--ci))", height: "calc(0.3*var(--ci))", margin: "calc(2*var(--cb)) auto 0", backgroundColor: colors.accent }} />
+        <div className="w-[6cqi] h-[0.3cqi] mx-auto mt-[2cqi]" style={{ backgroundColor: colors.accent }} />
       </div>
 
-      <div className="flex-1 w-full relative" style={{ padding: "0 calc(4*var(--ci))" }}>
+      <div className="flex-1 w-full relative px-[4cqi]">
         <Image src={productImage} alt="Product" fill className="object-contain object-center" crossOrigin="anonymous" />
       </div>
 
-      <div className="shrink-0 w-full flex items-end justify-between" style={{ padding: "calc(2*var(--cb)) calc(5*var(--ci)) calc(4*var(--cb))" }}>
+      <div className="shrink-0 w-full px-[5cqi] pb-[4cqi] pt-[2cqi] flex items-end justify-between">
         <div className="text-left">
           <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext ?? ""}
             onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="opacity-50" style={{ fontSize: "calc(2.2*var(--ci))", maxWidth: "calc(35*var(--ci))" }} />
+            className="text-[2.2cqi] opacity-50 max-w-[35cqi]" />
         </div>
         <div className="text-right">
           {price !== undefined && price !== "" && (
             <EditableText as="p" fieldId="f-price" editable={editable} value={price}
               onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-              className="font-black leading-none" style={{ fontSize: "calc(6*var(--ci))", color: colors.accent }} />
+              className="text-[6cqi] font-black leading-none" style={{ color: colors.accent }} />
           )}
           <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
             onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="inline-block font-black uppercase tracking-widest"
-            style={{ backgroundColor: colors.accent, color: colors.primary, marginTop: "calc(1.5*var(--cb))", padding: "calc(2*var(--cb)) calc(4*var(--ci))", fontSize: "calc(2.2*var(--ci))" }} />
+            className="inline-block mt-[1.5cqi] px-[4cqi] py-[2cqi] text-[2.2cqi] font-black uppercase tracking-widest" style={{ backgroundColor: colors.accent, color: colors.primary }} />
         </div>
       </div>
     </div>
@@ -574,44 +535,43 @@ const VariantRoseBlush = ({
   headline, subtext, ctaText, productImage, website, price,
   colors, editable, onUpdate, onFocusEl, onBlurEl,
 }: LuxuryProductProps) => (
-  <div className="w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+  <div className="@container w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
     <div className="h-[55%] relative shrink-0">
-      <Image src={productImage} alt="Product" fill className="object-contain object-center" style={{ padding: "calc(3*var(--ci))" }} crossOrigin="anonymous" />
+      <Image src={productImage} alt="Product" fill className="object-contain object-center p-[3cqi]" crossOrigin="anonymous" />
       <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, transparent 60%, ${colors.primary} 100%)` }} />
     </div>
 
-    <div className="flex-1 flex flex-col justify-between" style={{ padding: "0 calc(5*var(--ci)) calc(5*var(--cb))" }}>
+    <div className="flex-1 px-[5cqi] pb-[5cqi] flex flex-col justify-between">
       <div>
         <EditableHeadlineLines value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
           onChange={v => onUpdate?.("headline", v)}
           renderLine={(line, i, node) => (
-            <p
-              style={i === 0
-                ? { fontSize: "calc(2.5*var(--ci))", letterSpacing: "0.4em", textTransform: "uppercase", opacity: 0.4, marginBottom: "calc(1*var(--cb))" }
-                : { fontSize: "calc(10*var(--ci))", fontWeight: 900, lineHeight: 0.85, letterSpacing: "-0.03em", textTransform: "uppercase", color: colors.secondary }}>
+            <p className={i === 0
+              ? "text-[2.5cqi] tracking-[0.4em] uppercase opacity-40 mb-[1cqi]"
+              : "text-[10cqi] font-black leading-[0.85] tracking-tighter uppercase"}
+              style={i === 1 ? { color: colors.secondary } : {}}>
               {node}
             </p>
           )} />
-        <div style={{ width: "calc(6*var(--ci))", height: "calc(0.3*var(--ci))", marginTop: "calc(2*var(--cb))", backgroundColor: colors.accent }} />
+        <div className="w-[6cqi] h-[0.3cqi] mt-[2cqi]" style={{ backgroundColor: colors.accent }} />
       </div>
       <div className="flex items-end justify-between">
         <div>
           {price !== undefined && price !== "" && (
             <EditableText as="p" fieldId="f-price" editable={editable} value={price}
               onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-              className="font-black leading-none" style={{ fontSize: "calc(7*var(--ci))", color: colors.accent }} />
+              className="text-[7cqi] font-black leading-none" style={{ color: colors.accent }} />
           )}
           <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext ?? ""}
             onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="opacity-50" style={{ fontSize: "calc(2*var(--ci))", marginTop: "calc(0.5*var(--cb))" }} />
+            className="text-[2cqi] opacity-50 mt-[0.5cqi]" />
           <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
             onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="opacity-20 tracking-widest uppercase" style={{ fontSize: "calc(1.6*var(--ci))", marginTop: "calc(1*var(--cb))" }} />
+            className="text-[1.6cqi] opacity-20 tracking-widest uppercase mt-[1cqi]" />
         </div>
         <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
           onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="font-black uppercase tracking-widest rounded-full"
-          style={{ backgroundColor: colors.accent, color: colors.primary, padding: "calc(2.5*var(--cb)) calc(4*var(--ci))", fontSize: "calc(2.4*var(--ci))" }} />
+          className="px-[4cqi] py-[2.5cqi] text-[2.4cqi] font-black uppercase tracking-widest rounded-full" style={{ backgroundColor: colors.accent, color: colors.primary }} />
       </div>
     </div>
   </div>
@@ -624,23 +584,23 @@ const VariantClassicMono = ({
   headline, subtext, ctaText, productImage, brandName, website, price,
   colors, editable, onUpdate, onFocusEl, onBlurEl,
 }: LuxuryProductProps) => (
-  <div className="w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
-    <div className="shrink-0" style={{ padding: "calc(4*var(--cb)) calc(5*var(--ci)) 0" }}>
-      <div style={{ width: "100%", height: "calc(0.3*var(--ci))", marginBottom: "calc(2*var(--cb))", backgroundColor: colors.secondary, opacity: 0.15 }} />
-      <div className="flex items-center justify-between" style={{ marginBottom: "calc(2*var(--cb))" }}>
+  <div className="@container w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+    <div className="shrink-0 px-[5cqi] pt-[4cqi]">
+      <div className="w-full h-[0.3cqi] mb-[2cqi]" style={{ backgroundColor: colors.secondary, opacity: 0.15 }} />
+      <div className="flex items-center justify-between mb-[2cqi]">
         <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
           onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="tracking-[0.5em] uppercase opacity-40" style={{ fontSize: "calc(2*var(--ci))" }} />
+          className="text-[2cqi] tracking-[0.5em] uppercase opacity-40" />
         <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
           onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="tracking-[0.3em] uppercase opacity-25" style={{ fontSize: "calc(2*var(--ci))" }} />
+          className="text-[2cqi] tracking-[0.3em] uppercase opacity-25" />
       </div>
-      <div style={{ width: "100%", height: "calc(0.3*var(--ci))", backgroundColor: colors.secondary, opacity: 0.15 }} />
+      <div className="w-full h-[0.3cqi]" style={{ backgroundColor: colors.secondary, opacity: 0.15 }} />
     </div>
 
     <div className="flex-1 flex">
-      <div className="w-[50%] flex flex-col justify-center" style={{ padding: "calc(3*var(--cb)) calc(5*var(--ci))" }}>
-        <h1 className="font-black leading-[0.82] tracking-tighter uppercase" style={{ fontSize: "calc(11*var(--ci))", marginBottom: "calc(4*var(--cb))" }}>
+      <div className="w-[50%] flex flex-col justify-center px-[5cqi] py-[3cqi]">
+        <h1 className="text-[11cqi] font-black leading-[0.82] tracking-tighter uppercase mb-[4cqi]">
           <EditableHeadlineLines value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
             onChange={v => onUpdate?.("headline", v)}
             renderLine={(line, i, node) => (
@@ -649,16 +609,15 @@ const VariantClassicMono = ({
         </h1>
         <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext ?? ""}
           onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="opacity-50 leading-relaxed" style={{ fontSize: "calc(2.2*var(--ci))", marginBottom: "calc(4*var(--cb))" }} />
+          className="text-[2.2cqi] opacity-50 leading-relaxed mb-[4cqi]" />
         {price !== undefined && price !== "" && (
           <EditableText as="p" fieldId="f-price" editable={editable} value={price}
             onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="font-black leading-none" style={{ fontSize: "calc(6*var(--ci))", marginBottom: "calc(2*var(--cb))", color: colors.accent }} />
+            className="text-[6cqi] font-black leading-none mb-[2cqi]" style={{ color: colors.accent }} />
         )}
         <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
           onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="inline-block font-black uppercase tracking-widest"
-          style={{ backgroundColor: colors.secondary, color: colors.primary, padding: "calc(2*var(--cb)) calc(4*var(--ci))", fontSize: "calc(2.2*var(--ci))" }} />
+          className="inline-block px-[4cqi] py-[2cqi] text-[2.2cqi] font-black uppercase tracking-widest" style={{ backgroundColor: colors.secondary, color: colors.primary }} />
       </div>
 
       <div className="w-[50%] relative">
@@ -666,8 +625,8 @@ const VariantClassicMono = ({
       </div>
     </div>
 
-    <div className="shrink-0" style={{ padding: "0 calc(5*var(--ci)) calc(4*var(--cb))" }}>
-      <div style={{ width: "100%", height: "calc(0.3*var(--ci))", backgroundColor: colors.secondary, opacity: 0.15 }} />
+    <div className="shrink-0 px-[5cqi] pb-[4cqi]">
+      <div className="w-full h-[0.3cqi]" style={{ backgroundColor: colors.secondary, opacity: 0.15 }} />
     </div>
   </div>
 );
@@ -679,18 +638,18 @@ const VariantCrimsonVelvet = ({
   headline, subtext, ctaText, productImage, brandName, website, price,
   colors, editable, onUpdate, onFocusEl, onBlurEl,
 }: LuxuryProductProps) => (
-  <div className="w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+  <div className="@container w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
     <div className="absolute inset-0 pointer-events-none opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)', backgroundSize: '20px 20px' }} />
 
-    <div className="shrink-0 flex items-center" style={{ padding: "calc(4*var(--cb)) calc(5*var(--ci)) 0", gap: "calc(2*var(--ci))" }}>
-      <div className="rounded-full" style={{ width: "calc(3*var(--ci))", height: "calc(3*var(--ci))", backgroundColor: colors.accent }} />
+    <div className="shrink-0 px-[5cqi] pt-[4cqi] flex items-center gap-[2cqi]">
+      <div className="w-[3cqi] h-[3cqi] rounded-full" style={{ backgroundColor: colors.accent }} />
       <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
         onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="font-bold tracking-[0.3em] uppercase opacity-60" style={{ fontSize: "calc(2.2*var(--ci))" }} />
+        className="text-[2.2cqi] font-bold tracking-[0.3em] uppercase opacity-60" />
     </div>
 
-    <div className="shrink-0" style={{ padding: "calc(3*var(--cb)) calc(5*var(--ci)) calc(2*var(--cb))" }}>
-      <h1 className="font-black leading-[0.85] tracking-tighter uppercase" style={{ fontSize: "calc(10.5*var(--ci))" }}>
+    <div className="shrink-0 px-[5cqi] pt-[3cqi] pb-[2cqi]">
+      <h1 className="text-[10.5cqi] font-black leading-[0.85] tracking-tighter uppercase">
         <EditableHeadlineLines value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
           onChange={v => onUpdate?.("headline", v)}
           renderLine={(line, i, node) => (
@@ -704,24 +663,23 @@ const VariantCrimsonVelvet = ({
       <div className="absolute bottom-0 left-0 right-0 h-[30%]" style={{ background: `linear-gradient(to top, ${colors.primary}, transparent)` }} />
     </div>
 
-    <div className="shrink-0 flex items-end justify-between z-10" style={{ padding: "0 calc(5*var(--ci)) calc(4*var(--cb))" }}>
+    <div className="shrink-0 px-[5cqi] pb-[4cqi] flex items-end justify-between z-10">
       <div>
         {price !== undefined && price !== "" && (
           <EditableText as="p" fieldId="f-price" editable={editable} value={price}
             onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="font-black leading-none" style={{ fontSize: "calc(7*var(--ci))", color: colors.accent }} />
+            className="text-[7cqi] font-black leading-none" style={{ color: colors.accent }} />
         )}
         <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext ?? ""}
           onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="opacity-50" style={{ fontSize: "calc(2.2*var(--ci))", marginTop: "calc(0.5*var(--cb))", maxWidth: "calc(40*var(--ci))" }} />
+          className="text-[2.2cqi] opacity-50 mt-[0.5cqi] max-w-[40cqi]" />
         <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
           onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="opacity-20 tracking-widest uppercase" style={{ fontSize: "calc(1.6*var(--ci))", marginTop: "calc(1*var(--cb))" }} />
+          className="text-[1.6cqi] opacity-20 mt-[1cqi] tracking-widest uppercase" />
       </div>
       <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
         onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="font-black uppercase tracking-widest rounded-full"
-        style={{ backgroundColor: colors.accent, color: colors.primary, padding: "calc(2.5*var(--cb)) calc(5*var(--ci))", fontSize: "calc(2.4*var(--ci))" }} />
+        className="px-[5cqi] py-[2.5cqi] text-[2.4cqi] font-black uppercase tracking-widest rounded-full" style={{ backgroundColor: colors.accent, color: colors.primary }} />
     </div>
   </div>
 );
@@ -733,21 +691,18 @@ const VariantNewCatalog = ({
   headline, subtext, brandName, ctaText, productImage, website, price,
   colors, editable, onUpdate, onFocusEl, onBlurEl,
 }: LuxuryProductProps) => (
-  <div className="w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
-    <div
-      className="shrink-0 flex items-center justify-between border-b z-10 relative"
-      style={{ borderColor: `${colors.secondary}12`, padding: "calc(2.5*var(--cb)) calc(5*var(--ci))" }}
-    >
+  <div className="@container w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+    <div className="shrink-0 flex items-center justify-between px-[5cqi] py-[2.5cqi] border-b z-10 relative" style={{ borderColor: `${colors.secondary}12` }}>
       <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
         onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="font-black uppercase tracking-[0.35em]" style={{ fontSize: "calc(2.2*var(--ci))" }} />
+        className="text-[2.2cqi] font-black uppercase tracking-[0.35em]" />
       <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
         onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="opacity-30 tracking-widest uppercase" style={{ fontSize: "calc(2*var(--ci))" }} />
+        className="text-[2cqi] opacity-30 tracking-widest uppercase" />
     </div>
 
-    <div className="shrink-0 z-10 relative" style={{ padding: "calc(3*var(--cb)) calc(5*var(--ci)) calc(1*var(--cb))" }}>
-      <h1 className="font-black uppercase leading-[0.85] tracking-tighter" style={{ fontSize: "calc(7*var(--ci))" }}>
+    <div className="shrink-0 px-[5cqi] pt-[3cqi] pb-[1cqi] z-10 relative">
+      <h1 className="text-[7cqi] font-black uppercase leading-[0.85] tracking-tighter">
         <EditableHeadlineLines value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
           onChange={v => onUpdate?.("headline", v)}
           renderLine={(line, i, node) => (
@@ -756,38 +711,34 @@ const VariantNewCatalog = ({
       </h1>
     </div>
 
-    <div className="flex-1 flex z-10 relative" style={{ gap: "calc(1.5*var(--ci))", padding: "0 calc(5*var(--ci)) calc(1*var(--cb))" }}>
-      <div className="flex-1 relative overflow-hidden" style={{ backgroundColor: `${colors.secondary}08`, borderRadius: "calc(2*var(--ci))" }}>
-        <Image src={productImage} alt="Main" fill className="object-contain" style={{ padding: "calc(2*var(--ci))" }} crossOrigin="anonymous" />
+    <div className="flex-1 flex gap-[1.5cqi] px-[5cqi] pb-[1cqi] z-10 relative">
+      <div className="flex-1 relative rounded-[2cqi] overflow-hidden" style={{ backgroundColor: `${colors.secondary}08` }}>
+        <Image src={productImage} alt="Main" fill className="object-contain p-[2cqi]" crossOrigin="anonymous" />
       </div>
-      <div className="w-[28%] flex flex-col" style={{ gap: "calc(1.5*var(--ci))" }}>
-        <div className="flex-1 relative overflow-hidden" style={{ backgroundColor: `${colors.accent}15`, borderRadius: "calc(2*var(--ci))" }}>
-          <Image src={productImage} alt="Side 1" fill className="object-contain scale-90 opacity-70" style={{ padding: "calc(2*var(--ci))" }} crossOrigin="anonymous" />
+      <div className="w-[28%] flex flex-col gap-[1.5cqi]">
+        <div className="flex-1 relative rounded-[2cqi] overflow-hidden" style={{ backgroundColor: `${colors.accent}15` }}>
+          <Image src={productImage} alt="Side 1" fill className="object-contain p-[2cqi] scale-90 opacity-70" crossOrigin="anonymous" />
         </div>
-        <div className="flex-1 relative overflow-hidden" style={{ backgroundColor: `${colors.secondary}08`, borderRadius: "calc(2*var(--ci))" }}>
-          <Image src={productImage} alt="Side 2" fill className="object-contain scale-90 opacity-50" style={{ padding: "calc(2*var(--ci))" }} crossOrigin="anonymous" />
+        <div className="flex-1 relative rounded-[2cqi] overflow-hidden" style={{ backgroundColor: `${colors.secondary}08` }}>
+          <Image src={productImage} alt="Side 2" fill className="object-contain p-[2cqi] scale-90 opacity-50" crossOrigin="anonymous" />
         </div>
       </div>
     </div>
 
-    <div
-      className="shrink-0 border-t flex items-center justify-between z-10 relative"
-      style={{ borderColor: `${colors.secondary}12`, padding: "calc(2.5*var(--cb)) calc(5*var(--ci))" }}
-    >
+    <div className="shrink-0 border-t px-[5cqi] py-[2.5cqi] flex items-center justify-between z-10 relative" style={{ borderColor: `${colors.secondary}12` }}>
       <div>
         {price !== undefined && price !== "" && (
           <EditableText as="p" fieldId="f-price" editable={editable} value={price}
             onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="font-black leading-none" style={{ fontSize: "calc(5*var(--ci))", color: colors.accent }} />
+            className="text-[5cqi] font-black leading-none" style={{ color: colors.accent }} />
         )}
         <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext ?? ""}
           onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="opacity-45" style={{ fontSize: "calc(2*var(--ci))", marginTop: "calc(0.3*var(--cb))" }} />
+          className="text-[2cqi] opacity-45 mt-[0.3cqi]" />
       </div>
       <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
         onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-        className="font-black uppercase tracking-widest"
-        style={{ backgroundColor: colors.accent, color: colors.primary, padding: "calc(2*var(--cb)) calc(4*var(--ci))", fontSize: "calc(2.2*var(--ci))" }} />
+        className="px-[4cqi] py-[2cqi] text-[2.2cqi] font-black uppercase tracking-widest" style={{ backgroundColor: colors.accent, color: colors.primary }} />
     </div>
   </div>
 );
@@ -799,20 +750,17 @@ const VariantBorcelleSkincare = ({
   headline, subtext, ctaText, productImage, brandName, website, price,
   colors, editable, onUpdate, onFocusEl, onBlurEl,
 }: LuxuryProductProps) => (
-  <div className="w-full h-full relative overflow-hidden font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
+  <div className="@container w-full h-full relative overflow-hidden font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
     <div className="w-full h-full grid grid-cols-2 grid-rows-2">
       <div className="relative border-r border-b" style={{ borderColor: `${colors.secondary}12`, backgroundColor: `${colors.accent}08` }}>
-        <Image src={productImage} alt="Skincare" fill className="object-contain" style={{ padding: "calc(4*var(--ci))" }} crossOrigin="anonymous" />
+        <Image src={productImage} alt="Skincare" fill className="object-contain p-[4cqi]" crossOrigin="anonymous" />
       </div>
 
-      <div
-        className="flex flex-col items-start justify-end border-b"
-        style={{ borderColor: `${colors.secondary}12`, padding: "calc(5*var(--ci))" }}
-      >
+      <div className="flex flex-col items-start justify-end p-[5cqi] border-b" style={{ borderColor: `${colors.secondary}12` }}>
         <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
           onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="tracking-[0.4em] uppercase opacity-30" style={{ fontSize: "calc(1.8*var(--ci))", marginBottom: "calc(1.5*var(--cb))" }} />
-        <h1 className="font-black leading-[0.85] tracking-tighter uppercase" style={{ fontSize: "calc(7.5*var(--ci))" }}>
+          className="text-[1.8cqi] tracking-[0.4em] uppercase opacity-30 mb-[1.5cqi]" />
+        <h1 className="text-[7.5cqi] font-black leading-[0.85] tracking-tighter uppercase">
           <EditableHeadlineLines value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
             onChange={v => onUpdate?.("headline", v)}
             renderLine={(line, i, node) => (
@@ -821,37 +769,25 @@ const VariantBorcelleSkincare = ({
         </h1>
       </div>
 
-      <div
-        className="flex flex-col justify-center border-r"
-        style={{ borderColor: `${colors.secondary}12`, padding: "calc(5*var(--ci))" }}
-      >
+      <div className="flex flex-col justify-center p-[5cqi] border-r" style={{ borderColor: `${colors.secondary}12` }}>
         {price !== undefined && price !== "" && (
           <EditableText as="p" fieldId="f-price" editable={editable} value={price}
             onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="font-black leading-none" style={{ fontSize: "calc(7*var(--ci))", marginBottom: "calc(1.5*var(--cb))", color: colors.accent }} />
+            className="text-[7cqi] font-black leading-none mb-[1.5cqi]" style={{ color: colors.accent }} />
         )}
         <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext ?? ""}
           onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="opacity-50 leading-relaxed" style={{ fontSize: "calc(2.2*var(--ci))" }} />
+          className="text-[2.2cqi] opacity-50 leading-relaxed" />
         <EditableText as="p" fieldId="f-web" editable={editable} value={website ?? ""}
           onChange={v => onUpdate?.("website", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="opacity-20 tracking-widest uppercase" style={{ fontSize: "calc(1.6*var(--ci))", marginTop: "calc(2*var(--cb))" }} />
+          className="text-[1.6cqi] opacity-20 mt-[2cqi] tracking-widest uppercase" />
       </div>
 
-      <div className="flex flex-col items-center justify-center" style={{ backgroundColor: colors.accent, padding: "calc(5*var(--ci))" }}>
-        <p
-          className="tracking-widest uppercase font-bold"
-          style={{ color: colors.primary, opacity: 0.7, fontSize: "calc(2*var(--ci))", marginBottom: "calc(2*var(--cb))" }}
-        >
-          Get yours
-        </p>
+      <div className="flex flex-col items-center justify-center p-[5cqi]" style={{ backgroundColor: colors.accent }}>
+        <p className="text-[2cqi] tracking-widest uppercase font-bold mb-[2cqi]" style={{ color: colors.primary, opacity: 0.7 }}>Get yours</p>
         <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
           onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="font-black uppercase tracking-wider text-center"
-          style={{
-            borderColor: colors.primary, borderWidth: "calc(0.3*var(--ci))", borderStyle: "solid",
-            color: colors.primary, padding: "calc(2.5*var(--cb)) calc(4*var(--ci))", fontSize: "calc(2.8*var(--ci))",
-          }} />
+          className="px-[4cqi] py-[2.5cqi] text-[2.8cqi] font-black uppercase tracking-wider text-center border-[0.3cqi]" style={{ borderColor: colors.primary, color: colors.primary }} />
       </div>
     </div>
   </div>
