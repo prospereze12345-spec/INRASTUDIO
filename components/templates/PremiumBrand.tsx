@@ -69,6 +69,10 @@ export interface PremiumBrandProps {
   onRemoveFeature?: (index: number) => void;
 }
 
+/* ============================================================================
+   SMALL DESIGN HELPERS
+============================================================================ */
+
 function hexToRgba(hex: string, alpha: number) {
   if (!hex) return `rgba(0,0,0,${alpha})`;
 
@@ -88,6 +92,10 @@ function hexToRgba(hex: string, alpha: number) {
 function safeText(value?: string) {
   return value?.trim() || "";
 }
+
+/* ============================================================================
+   MAIN TEMPLATE
+============================================================================ */
 
 export function PremiumBrandTemplate(props: PremiumBrandProps) {
   const {
@@ -126,6 +134,10 @@ export function PremiumBrandTemplate(props: PremiumBrandProps) {
       return <VariantGrandOpening {...props} />;
   }
 }
+
+/* ============================================================================
+   SHARED HEADER
+============================================================================ */
 
 function BrandHeader({
   brandName,
@@ -191,6 +203,10 @@ function BrandHeader({
   );
 }
 
+/* ============================================================================
+   CTA
+============================================================================ */
+
 function SmartCTA({
   value,
   editable,
@@ -238,6 +254,10 @@ function SmartCTA({
     </div>
   );
 }
+
+/* ============================================================================
+   1. GRAND OPENING
+============================================================================ */
 
 function VariantGrandOpening({
   headline,
@@ -291,6 +311,7 @@ function VariantGrandOpening({
         color: colors.secondary,
       }}
     >
+      {/* subtle editorial border */}
       <div
         className="absolute inset-[3cqi] pointer-events-none"
         style={{
@@ -308,7 +329,9 @@ function VariantGrandOpening({
         colors={colors}
       />
 
+      {/* HERO */}
       <main className="absolute inset-x-0 top-[14cqi] bottom-0">
+        {/* image */}
         <div className="absolute inset-x-[5cqi] top-[8cqi] bottom-[23cqi] overflow-hidden">
           <Image
             src={productImage}
@@ -319,6 +342,7 @@ function VariantGrandOpening({
             className="object-contain object-center"
           />
 
+          {/* quiet fade */}
           <div
             className="absolute inset-x-0 bottom-0 h-[18%]"
             style={{
@@ -331,6 +355,7 @@ function VariantGrandOpening({
           />
         </div>
 
+        {/* headline */}
         <div className="absolute left-[6cqi] right-[6cqi] top-0 z-10">
           <p
             className="text-[1.65cqi] uppercase tracking-[0.25em] mb-[2cqi] opacity-45"
@@ -373,6 +398,7 @@ function VariantGrandOpening({
           </h1>
         </div>
 
+        {/* bottom information */}
         <div className="absolute left-[6cqi] right-[6cqi] bottom-[5cqi] z-20">
           <div className="flex items-end justify-between gap-[4cqi]">
             <div className="max-w-[52%]">
@@ -477,6 +503,9 @@ function VariantGrandOpening({
   );
 }
 
+/* ============================================================================
+   2. DIGITAL AGENCY
+============================================================================ */
 function VariantDigitalAgency({
   headline,
   subtext,
@@ -536,6 +565,7 @@ function VariantDigitalAgency({
       />
 
       <div className="absolute left-[6cqi] right-[6cqi] top-[17cqi] bottom-[6cqi]">
+        {/* vertical grid */}
         <div
           className="absolute left-[58%] top-0 bottom-0 w-px"
           style={{
@@ -543,6 +573,7 @@ function VariantDigitalAgency({
           }}
         />
 
+        {/* COPY */}
         <section className="absolute left-0 top-0 w-[52%] pr-[5cqi]">
           <div className="flex items-center gap-[1.5cqi] mb-[3cqi]">
             <span
@@ -677,6 +708,7 @@ function VariantDigitalAgency({
           </div>
         </section>
 
+        {/* IMAGE */}
         <section className="absolute right-0 top-0 bottom-[12%] w-[38%]">
           <div className="absolute inset-[2cqi] overflow-hidden rounded-[2cqi]">
             <Image
@@ -726,6 +758,10 @@ function VariantDigitalAgency({
     </div>
   );
 }
+
+/* ============================================================================
+   3. PREMIUM GOLD
+============================================================================ */
 
 function VariantPremiumGold({
   headline,
@@ -953,6 +989,9 @@ function VariantPremiumGold({
   );
 }
 
+/* ============================================================================
+   4. CLEANING SERVICE
+============================================================================ */
 function VariantCleaningService({
   headline,
   subtext,
@@ -1001,6 +1040,7 @@ function VariantCleaningService({
         color: colors.secondary,
       }}
     >
+      {/* accent header */}
       <div
         className="absolute top-0 left-0 right-0 h-[15cqi]"
         style={{
@@ -1048,6 +1088,7 @@ function VariantCleaningService({
       </div>
 
       <div className="absolute inset-x-0 top-[15cqi] bottom-0">
+        {/* image */}
         <div className="absolute right-0 top-0 bottom-0 w-[47%] overflow-hidden">
           <Image
             src={productImage}
@@ -1070,6 +1111,7 @@ function VariantCleaningService({
           />
         </div>
 
+        {/* content */}
         <div className="absolute left-[6cqi] top-[6cqi] w-[52%] bottom-[5cqi]">
           <p
             className="text-[1.7cqi] uppercase tracking-[0.28em] opacity-45 mb-[2.5cqi]"
@@ -1227,6 +1269,10 @@ function VariantCleaningService({
   );
 }
 
+/* ============================================================================
+   5. ORGANIC DEAL
+============================================================================ */
+
 function VariantOrganicDeal({
   headline,
   subtext,
@@ -1275,6 +1321,7 @@ function VariantOrganicDeal({
         color: colors.secondary,
       }}
     >
+      {/* organic shape */}
       <div
         className="absolute -right-[15cqi] -top-[12cqi] w-[55cqi] h-[55cqi] rounded-full"
         style={{
@@ -1294,6 +1341,7 @@ function VariantOrganicDeal({
       />
 
       <div className="absolute inset-x-[6cqi] top-[17cqi] bottom-[6cqi]">
+        {/* image */}
         <div className="absolute right-0 top-0 w-[58%] h-[50%]">
           <Image
             src={productImage}
@@ -1305,6 +1353,7 @@ function VariantOrganicDeal({
           />
         </div>
 
+        {/* headline */}
         <div className="absolute left-0 top-[3cqi] w-[67%] z-10">
           <p
             className="text-[1.7cqi] uppercase tracking-[0.3em] opacity-45 mb-[2cqi]"
@@ -1348,6 +1397,7 @@ function VariantOrganicDeal({
           </h1>
         </div>
 
+        {/* bottom information */}
         <div className="absolute left-0 right-0 bottom-0">
           <div className="w-full h-px mb-[4cqi]" style={{
             backgroundColor: hexToRgba(colors.secondary, 0.1),
@@ -1472,4 +1522,5 @@ function VariantOrganicDeal({
     </div>
   );
 }
+
 

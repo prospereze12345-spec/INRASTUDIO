@@ -8,33 +8,79 @@ import { Phone, Mail, Globe, CheckCircle2, Plus, X } from "lucide-react";
 import { FeatureList, ContactBar, WhyChooseUsList } from "./FlyerContentBlocks";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   TYPES
+═══════════════════════════════════════════════════════════════════════════ */
+
 export interface SleekFlyerProps {
   name?: string;
+
+  /* ── Main content ─────────────────────────────────────────────────────── */
+
   headline: string;
   subheadline?: string;
   tagline?: string;
   ctaText: string;
+
+  /* ── Product ──────────────────────────────────────────────────────────── */
+
   productImage: string;
   brandName?: string;
   website?: string;
   price?: string;
   badge?: string;
+
+  /* ── NEW: Product selling points ──────────────────────────────────────── */
+
   features?: string[];
+
+  /* ── NEW: Contact information ────────────────────────────────────────── */
+
   phone?: string;
   email?: string;
+
+  /* ── Colors ───────────────────────────────────────────────────────────── */
+
   colors: {
     primary: string;
     secondary: string;
     accent: string;
   };
+
+  /* ── Editor ───────────────────────────────────────────────────────────── */
+
   editable?: boolean;
+
+  /**
+   * Canonical FlyerState field names:
+   *
+   * brandName
+   * headline
+   * subtext
+   * ctaText
+   * website
+   * price
+   * badgeText
+   * tagline
+   * phone
+   * email
+   */
   onUpdate?: (field: string, value: string) => void;
+
+  /* ── Feature editing ─────────────────────────────────────────────────── */
+
   onUpdateFeature?: (index: number, value: string) => void;
   onAddFeature?: () => void;
   onRemoveFeature?: (index: number) => void;
+
+  /* ── Contact editing ──────────────────────────────────────────────────── */
+
   onUpdatePhone?: (value: string) => void;
   onUpdateWebsite?: (value: string) => void;
   onUpdateEmail?: (value: string) => void;
+
+  /* ── Focus / blur ────────────────────────────────────────────────────── */
+
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
   whyChooseUs?: string[];
@@ -57,6 +103,12 @@ onRestorePhone?: () => void;
 onRestoreEmail?: () => void;
 onRestoreWebsite?: () => void;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FEATURE LIST
+   Product-focused selling points / benefits.
+═══════════════════════════════════════════════════════════════════════════ */
 
 
 export function SleekFlyerTemplate(
@@ -145,6 +197,8 @@ const VariantMonoSplit = ({
       color: colors.secondary,
     }}
   >
+    {/* ── Product image ─────────────────────────────────────────────────── */}
+
     <div
       className="relative overflow-hidden"
       style={{
@@ -168,6 +222,8 @@ const VariantMonoSplit = ({
       />
     </div>
 
+    {/* ── Content ───────────────────────────────────────────────────────── */}
+
     <div
       className="flex flex-col justify-between relative z-10"
       style={{
@@ -177,6 +233,7 @@ const VariantMonoSplit = ({
         padding: "7cqi 6cqi 7cqi 5cqi",
       }}
     >
+      {/* Brand */}
       <div className="flex items-center justify-between">
         <EditableText
           as="span"
@@ -208,6 +265,7 @@ const VariantMonoSplit = ({
         />
       </div>
 
+      {/* Main content */}
       <div
         style={{
           flex: 1,
@@ -218,6 +276,7 @@ const VariantMonoSplit = ({
           overflow: "hidden",
         }}
       >
+        {/* Accent line */}
         <div
           style={{
             width: "8cqi",
@@ -227,6 +286,7 @@ const VariantMonoSplit = ({
           }}
         />
 
+        {/* Headline */}
         <h1
           style={{
             fontSize: "clamp(24px, 11cqi, 96px)",
@@ -260,6 +320,7 @@ const VariantMonoSplit = ({
           />
         </h1>
 
+        {/* Description */}
         {subheadline !== undefined && (
           <EditableText
             as="p"
@@ -283,6 +344,7 @@ const VariantMonoSplit = ({
           />
         )}
 
+        {/* Product features */}
         <FeatureList
   features={features}
   colors={colors}
@@ -308,6 +370,7 @@ const VariantMonoSplit = ({
     onRestoreSection={onRestoreWhyChooseUs}
   />
 
+        {/* Price */}
         {price !== undefined && price !== "" && (
           <div
             style={{
@@ -338,6 +401,7 @@ const VariantMonoSplit = ({
         )}
       </div>
 
+      {/* Bottom actions */}
       <div
         style={{
           display: "flex",
@@ -345,6 +409,7 @@ const VariantMonoSplit = ({
           gap: "2.5cqi",
         }}
       >
+        {/* CTA */}
         <div
           style={{
             display: "inline-flex",
@@ -388,6 +453,7 @@ const VariantMonoSplit = ({
           </svg>
         </div>
 
+        {/* Contact */}
         <ContactBar
   phone={phone}
   website={website}
@@ -481,6 +547,7 @@ const VariantEditorialArc = ({
         color: colors.secondary,
       }}
     >
+      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -536,6 +603,7 @@ const VariantEditorialArc = ({
         )}
       </div>
 
+      {/* Headline */}
       <div
         style={{
           padding: "2cqi 6cqi 0",
@@ -603,6 +671,7 @@ const VariantEditorialArc = ({
         )}
       </div>
 
+      {/* Product */}
       <div
         style={{
           flex: 1,
@@ -625,6 +694,7 @@ const VariantEditorialArc = ({
         />
       </div>
 
+      {/* Accent arc */}
       <div
         style={{
           position: "absolute",
@@ -638,6 +708,7 @@ const VariantEditorialArc = ({
         }}
       />
 
+      {/* Bottom content */}
       <div
         style={{
           position: "absolute",
@@ -681,6 +752,7 @@ const VariantEditorialArc = ({
             />
           )}
 
+          {/* Features */}
           <FeatureList
             features={features}
             colors={colors}
@@ -727,6 +799,7 @@ onRestoreSection={onRestoreWhyChooseUs}
           )}
         </div>
 
+        {/* CTA + contact */}
         <div
           style={{
             textAlign: "right",
@@ -847,6 +920,7 @@ const VariantNegativeSpace = ({
       color: colors.secondary,
     }}
   >
+    {/* Accent top line */}
     <div
       style={{
         height: "0.6cqi",
@@ -856,6 +930,7 @@ const VariantNegativeSpace = ({
       }}
     />
 
+    {/* Header */}
     <div
       style={{
         display: "flex",
@@ -906,6 +981,7 @@ const VariantNegativeSpace = ({
       )}
     </div>
 
+    {/* Product */}
     <div
       style={{
         flex: 1,
@@ -927,6 +1003,7 @@ const VariantNegativeSpace = ({
       />
     </div>
 
+    {/* Bottom content */}
     <div
       style={{
         flexShrink: 0,
@@ -936,6 +1013,7 @@ const VariantNegativeSpace = ({
         gap: "2cqi",
       }}
     >
+      {/* Divider */}
       <div
         style={{
           height: "0.08cqi",
@@ -953,6 +1031,7 @@ const VariantNegativeSpace = ({
           gap: "4cqi",
         }}
       >
+        {/* Left content */}
         <div
           style={{
             minWidth: 0,
@@ -1015,6 +1094,7 @@ const VariantNegativeSpace = ({
             />
           )}
 
+          {/* Features */}
           <div
             style={{
               marginTop: "2cqi",
@@ -1047,6 +1127,7 @@ onRestoreSection={onRestoreWhyChooseUs}
           </div>
         </div>
 
+        {/* Right actions */}
         <div
           style={{
             display: "flex",
@@ -1185,6 +1266,7 @@ featuresVisible,
       color: colors.secondary,
     }}
   >
+    {/* Background typography */}
     <div
       style={{
         position: "absolute",
@@ -1206,6 +1288,7 @@ featuresVisible,
       {headline.split("\n")[0]}
     </div>
 
+    {/* Grid lines */}
     <div
       style={{
         position: "absolute",
@@ -1232,6 +1315,7 @@ featuresVisible,
       }}
     />
 
+    {/* Accent block */}
     <div
       style={{
         position: "absolute",
@@ -1244,6 +1328,7 @@ featuresVisible,
       }}
     />
 
+    {/* Brand */}
     <div
       style={{
         position: "absolute",
@@ -1296,6 +1381,7 @@ featuresVisible,
       )}
     </div>
 
+    {/* Product */}
     <div
       style={{
         position: "absolute",
@@ -1319,6 +1405,7 @@ featuresVisible,
       />
     </div>
 
+    {/* Right content */}
     <div
       style={{
         position: "absolute",
@@ -1335,6 +1422,7 @@ featuresVisible,
         overflow: "hidden",
       }}
     >
+      {/* Headline */}
       <h1
         style={{
           fontSize: "clamp(16px, 7.5cqi, 64px)",
@@ -1368,6 +1456,7 @@ featuresVisible,
         />
       </h1>
 
+      {/* Accent line */}
       <div
         style={{
           width: "6cqi",
@@ -1376,6 +1465,7 @@ featuresVisible,
         }}
       />
 
+      {/* Description */}
       {subheadline !== undefined && (
         <EditableText
           as="p"
@@ -1398,6 +1488,7 @@ featuresVisible,
         />
       )}
 
+      {/* Features */}
       <FeatureList
         features={features}
         colors={colors}
@@ -1423,6 +1514,7 @@ onRestoreSection={onRestoreFeatures}
 onRestoreSection={onRestoreWhyChooseUs}
 />
 
+      {/* Price */}
       {price !== undefined && price !== "" && (
         <EditableText
           as="span"
@@ -1444,6 +1536,7 @@ onRestoreSection={onRestoreWhyChooseUs}
       )}
     </div>
 
+    {/* Bottom bar */}
     <div
       style={{
         position: "absolute",
@@ -1460,6 +1553,7 @@ onRestoreSection={onRestoreWhyChooseUs}
         gap: "3cqi",
       }}
     >
+      {/* CTA */}
       <EditableText
         as="div"
         fieldId="f-cta"
@@ -1482,6 +1576,7 @@ onRestoreSection={onRestoreWhyChooseUs}
         }}
       />
 
+      {/* Contact */}
       <ContactBar
         phone={phone}
         website={website}
@@ -1568,6 +1663,7 @@ featuresVisible,
       color: colors.secondary,
     }}
   >
+    {/* Brand */}
     <div
       style={{
         padding: "5cqi 0 0",
@@ -1597,6 +1693,7 @@ featuresVisible,
       />
     </div>
 
+    {/* Tagline */}
     {tagline !== undefined && (
       <EditableText
         as="p"
@@ -1621,6 +1718,7 @@ featuresVisible,
       />
     )}
 
+    {/* Product area */}
     <div
       style={{
         flex: 1,
@@ -1632,6 +1730,7 @@ featuresVisible,
         minHeight: 0,
       }}
     >
+      {/* Outer circle */}
       <div
         style={{
           position: "absolute",
@@ -1644,6 +1743,7 @@ featuresVisible,
         }}
       />
 
+      {/* Accent circle */}
       <div
         style={{
           position: "absolute",
@@ -1656,6 +1756,7 @@ featuresVisible,
         }}
       />
 
+      {/* Product */}
       <div
         style={{
           position: "relative",
@@ -1678,6 +1779,7 @@ featuresVisible,
       </div>
     </div>
 
+    {/* Bottom content */}
     <div
       style={{
         flexShrink: 0,
@@ -1690,6 +1792,7 @@ featuresVisible,
         width: "100%",
       }}
     >
+      {/* Accent line */}
       <div
         style={{
           width: "5cqi",
@@ -1698,6 +1801,7 @@ featuresVisible,
         }}
       />
 
+      {/* Headline */}
       <h1
         style={{
           fontSize: "clamp(20px, 9cqi, 80px)",
@@ -1731,6 +1835,7 @@ featuresVisible,
         />
       </h1>
 
+      {/* Description */}
       {subheadline !== undefined && (
         <EditableText
           as="p"
@@ -1754,6 +1859,7 @@ featuresVisible,
         />
       )}
 
+      {/* Features */}
       <div
         style={{
           width: "100%",
@@ -1787,6 +1893,7 @@ onRestoreSection={onRestoreWhyChooseUs}
 />
       </div>
 
+      {/* Price + CTA */}
       <div
         style={{
           display: "flex",
@@ -1840,6 +1947,7 @@ onRestoreSection={onRestoreWhyChooseUs}
         />
       </div>
 
+      {/* Contact */}
       <ContactBar
         phone={phone}
         website={website}
@@ -1865,5 +1973,6 @@ onRestoreEmail={onRestoreEmail}
     </div>
   </div>
 );
+
 
 
