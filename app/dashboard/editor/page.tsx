@@ -1702,27 +1702,18 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
             }}
             onClick={handleCanvasClick}
           >
-            <div
-              ref={flyerNodeRef}
-              className="relative"
-              style={{
-                width: canvasSize.w,
-                height: canvasSize.h,
-                // FIX (root cause of missing Features / Why Choose Us / contact
-                // rows on both desktop and mobile): FlyerContentBlocks.tsx styles
-                // its text and icons with container-query units (cqi/cqb), e.g.
-                // `text-[2.5cqi]`. Those units only compute a real size if some
-                // ancestor establishes CSS containment via `container-type`. This
-                // div wraps the entire rendered flyer, so it MUST declare a
-                // container here - otherwise every cqi value resolves toward 0
-                // and those sections render as invisible zero-size elements even
-                // though the data is present in the DOM. This single fix should
-                // make features / why-choose-us / contact rows visible again,
-                // consistently, on every device and browser.
-                containerType: "size",
-                containerName: "flyer-canvas",
-              } as React.CSSProperties}
-            >
+           <div
+  key={`canvas-${canvasSize.w}x${canvasSize.h}`}
+  ref={flyerNodeRef}
+  className="relative"
+  style={{
+    width: canvasSize.w,
+    height: canvasSize.h,
+    overflow: "hidden",
+    containerType: "size",
+    containerName: "flyer-canvas",
+  } as React.CSSProperties}
+>
               <TemplateRenderer
   data={{ ...flyer, logoImage: null, badgeText: "" }}
   onUpdate={update}
