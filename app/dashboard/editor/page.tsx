@@ -243,9 +243,12 @@ function calcCanvasSize(
 ): CanvasSize {
   const fmt = SOCIAL_FORMATS.find(f => f.id === formatId)!;
   const aspect = fmt.rw / fmt.rh;
-  let w = Math.max(maxW, 0);
+  let w = Math.max(maxW, 240);
   let h = Math.round(w / aspect);
-  if (h > maxH) { h = Math.max(maxH, 0); w = Math.round(h * aspect); }
+  if (h > maxH) {
+    h = Math.max(maxH, 240);
+    w = Math.round(h * aspect);
+  }
   return { w, h };
 }
 
@@ -271,13 +274,6 @@ function parseCaptions(raw: BackendCaptions | null | undefined): Caption[] {
     }));
 }
 
-const MARKETING_FONTS = [
-  { label: "Inter",            value: "var(--font-inter), sans-serif" },
-  { label: "Bebas Neue",       value: "var(--font-bebas), sans-serif" },
-  { label: "Playfair Display", value: "var(--font-playfair), serif" },
-  { label: "Poppins",          value: "var(--font-poppins), sans-serif" },
-  { label: "Archivo Black",    value: "var(--font-archivo), sans-serif" },
-];
 
 // --- Template themes ---------------------------------------------------
 const TEMPLATE_THEMES = [
@@ -558,16 +554,44 @@ function DiscountBadgeSticker({
     </div>
   );
 }
+const MARKETING_FONTS_EXT = [
+  { label: "Inter",            value: "var(--font-inter), sans-serif" },
+  { label: "Bebas Neue",       value: "var(--font-bebas), sans-serif" },
+  { label: "Playfair Display", value: "var(--font-playfair), serif" },
+  { label: "Poppins",          value: "var(--font-poppins), sans-serif" },
+  { label: "Archivo Black",    value: "var(--font-archivo), sans-serif" },
+  { label: "Roboto",           value: "var(--font-roboto), sans-serif" },
+  { label: "Montserrat",       value: "var(--font-montserrat), sans-serif" },
+  { label: "Oswald",           value: "var(--font-oswald), sans-serif" },
+  { label: "Raleway",          value: "var(--font-raleway), sans-serif" },
+  { label: "Lato",             value: "var(--font-lato), sans-serif" },
+  { label: "Merriweather",     value: "var(--font-merriweather), serif" },
+  { label: "Nunito",           value: "var(--font-nunito), sans-serif" },
+];
 
-// =============================================================================
-//  FLOATING TEXT TOOLBAR (unchanged)
-// =============================================================================
+function FontDropdown({ onSelect }: { onSelect: (font: string) => void }) {
+  return (
+    <select
+      defaultValue=""
+      onMouseDown={e => e.stopPropagation()}
+      onChange={e => { if (e.target.value) onSelect(e.target.value); e.target.value = ""; }}
+      className="w-8 h-8 rounded-md bg-zinc-800 text-zinc-300 text-[10px] text-center
+                 border border-zinc-700 touch-manipulation"
+      title="Font"
+    >
+      <option value="" disabled>Aa</option>
+      {MARKETING_FONTS_EXT.map(f => (
+        <option key={f.label} value={f.value} style={{ fontFamily: f.value }}>{f.label}</option>
+      ))}
+    </select>
+  );
+}
+
 function FloatingTextToolbar({ onClose }: { onClose: () => void }) {
   const [bold,   setBold]   = useState(false);
   const [italic, setItalic] = useState(false);
   const [align,  setAlign]  = useState<"left" | "center" | "right">("left");
   const [size,   setSize]   = useState(16);
-  const colorRef = useRef<HTMLInputElement>(null);
 
   const exec = (cmd: string, val?: string) => {
     document.execCommand(cmd, false, val);
@@ -588,65 +612,54 @@ function FloatingTextToolbar({ onClose }: { onClose: () => void }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 4, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 4, scale: 0.97 }}
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -8 }}
       transition={{ duration: 0.1 }}
-      className="fixed inset-x-2 bottom-[120px] z-50 flex flex-wrap items-center justify-center gap-1 px-2 py-2
-                 rounded-xl border border-zinc-700 bg-zinc-900/95 backdrop-blur-md shadow-2xl
-                 md:absolute md:inset-x-auto md:bottom-auto md:-top-12 md:left-0 md:flex-nowrap md:justify-start md:gap-0.5 md:px-2 md:py-1.5"
+      className="fixed left-2 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-1 px-1.5 py-2
+                 rounded-2xl border border-zinc-700 bg-zinc-900/95 backdrop-blur-md shadow-2xl
+                 max-h-[80vh] overflow-y-auto"
       onMouseDown={e => e.preventDefault()}
     >
-      {[
-        { icon: <Bold size={12}/>,   active: bold,            cmd: () => exec("bold")         },
-        { icon: <Italic size={12}/>, active: italic,          cmd: () => exec("italic")       },
-      ].map((b, i) => (
-        <FtbBtn key={i} active={b.active} onClick={b.cmd}>{b.icon}</FtbBtn>
-      ))}
-      <FtbSep/>
-      <FtbBtn onClick={() => nudge(-1)}><Minus size={10}/></FtbBtn>
-      <span className="text-[11px] font-mono text-zinc-300 w-6 text-center">{size}</span>
-      <FtbBtn onClick={() => nudge(1)}><Plus  size={10}/></FtbBtn>
-      <FtbSep/>
-      {(["left","center","right"] as const).map(a => (
-        <FtbBtn key={a} active={align===a} onClick={() => { setAlign(a); exec(`justify${a.charAt(0).toUpperCase()+a.slice(1)}`); }}>
-          {a==="left"?<AlignLeft size={11}/>:a==="center"?<AlignCenter size={11}/>:<AlignRight size={11}/>}
-        </FtbBtn>
-      ))}
-      <FtbSep/>
-      <div
-        className="w-6 h-6 md:w-4 md:h-4 rounded cursor-pointer border border-zinc-600 hover:scale-110 transition-transform shrink-0"
-        style={{ background: "#ffffff" }}
-        onClick={() => colorRef.current?.click()}
-        title="Text color"
-      />
-      <input ref={colorRef} type="color" defaultValue="#ffffff" className="sr-only"
-        onChange={e => exec("foreColor", e.target.value)}/>
-      <FtbSep/>
-      <div className="flex items-center gap-0.5 flex-wrap justify-center">
-        {MARKETING_FONTS.map(f => (
-          <button
-            key={f.label}
-            onMouseDown={e => e.preventDefault()}
-            onClick={() => exec("fontName", f.value)}
-            title={f.label}
-            style={{ fontFamily: f.value }}
-            className="w-7 h-7 md:w-6 md:h-6 flex items-center justify-center rounded-md text-[11px]
-                       text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors touch-manipulation"
-          >
-            Aa
-          </button>
-        ))}
-      </div>
       <button
         onMouseDown={e => e.preventDefault()}
         onClick={onClose}
-        className="md:hidden ml-1 w-7 h-7 flex items-center justify-center rounded-md text-zinc-400
-                   hover:bg-zinc-700 hover:text-white transition-colors touch-manipulation"
-        title="Close"
+        className="w-8 h-8 flex items-center justify-center rounded-md text-zinc-400
+                   hover:bg-zinc-700 hover:text-white transition-colors touch-manipulation mb-1"
       >
-        <X size={12} />
+        <X size={13} />
       </button>
+
+      <FtbBtn active={bold}   onClick={() => exec("bold")}><Bold size={13}/></FtbBtn>
+      <FtbBtn active={italic} onClick={() => exec("italic")}><Italic size={13}/></FtbBtn>
+
+      <FtbSepV/>
+
+      <FtbBtn onClick={() => nudge(1)}><Plus size={11}/></FtbBtn>
+      <span className="text-[10px] font-mono text-zinc-300">{size}</span>
+      <FtbBtn onClick={() => nudge(-1)}><Minus size={11}/></FtbBtn>
+
+      <FtbSepV/>
+
+      {(["left","center","right"] as const).map(a => (
+        <FtbBtn key={a} active={align===a} onClick={() => { setAlign(a); exec(`justify${a.charAt(0).toUpperCase()+a.slice(1)}`); }}>
+          {a==="left"?<AlignLeft size={12}/>:a==="center"?<AlignCenter size={12}/>:<AlignRight size={12}/>}
+        </FtbBtn>
+      ))}
+
+      <FtbSepV/>
+
+      <input
+        type="color"
+        defaultValue="#ffffff"
+        className="w-7 h-7 rounded-lg cursor-pointer border border-zinc-600 bg-transparent p-0.5"
+        onChange={e => exec("foreColor", e.target.value)}
+        title="Text color"
+      />
+
+      <FtbSepV/>
+
+      <FontDropdown onSelect={(font) => exec("fontName", font)} />
     </motion.div>
   );
 }
@@ -654,13 +667,13 @@ function FloatingTextToolbar({ onClose }: { onClose: () => void }) {
 function FtbBtn({ children, active, onClick }: { children: React.ReactNode; active?: boolean; onClick?: () => void }) {
   return (
     <button onMouseDown={e => { e.preventDefault(); onClick?.(); }}
-      className={`w-7 h-7 md:w-6 md:h-6 flex items-center justify-center rounded-md transition-colors shrink-0 touch-manipulation
+      className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors shrink-0 touch-manipulation
         ${active ? "bg-cyan-400/20 text-cyan-400" : "text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"}`}>
       {children}
     </button>
   );
 }
-function FtbSep() { return <div className="w-px h-4 bg-zinc-700 mx-0.5 shrink-0"/>; }
+function FtbSepV() { return <div className="h-px w-5 bg-zinc-700 my-0.5"/>; }
 
 const DesignPanel = memo(function DesignPanel({ data, onUpdate, onLogoUpload, badge, onBadgeChange }: {
   data: FlyerState;
@@ -1488,18 +1501,25 @@ if (result) {
 
 
   // --- Canvas size recalculation -----------------------------------------
-  useEffect(() => {
-    const recalc = () => {
-      if (!canvasWrapRef.current) return;
-      const { width, height } = canvasWrapRef.current.getBoundingClientRect();
-      const pad = 48;
-      setCanvasSize(calcCanvasSize(activeFormat, width - pad, height - pad));
-    };
-    recalc();
-    const ro = new ResizeObserver(recalc);
-    if (canvasWrapRef.current) ro.observe(canvasWrapRef.current);
-    return () => ro.disconnect();
-  }, [activeFormat, sheetExpanded]);
+ useEffect(() => {
+  const recalc = () => {
+    if (!canvasWrapRef.current) return;
+    const { width, height } = canvasWrapRef.current.getBoundingClientRect();
+    const pad = 48;
+    setCanvasSize(calcCanvasSize(activeFormat, width - pad, height - pad));
+  };
+  recalc();
+  const raf = requestAnimationFrame(recalc);
+  const ro = new ResizeObserver(recalc);
+  if (canvasWrapRef.current) ro.observe(canvasWrapRef.current);
+  window.visualViewport?.addEventListener("resize", recalc);
+  return () => {
+    cancelAnimationFrame(raf);
+    ro.disconnect();
+    window.visualViewport?.removeEventListener("resize", recalc);
+  };
+}, [activeFormat, sheetExpanded]);
+
 const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
   setSelectedOverlayId(null);
 

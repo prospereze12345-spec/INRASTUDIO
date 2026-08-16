@@ -7,6 +7,13 @@ import {
   Playfair_Display,
   Poppins,
   Archivo_Black,
+  Roboto,
+  Montserrat,
+  Oswald,
+  Raleway,
+  Lato,
+  Merriweather,
+  Nunito,
 } from 'next/font/google';
 
 import { PWAProvider } from '@/components/pwa/PWAProvider';
@@ -38,6 +45,13 @@ const archivoBlack = Archivo_Black({
   weight: '400',
   variable: '--font-archivo',
 });
+const roboto = Roboto({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-roboto' });
+const montserrat = Montserrat({ subsets: ['latin'], variable: '--font-montserrat' });
+const oswald = Oswald({ subsets: ['latin'], variable: '--font-oswald' });
+const raleway = Raleway({ subsets: ['latin'], variable: '--font-raleway' });
+const lato = Lato({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-lato' });
+const merriweather = Merriweather({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-merriweather' });
+const nunito = Nunito({ subsets: ['latin'], variable: '--font-nunito' });
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -62,9 +76,9 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable}`}
-    >
+  lang="en"
+  className={`${inter.variable} ${spaceGrotesk.variable} ${bebas.variable} ${playfair.variable} ${poppins.variable} ${archivoBlack.variable} ${roboto.variable} ${montserrat.variable} ${oswald.variable} ${raleway.variable} ${lato.variable} ${merriweather.variable} ${nunito.variable}`}
+>
       <body
         className="bg-[#030712] text-slate-50 font-sans antialiased selection:bg-cyan-500 selection:text-white"
         suppressHydrationWarning

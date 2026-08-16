@@ -160,8 +160,8 @@ export function FeatureList({
   if (!cleanFeatures.length && !editable) return null;
 
   return (
-    <section data-flyer-block="features" className="flex flex-col gap-[1.5cqi]">
-      <EditableText
+ <section data-flyer-block="features" className="flex flex-col gap-[1.2cqi] mt-[3cqi] max-w-[85%]">  
+     <EditableText
         as="h3"
         fieldId="f-features-title"
         editable={editable}
@@ -254,7 +254,7 @@ export function WhyChooseUsList({
   if (!cleanItems.length && !editable) return null;
 
   return (
-    <section data-flyer-block="why-choose-us" className="flex flex-col gap-[1.5cqi]">
+    <section data-flyer-block="why-choose-us" className="flex flex-col gap-[1.2cqi] mt-[3.5cqi] max-w-[85%]">
       <EditableText
         as="h3"
         fieldId="f-why-title"
