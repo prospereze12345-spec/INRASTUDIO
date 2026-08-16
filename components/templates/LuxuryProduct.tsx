@@ -792,4 +792,3 @@ const VariantBorcelleSkincare = ({
     </div>
   </div>
 );
-

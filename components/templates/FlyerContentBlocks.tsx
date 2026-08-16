@@ -102,10 +102,14 @@ function RestoreSectionButton({
       data-flyer-control="true"
       onClick={onClick}
       className="flex w-full items-center justify-center gap-1.5 rounded-lg
-                 border border-dashed border-white/25 py-[1.2cqi] text-[1.8cqi]
-                 text-white/50 transition hover:border-white/50 hover:text-white/80"
+                 border border-dashed border-white/25 text-white/50 transition hover:border-white/50 hover:text-white/80"
+      style={{
+        paddingTop: "calc(1.2 * var(--cb))",
+        paddingBottom: "calc(1.2 * var(--cb))",
+        fontSize: "calc(1.8 * var(--ci))",
+      }}
     >
-      <Plus size="1.6cqi" />
+      <Plus style={{ width: "calc(1.6 * var(--ci))", height: "calc(1.6 * var(--ci))" }} />
       {label}
     </button>
   );
@@ -149,19 +153,24 @@ export function FeatureList({
     );
   }
 
-  // NOTE: FeatureList/WhyChooseUsList/ContactBar size everything with
-  // container-query units (cqi/cqb). These ONLY resolve correctly if an
-  // ancestor establishes CSS containment via `container-type`. The flyer
-  // canvas wrapper in the editor now sets `containerType: "size"` - if you
-  // ever render these blocks somewhere else (e.g. server-side PNG/PDF
-  // rendering, the video composition, or a future public "view flyer" page),
-  // make sure THAT root element also has `container-type` set, or these
-  // sections will silently render at 0 size again.
+  // NOTE: FeatureList/WhyChooseUsList/ContactBar previously sized everything
+  // with container-query units (cqi/cqb), which require `container-type` on
+  // an ancestor AND container-query support in the browser (iOS 16+ only).
+  // They now use `calc(N * var(--ci))` / `calc(N * var(--cb))` instead - the
+  // canvas wrapper in the editor sets --ci / --cb as plain CSS custom
+  // properties (1% of the canvas width/height), which every browser back to
+  // iOS 9 supports. If you ever render these blocks somewhere else (SSR PNG
+  // export, video composition, a public "view flyer" page), make sure THAT
+  // root element also sets --ci and --cb, or these sections render at 0 size.
   if (!cleanFeatures.length && !editable) return null;
 
   return (
- <section data-flyer-block="features" className="flex flex-col gap-[1.2cqi] mt-[3cqi] max-w-[85%]">  
-     <EditableText
+    <section
+      data-flyer-block="features"
+      className="flex flex-col mt-[calc(3*var(--cb))] max-w-[85%]"
+      style={{ gap: "calc(1.5 * var(--cb))" }}
+    >
+      <EditableText
         as="h3"
         fieldId="f-features-title"
         editable={editable}
@@ -169,17 +178,31 @@ export function FeatureList({
         onChange={(v) => onUpdateTitle?.(v)}
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
-        className="text-[2.5cqi] font-black tracking-widest"
-        style={{ color: colors.accent }}
+        className="font-black tracking-widest"
+        style={{ color: colors.accent, fontSize: "calc(2.5 * var(--ci))" }}
       />
 
       {cleanFeatures.map((feature, index) => (
-        <div key={`feature-${index}`} className="group flex items-center gap-[1cqi]">
+        <div
+          key={`feature-${index}`}
+          className="group flex items-center"
+          style={{ gap: "calc(1 * var(--ci))" }}
+        >
           <span
             className="flex shrink-0 items-center justify-center rounded-full"
-            style={{ width: "2.6cqi", height: "2.6cqi", backgroundColor: `${colors.accent}22` }}
+            style={{
+              width: "calc(2.6 * var(--ci))",
+              height: "calc(2.6 * var(--ci))",
+              backgroundColor: `${colors.accent}22`,
+            }}
           >
-            <CheckCircle2 size="1.6cqi" style={{ color: colors.accent }} />
+            <CheckCircle2
+              style={{
+                color: colors.accent,
+                width: "calc(1.6 * var(--ci))",
+                height: "calc(1.6 * var(--ci))",
+              }}
+            />
           </span>
 
           <EditableText
@@ -190,7 +213,8 @@ export function FeatureList({
             onChange={(v) => onUpdateFeature?.(index, v)}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
-            className="min-w-0 flex-1 text-[2cqi]"
+            className="min-w-0 flex-1"
+            style={{ fontSize: "calc(2 * var(--ci))" }}
           />
 
           {editable && (
@@ -208,10 +232,10 @@ export function FeatureList({
           data-flyer-control="true"
           onClick={onAddFeature}
           className="inline-flex w-fit items-center gap-1 rounded-md px-1 py-0.5
-                     text-[1.8cqi] transition hover:bg-black/5"
-          style={{ color: colors.accent }}
+                     transition hover:bg-black/5"
+          style={{ color: colors.accent, fontSize: "calc(1.8 * var(--ci))" }}
         >
-          <Plus size="1.8cqi" />
+          <Plus style={{ width: "calc(1.8 * var(--ci))", height: "calc(1.8 * var(--ci))" }} />
           Add feature
         </button>
       )}
@@ -254,7 +278,11 @@ export function WhyChooseUsList({
   if (!cleanItems.length && !editable) return null;
 
   return (
-    <section data-flyer-block="why-choose-us" className="flex flex-col gap-[1.2cqi] mt-[3.5cqi] max-w-[85%]">
+    <section
+      data-flyer-block="why-choose-us"
+      className="flex flex-col mt-[calc(3.5*var(--cb))] max-w-[85%]"
+      style={{ gap: "calc(1.5 * var(--cb))" }}
+    >
       <EditableText
         as="h3"
         fieldId="f-why-title"
@@ -263,17 +291,31 @@ export function WhyChooseUsList({
         onChange={(v) => onUpdateTitle?.(v)}
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
-        className="text-[2.5cqi] font-black tracking-widest"
-        style={{ color: colors.accent }}
+        className="font-black tracking-widest"
+        style={{ color: colors.accent, fontSize: "calc(2.5 * var(--ci))" }}
       />
 
       {cleanItems.map((item, index) => (
-        <div key={`why-${index}`} className="group flex items-center gap-[1cqi]">
+        <div
+          key={`why-${index}`}
+          className="group flex items-center"
+          style={{ gap: "calc(1 * var(--ci))" }}
+        >
           <span
             className="flex shrink-0 items-center justify-center rounded-full"
-            style={{ width: "2.6cqi", height: "2.6cqi", backgroundColor: `${colors.accent}22` }}
+            style={{
+              width: "calc(2.6 * var(--ci))",
+              height: "calc(2.6 * var(--ci))",
+              backgroundColor: `${colors.accent}22`,
+            }}
           >
-            <CheckCircle2 size="1.6cqi" style={{ color: colors.accent }} />
+            <CheckCircle2
+              style={{
+                color: colors.accent,
+                width: "calc(1.6 * var(--ci))",
+                height: "calc(1.6 * var(--ci))",
+              }}
+            />
           </span>
 
           <EditableText
@@ -284,7 +326,8 @@ export function WhyChooseUsList({
             onChange={(v) => onUpdate?.(index, v)}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
-            className="min-w-0 flex-1 text-[2cqi]"
+            className="min-w-0 flex-1"
+            style={{ fontSize: "calc(2 * var(--ci))" }}
           />
 
           {editable && (
@@ -302,10 +345,10 @@ export function WhyChooseUsList({
           data-flyer-control="true"
           onClick={onAdd}
           className="inline-flex w-fit items-center gap-1 rounded-md px-1 py-0.5
-                     text-[1.8cqi] transition hover:bg-black/5"
-          style={{ color: colors.accent }}
+                     transition hover:bg-black/5"
+          style={{ color: colors.accent, fontSize: "calc(1.8 * var(--ci))" }}
         >
-          <Plus size="1.8cqi" />
+          <Plus style={{ width: "calc(1.8 * var(--ci))", height: "calc(1.8 * var(--ci))" }} />
           Add reason
         </button>
       )}
