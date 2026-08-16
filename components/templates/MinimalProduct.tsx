@@ -58,6 +58,14 @@ onRestoreEmail?: () => void;
 onRestoreWebsite?: () => void;
 }
 
+// ---------------------------------------------------------------------------
+// Sizing note: every dimension below uses calc(N * var(--ci)) / calc(N * var(--cb))
+// instead of the old Ncqi / Ncqb container-query units. --ci and --cb are
+// plain CSS custom properties (1% of canvas width / height) set on the
+// editor's canvas wrapper. calc()+var() has worked since iOS 9.3; cqi/cqb
+// require Safari 16+ and silently collapse to 0 on iOS 15 and older,
+// which is why the flyer used to render blank on older iPhones.
+// ---------------------------------------------------------------------------
 
 export function SleekFlyerTemplate(
   props: SleekFlyerProps
@@ -139,7 +147,7 @@ const VariantMonoSplit = ({
   onBlurEl,
 }: SleekFlyerProps) => (
   <div
-    className="@container w-full h-full relative overflow-hidden flex flex-row font-sans"
+    className="w-full h-full relative overflow-hidden flex flex-row font-sans"
     style={{
       backgroundColor: colors.primary,
       color: colors.secondary,
@@ -174,7 +182,7 @@ const VariantMonoSplit = ({
         width: "45%",
         height: "100%",
         backgroundColor: colors.primary,
-        padding: "7cqi 6cqi 7cqi 5cqi",
+        padding: "calc(7*var(--cb)) calc(6*var(--ci)) calc(7*var(--cb)) calc(5*var(--ci))",
       }}
     >
       <div className="flex items-center justify-between">
@@ -189,7 +197,7 @@ const VariantMonoSplit = ({
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
           style={{
-            fontSize: "2.2cqi",
+            fontSize: "calc(2.2*var(--ci))",
             fontWeight: 700,
             letterSpacing: "0.22em",
             textTransform: "uppercase",
@@ -200,8 +208,8 @@ const VariantMonoSplit = ({
 
         <div
           style={{
-            width: "1.8cqi",
-            height: "1.8cqi",
+            width: "calc(1.8*var(--ci))",
+            height: "calc(1.8*var(--ci))",
             borderRadius: "50%",
             backgroundColor: colors.accent,
           }}
@@ -214,22 +222,22 @@ const VariantMonoSplit = ({
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          gap: "3cqi",
+          gap: "calc(3*var(--cb))",
           overflow: "hidden",
         }}
       >
         <div
           style={{
-            width: "8cqi",
-            height: "0.3cqi",
+            width: "calc(8*var(--ci))",
+            height: "calc(0.3*var(--ci))",
             backgroundColor: colors.accent,
-            marginBottom: "1cqi",
+            marginBottom: "calc(1*var(--cb))",
           }}
         />
 
         <h1
           style={{
-            fontSize: "clamp(24px, 11cqi, 96px)",
+            fontSize: "clamp(24px, calc(11*var(--ci)), 96px)",
             fontWeight: 800,
             lineHeight: 0.92,
             letterSpacing: "-0.03em",
@@ -272,7 +280,7 @@ const VariantMonoSplit = ({
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             style={{
-              fontSize: "2.6cqi",
+              fontSize: "calc(2.6*var(--ci))",
               lineHeight: 1.5,
               color: colors.secondary,
               opacity: 0.55,
@@ -313,8 +321,8 @@ const VariantMonoSplit = ({
             style={{
               display: "inline-flex",
               alignItems: "baseline",
-              gap: "0.8cqi",
-              marginTop: "1cqi",
+              gap: "calc(0.8*var(--ci))",
+              marginTop: "calc(1*var(--cb))",
             }}
           >
             <EditableText
@@ -328,7 +336,7 @@ const VariantMonoSplit = ({
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               style={{
-                fontSize: "7cqi",
+                fontSize: "calc(7*var(--ci))",
                 fontWeight: 700,
                 letterSpacing: "-0.04em",
                 color: colors.secondary,
@@ -342,19 +350,19 @@ const VariantMonoSplit = ({
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: "2.5cqi",
+          gap: "calc(2.5*var(--cb))",
         }}
       >
         <div
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: "2cqi",
+            gap: "calc(2*var(--ci))",
             backgroundColor: colors.secondary,
             color: colors.primary,
-            padding: "2.2cqi 4cqi",
+            padding: "calc(2.2*var(--cb)) calc(4*var(--ci))",
             borderRadius: "100px",
-            fontSize: "2.4cqi",
+            fontSize: "calc(2.4*var(--ci))",
             fontWeight: 600,
             letterSpacing: "0.02em",
             width: "fit-content",
@@ -373,8 +381,8 @@ const VariantMonoSplit = ({
           />
 
           <svg
-            width="1.4cqi"
-            height="1.4cqi"
+            width="14"
+            height="14"
             viewBox="0 0 12 12"
             fill="currentColor"
           >
@@ -475,7 +483,7 @@ const VariantEditorialArc = ({
 
   return (
     <div
-      className="@container w-full h-full relative overflow-hidden flex flex-col font-sans"
+      className="w-full h-full relative overflow-hidden flex flex-col font-sans"
       style={{
         backgroundColor: colors.primary,
         color: colors.secondary,
@@ -486,7 +494,7 @@ const VariantEditorialArc = ({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "5cqi 6cqi 0",
+          padding: "calc(5*var(--cb)) calc(6*var(--ci)) 0",
           position: "relative",
           zIndex: 20,
         }}
@@ -502,7 +510,7 @@ const VariantEditorialArc = ({
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
           style={{
-            fontSize: "2cqi",
+            fontSize: "calc(2*var(--ci))",
             fontWeight: 700,
             letterSpacing: "0.25em",
             textTransform: "uppercase",
@@ -523,13 +531,13 @@ const VariantEditorialArc = ({
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             style={{
-              fontSize: "1.8cqi",
+              fontSize: "calc(1.8*var(--ci))",
               fontWeight: 600,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
               color: colors.accent,
-              border: `0.15cqi solid ${colors.accent}`,
-              padding: "0.8cqi 2.5cqi",
+              border: `calc(0.15*var(--ci)) solid ${colors.accent}`,
+              padding: "calc(0.8*var(--cb)) calc(2.5*var(--ci))",
               borderRadius: "100px",
             }}
           />
@@ -538,7 +546,7 @@ const VariantEditorialArc = ({
 
       <div
         style={{
-          padding: "2cqi 6cqi 0",
+          padding: "calc(2*var(--cb)) calc(6*var(--ci)) 0",
           position: "relative",
           zIndex: 5,
           lineHeight: 0.82,
@@ -546,7 +554,7 @@ const VariantEditorialArc = ({
       >
         <h1
           style={{
-            fontSize: "clamp(32px, 18cqi, 160px)",
+            fontSize: "clamp(32px, calc(18*var(--ci)), 160px)",
             fontWeight: 900,
             letterSpacing: "-0.04em",
             color: colors.secondary,
@@ -574,11 +582,11 @@ const VariantEditorialArc = ({
         {line1 && (
           <h1
             style={{
-              fontSize: "clamp(32px, 18cqi, 160px)",
+              fontSize: "clamp(32px, calc(18*var(--ci)), 160px)",
               fontWeight: 900,
               letterSpacing: "-0.04em",
               color: "transparent",
-              WebkitTextStroke: `0.15cqi ${colors.secondary}`,
+              WebkitTextStroke: `calc(0.15*var(--ci)) ${colors.secondary}`,
               margin: 0,
               fontFamily:
                 "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif",
@@ -608,7 +616,7 @@ const VariantEditorialArc = ({
           flex: 1,
           position: "relative",
           zIndex: 15,
-          margin: "-4cqi 0 0",
+          margin: "calc(-4*var(--cb)) 0 0",
           minHeight: 0,
         }}
       >
@@ -628,10 +636,10 @@ const VariantEditorialArc = ({
       <div
         style={{
           position: "absolute",
-          bottom: "-15cqi",
+          bottom: "calc(-15*var(--cb))",
           left: "-10%",
           width: "120%",
-          height: "45cqi",
+          height: "calc(45*var(--cb))",
           backgroundColor: colors.accent,
           borderRadius: "50% 50% 0 0",
           zIndex: 10,
@@ -641,15 +649,15 @@ const VariantEditorialArc = ({
       <div
         style={{
           position: "absolute",
-          bottom: "5cqi",
+          bottom: "calc(5*var(--cb))",
           left: 0,
           right: 0,
           zIndex: 20,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-end",
-          padding: "0 7cqi",
-          gap: "4cqi",
+          padding: "0 calc(7*var(--ci))",
+          gap: "calc(4*var(--ci))",
         }}
       >
         <div
@@ -670,9 +678,9 @@ const VariantEditorialArc = ({
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               style={{
-                fontSize: "2.5cqi",
+                fontSize: "calc(2.5*var(--ci))",
                 color: colors.primary,
-                margin: "0 0 1cqi",
+                margin: "0 0 calc(1*var(--cb))",
                 opacity: 0.8,
                 fontWeight: 400,
                 maxWidth: "26ch",
@@ -718,7 +726,7 @@ onRestoreSection={onRestoreWhyChooseUs}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               style={{
-                fontSize: "8cqi",
+                fontSize: "calc(8*var(--ci))",
                 fontWeight: 800,
                 letterSpacing: "-0.04em",
                 color: colors.primary,
@@ -734,12 +742,12 @@ onRestoreSection={onRestoreWhyChooseUs}
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-end",
-            gap: "1.5cqi",
+            gap: "calc(1.5*var(--cb))",
           }}
         >
           <div
             style={{
-              fontSize: "2.8cqi",
+              fontSize: "calc(2.8*var(--ci))",
               fontWeight: 700,
               color: colors.primary,
               letterSpacing: "0.04em",
@@ -841,7 +849,7 @@ const VariantNegativeSpace = ({
   onBlurEl,
 }: SleekFlyerProps) => (
   <div
-    className="@container w-full h-full relative overflow-hidden flex flex-col font-sans"
+    className="w-full h-full relative overflow-hidden flex flex-col font-sans"
     style={{
       backgroundColor: colors.primary,
       color: colors.secondary,
@@ -849,7 +857,7 @@ const VariantNegativeSpace = ({
   >
     <div
       style={{
-        height: "0.6cqi",
+        height: "calc(0.6*var(--cb))",
         backgroundColor: colors.accent,
         width: "100%",
         flexShrink: 0,
@@ -861,7 +869,7 @@ const VariantNegativeSpace = ({
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        padding: "4cqi 6cqi",
+        padding: "calc(4*var(--cb)) calc(6*var(--ci))",
         flexShrink: 0,
       }}
     >
@@ -876,7 +884,7 @@ const VariantNegativeSpace = ({
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
         style={{
-          fontSize: "2.2cqi",
+          fontSize: "calc(2.2*var(--ci))",
           fontWeight: 800,
           letterSpacing: "0.18em",
           textTransform: "uppercase",
@@ -896,7 +904,7 @@ const VariantNegativeSpace = ({
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
           style={{
-            fontSize: "2cqi",
+            fontSize: "calc(2*var(--ci))",
             fontWeight: 400,
             color: colors.secondary,
             opacity: 0.35,
@@ -910,7 +918,7 @@ const VariantNegativeSpace = ({
       style={{
         flex: 1,
         position: "relative",
-        margin: "0 8cqi",
+        margin: "0 calc(8*var(--ci))",
         minHeight: 0,
       }}
     >
@@ -921,7 +929,7 @@ const VariantNegativeSpace = ({
         className="object-contain"
         style={{
           filter:
-            "drop-shadow(0 8cqi 6cqi rgba(0,0,0,0.08))",
+            "drop-shadow(0 calc(8*var(--cb)) calc(6*var(--cb)) rgba(0,0,0,0.08))",
         }}
         crossOrigin="anonymous"
       />
@@ -930,18 +938,18 @@ const VariantNegativeSpace = ({
     <div
       style={{
         flexShrink: 0,
-        padding: "0 6cqi 5cqi",
+        padding: "0 calc(6*var(--ci)) calc(5*var(--cb))",
         display: "flex",
         flexDirection: "column",
-        gap: "2cqi",
+        gap: "calc(2*var(--cb))",
       }}
     >
       <div
         style={{
-          height: "0.08cqi",
+          height: "calc(0.08*var(--cb))",
           backgroundColor: colors.secondary,
           opacity: 0.1,
-          marginBottom: "1cqi",
+          marginBottom: "calc(1*var(--cb))",
         }}
       />
 
@@ -950,7 +958,7 @@ const VariantNegativeSpace = ({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-end",
-          gap: "4cqi",
+          gap: "calc(4*var(--ci))",
         }}
       >
         <div
@@ -961,7 +969,7 @@ const VariantNegativeSpace = ({
         >
           <h2
             style={{
-              fontSize: "clamp(18px, 8cqi, 72px)",
+              fontSize: "clamp(18px, calc(8*var(--ci)), 72px)",
               fontWeight: 700,
               letterSpacing: "-0.025em",
               color: colors.secondary,
@@ -1004,10 +1012,10 @@ const VariantNegativeSpace = ({
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               style={{
-                fontSize: "2.2cqi",
+                fontSize: "calc(2.2*var(--ci))",
                 color: colors.secondary,
                 opacity: 0.5,
-                margin: "1.5cqi 0 0",
+                margin: "calc(1.5*var(--cb)) 0 0",
                 fontWeight: 400,
                 lineHeight: 1.5,
                 maxWidth: "30ch",
@@ -1017,7 +1025,7 @@ const VariantNegativeSpace = ({
 
           <div
             style={{
-              marginTop: "2cqi",
+              marginTop: "calc(2*var(--cb))",
             }}
           >
             <FeatureList
@@ -1052,7 +1060,7 @@ onRestoreSection={onRestoreWhyChooseUs}
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-end",
-            gap: "2cqi",
+            gap: "calc(2*var(--cb))",
             flexShrink: 0,
           }}
         >
@@ -1068,7 +1076,7 @@ onRestoreSection={onRestoreWhyChooseUs}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               style={{
-                fontSize: "6cqi",
+                fontSize: "calc(6*var(--ci))",
                 fontWeight: 700,
                 letterSpacing: "-0.03em",
                 color: colors.accent,
@@ -1087,9 +1095,9 @@ onRestoreSection={onRestoreWhyChooseUs}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             style={{
-              border: `0.15cqi solid ${colors.secondary}`,
-              padding: "1.8cqi 4.5cqi",
-              fontSize: "2.2cqi",
+              border: `calc(0.15*var(--ci)) solid ${colors.secondary}`,
+              padding: "calc(1.8*var(--cb)) calc(4.5*var(--ci))",
+              fontSize: "calc(2.2*var(--ci))",
               fontWeight: 600,
               letterSpacing: "0.06em",
               color: colors.secondary,
@@ -1179,7 +1187,7 @@ featuresVisible,
   onBlurEl,
 }: SleekFlyerProps) => (
   <div
-    className="@container w-full h-full relative overflow-hidden font-sans"
+    className="w-full h-full relative overflow-hidden font-sans"
     style={{
       backgroundColor: colors.primary,
       color: colors.secondary,
@@ -1192,7 +1200,7 @@ featuresVisible,
         left: "50%",
         transform:
           "translate(-50%, -50%) rotate(-20deg)",
-        fontSize: "40cqi",
+        fontSize: "calc(40*var(--ci))",
         fontWeight: 900,
         letterSpacing: "-0.05em",
         color: colors.secondary,
@@ -1212,7 +1220,7 @@ featuresVisible,
         top: "33.33%",
         left: 0,
         right: 0,
-        height: "0.08cqi",
+        height: "calc(0.08*var(--cb))",
         backgroundColor: colors.secondary,
         opacity: 0.08,
         zIndex: 5,
@@ -1225,7 +1233,7 @@ featuresVisible,
         top: 0,
         bottom: 0,
         right: "35%",
-        width: "0.08cqi",
+        width: "calc(0.08*var(--ci))",
         backgroundColor: colors.secondary,
         opacity: 0.08,
         zIndex: 5,
@@ -1247,12 +1255,12 @@ featuresVisible,
     <div
       style={{
         position: "absolute",
-        top: "5cqi",
-        left: "6cqi",
+        top: "calc(5*var(--cb))",
+        left: "calc(6*var(--ci))",
         zIndex: 10,
         display: "flex",
         flexDirection: "column",
-        gap: "1.2cqi",
+        gap: "calc(1.2*var(--cb))",
       }}
     >
       <EditableText
@@ -1266,7 +1274,7 @@ featuresVisible,
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
         style={{
-          fontSize: "3cqi",
+          fontSize: "calc(3*var(--ci))",
           fontWeight: 800,
           letterSpacing: "0.15em",
           textTransform: "uppercase",
@@ -1286,7 +1294,7 @@ featuresVisible,
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
           style={{
-            fontSize: "1.8cqi",
+            fontSize: "calc(1.8*var(--ci))",
             fontWeight: 500,
             color: colors.primary,
             opacity: 0.7,
@@ -1313,7 +1321,7 @@ featuresVisible,
         className="object-contain"
         style={{
           filter:
-            "drop-shadow(0 6cqi 8cqi rgba(0,0,0,0.15))",
+            "drop-shadow(0 calc(6*var(--cb)) calc(8*var(--cb)) rgba(0,0,0,0.15))",
         }}
         crossOrigin="anonymous"
       />
@@ -1330,14 +1338,14 @@ featuresVisible,
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        padding: "6cqi 5cqi 12cqi 4cqi",
-        gap: "3cqi",
+        padding: "calc(6*var(--cb)) calc(5*var(--ci)) calc(12*var(--cb)) calc(4*var(--ci))",
+        gap: "calc(3*var(--cb))",
         overflow: "hidden",
       }}
     >
       <h1
         style={{
-          fontSize: "clamp(16px, 7.5cqi, 64px)",
+          fontSize: "clamp(16px, calc(7.5*var(--ci)), 64px)",
           fontWeight: 800,
           letterSpacing: "-0.03em",
           lineHeight: 0.95,
@@ -1370,8 +1378,8 @@ featuresVisible,
 
       <div
         style={{
-          width: "6cqi",
-          height: "0.3cqi",
+          width: "calc(6*var(--ci))",
+          height: "calc(0.3*var(--ci))",
           backgroundColor: colors.accent,
         }}
       />
@@ -1388,7 +1396,7 @@ featuresVisible,
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
           style={{
-            fontSize: "2.2cqi",
+            fontSize: "calc(2.2*var(--ci))",
             lineHeight: 1.55,
             color: colors.secondary,
             opacity: 0.5,
@@ -1435,7 +1443,7 @@ onRestoreSection={onRestoreWhyChooseUs}
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
           style={{
-            fontSize: "7cqi",
+            fontSize: "calc(7*var(--ci))",
             fontWeight: 700,
             letterSpacing: "-0.04em",
             color: colors.secondary,
@@ -1450,14 +1458,14 @@ onRestoreSection={onRestoreWhyChooseUs}
         bottom: 0,
         left: 0,
         right: 0,
-        minHeight: "10cqi",
+        minHeight: "calc(10*var(--cb))",
         zIndex: 20,
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        padding: "2cqi 6cqi",
-        borderTop: `0.08cqi solid ${colors.secondary}18`,
-        gap: "3cqi",
+        padding: "calc(2*var(--cb)) calc(6*var(--ci))",
+        borderTop: `calc(0.08*var(--cb)) solid ${colors.secondary}18`,
+        gap: "calc(3*var(--ci))",
       }}
     >
       <EditableText
@@ -1473,9 +1481,9 @@ onRestoreSection={onRestoreWhyChooseUs}
         style={{
           backgroundColor: colors.secondary,
           color: colors.primary,
-          padding: "1.8cqi 5cqi",
+          padding: "calc(1.8*var(--cb)) calc(5*var(--ci))",
           borderRadius: "100px",
-          fontSize: "2.2cqi",
+          fontSize: "calc(2.2*var(--ci))",
           fontWeight: 600,
           letterSpacing: "0.04em",
           whiteSpace: "nowrap",
@@ -1562,7 +1570,7 @@ featuresVisible,
   onBlurEl,
 }: SleekFlyerProps) => (
   <div
-    className="@container w-full h-full relative overflow-hidden flex flex-col items-center font-sans"
+    className="w-full h-full relative overflow-hidden flex flex-col items-center font-sans"
     style={{
       backgroundColor: colors.primary,
       color: colors.secondary,
@@ -1570,7 +1578,7 @@ featuresVisible,
   >
     <div
       style={{
-        padding: "5cqi 0 0",
+        padding: "calc(5*var(--cb)) 0 0",
         textAlign: "center",
         zIndex: 10,
         flexShrink: 0,
@@ -1587,7 +1595,7 @@ featuresVisible,
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
         style={{
-          fontSize: "2cqi",
+          fontSize: "calc(2*var(--ci))",
           fontWeight: 700,
           letterSpacing: "0.3em",
           textTransform: "uppercase",
@@ -1609,11 +1617,11 @@ featuresVisible,
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
         style={{
-          fontSize: "2.4cqi",
+          fontSize: "calc(2.4*var(--ci))",
           fontStyle: "italic",
           color: colors.secondary,
           opacity: 0.35,
-          margin: "2cqi 0 0",
+          margin: "calc(2*var(--cb)) 0 0",
           letterSpacing: "0.04em",
           zIndex: 10,
           flexShrink: 0,
@@ -1635,10 +1643,10 @@ featuresVisible,
       <div
         style={{
           position: "absolute",
-          width: "70cqi",
-          height: "70cqi",
+          width: "calc(70*var(--ci))",
+          height: "calc(70*var(--ci))",
           borderRadius: "50%",
-          border: `0.12cqi solid ${colors.secondary}`,
+          border: `calc(0.12*var(--ci)) solid ${colors.secondary}`,
           opacity: 0.08,
           zIndex: 2,
         }}
@@ -1647,10 +1655,10 @@ featuresVisible,
       <div
         style={{
           position: "absolute",
-          width: "52cqi",
-          height: "52cqi",
+          width: "calc(52*var(--ci))",
+          height: "calc(52*var(--ci))",
           borderRadius: "50%",
-          border: `0.2cqi solid ${colors.accent}`,
+          border: `calc(0.2*var(--ci)) solid ${colors.accent}`,
           opacity: 0.6,
           zIndex: 2,
         }}
@@ -1659,8 +1667,8 @@ featuresVisible,
       <div
         style={{
           position: "relative",
-          width: "62cqi",
-          height: "62cqi",
+          width: "calc(62*var(--ci))",
+          height: "calc(62*var(--ci))",
           zIndex: 10,
         }}
       >
@@ -1671,7 +1679,7 @@ featuresVisible,
           className="object-contain"
           style={{
             filter:
-              "drop-shadow(0 4cqi 8cqi rgba(0,0,0,0.12))",
+              "drop-shadow(0 calc(4*var(--cb)) calc(8*var(--cb)) rgba(0,0,0,0.12))",
           }}
           crossOrigin="anonymous"
         />
@@ -1682,25 +1690,25 @@ featuresVisible,
       style={{
         flexShrink: 0,
         textAlign: "center",
-        padding: "0 8cqi 5.5cqi",
+        padding: "0 calc(8*var(--ci)) calc(5.5*var(--cb))",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: "2.5cqi",
+        gap: "calc(2.5*var(--cb))",
         width: "100%",
       }}
     >
       <div
         style={{
-          width: "5cqi",
-          height: "0.25cqi",
+          width: "calc(5*var(--ci))",
+          height: "calc(0.25*var(--ci))",
           backgroundColor: colors.accent,
         }}
       />
 
       <h1
         style={{
-          fontSize: "clamp(20px, 9cqi, 80px)",
+          fontSize: "clamp(20px, calc(9*var(--ci)), 80px)",
           fontWeight: 700,
           letterSpacing: "-0.03em",
           lineHeight: 0.95,
@@ -1743,7 +1751,7 @@ featuresVisible,
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
           style={{
-            fontSize: "2.4cqi",
+            fontSize: "calc(2.4*var(--ci))",
             lineHeight: 1.5,
             color: colors.secondary,
             opacity: 0.45,
@@ -1757,7 +1765,7 @@ featuresVisible,
       <div
         style={{
           width: "100%",
-          maxWidth: "65cqi",
+          maxWidth: "calc(65*var(--ci))",
           textAlign: "left",
         }}
       >
@@ -1792,8 +1800,8 @@ onRestoreSection={onRestoreWhyChooseUs}
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: "4cqi",
-          marginTop: "0.5cqi",
+          gap: "calc(4*var(--ci))",
+          marginTop: "calc(0.5*var(--cb))",
           flexWrap: "wrap",
         }}
       >
@@ -1809,7 +1817,7 @@ onRestoreSection={onRestoreWhyChooseUs}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             style={{
-              fontSize: "4cqi",
+              fontSize: "calc(4*var(--ci))",
               fontWeight: 700,
               color: colors.accent,
               letterSpacing: "-0.02em",
@@ -1828,10 +1836,10 @@ onRestoreSection={onRestoreWhyChooseUs}
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
           style={{
-            border: `0.12cqi solid ${colors.secondary}`,
-            padding: "1.6cqi 4.5cqi",
+            border: `calc(0.12*var(--ci)) solid ${colors.secondary}`,
+            padding: "calc(1.6*var(--cb)) calc(4.5*var(--ci))",
             borderRadius: "100px",
-            fontSize: "2.2cqi",
+            fontSize: "calc(2.2*var(--ci))",
             fontWeight: 500,
             letterSpacing: "0.06em",
             color: colors.secondary,
@@ -1865,5 +1873,3 @@ onRestoreEmail={onRestoreEmail}
     </div>
   </div>
 );
-
-

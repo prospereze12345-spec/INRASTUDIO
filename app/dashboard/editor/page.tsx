@@ -1712,6 +1712,8 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     overflow: "hidden",
     containerType: "size",
     containerName: "flyer-canvas",
+    ["--ci" as any]: `${canvasSize.w / 100}px`,
+    ["--cb" as any]: `${canvasSize.h / 100}px`,
   } as React.CSSProperties}
 >
               <TemplateRenderer
@@ -1989,3 +1991,6 @@ export default function FlyerEditor() {
     </Suspense>
   );
 }
+
+
+

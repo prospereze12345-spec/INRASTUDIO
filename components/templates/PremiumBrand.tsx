@@ -127,6 +127,14 @@ export function PremiumBrandTemplate(props: PremiumBrandProps) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Sizing note: everything below uses calc(N * var(--ci)) / calc(N * var(--cb))
+// instead of the old Ncqi / Ncqb container-query units. --ci and --cb are
+// plain CSS custom properties (1% of canvas width / height) set on the
+// editor's canvas wrapper. calc()+var() has worked since iOS 9.3; cqi/cqb
+// require Safari 16+ and silently collapse to 0 on iOS 15 and older.
+// ---------------------------------------------------------------------------
+
 function BrandHeader({
   brandName,
   website,
@@ -146,7 +154,10 @@ function BrandHeader({
   | "colors"
 >) {
   return (
-    <header className="flex items-center justify-between px-[6cqi] pt-[5cqi] relative z-20">
+    <header
+      className="flex items-center justify-between relative z-20"
+      style={{ padding: "calc(5*var(--cb)) calc(6*var(--ci)) 0" }}
+    >
       <EditableText
         as="p"
         fieldId="f-brand"
@@ -155,14 +166,9 @@ function BrandHeader({
         onChange={(v) => onUpdate?.("brandName", v)}
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
-        className="
-          text-[2.25cqi]
-          font-semibold
-          tracking-[0.18em]
-          uppercase
-          leading-none
-        "
+        className="font-semibold tracking-[0.18em] uppercase leading-none"
         style={{
+          fontSize: "calc(2.25*var(--ci))",
           color: colors.secondary,
         }}
       />
@@ -176,13 +182,9 @@ function BrandHeader({
           onChange={(v) => onUpdate?.("website", v)}
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
-          className="
-            text-[1.65cqi]
-            tracking-[0.08em]
-            leading-none
-            opacity-50
-          "
+          className="tracking-[0.08em] leading-none opacity-50"
           style={{
+            fontSize: "calc(1.65*var(--ci))",
             color: colors.secondary,
           }}
         />
@@ -210,18 +212,12 @@ function SmartCTA({
 }) {
   return (
     <div
-      className={[
-        "inline-flex items-center",
-        "px-[4.5cqi] py-[2.4cqi]",
-        "text-[2.15cqi]",
-        "font-semibold",
-        "tracking-[0.08em]",
-        "uppercase",
-        rounded ? "rounded-full" : "",
-      ].join(" ")}
+      className={["inline-flex items-center", "font-semibold", "tracking-[0.08em]", "uppercase", rounded ? "rounded-full" : ""].join(" ")}
       style={{
         backgroundColor: colors.accent,
         color: colors.primary,
+        padding: "calc(2.4*var(--cb)) calc(4.5*var(--ci))",
+        fontSize: "calc(2.15*var(--ci))",
       }}
     >
       <EditableText
@@ -234,7 +230,7 @@ function SmartCTA({
         onBlurEl={onBlurEl}
       />
 
-      <span className="ml-[2cqi] opacity-60">→</span>
+      <span className="opacity-60" style={{ marginLeft: "calc(2*var(--ci))" }}>→</span>
     </div>
   );
 }
@@ -285,15 +281,16 @@ function VariantGrandOpening({
 
   return (
     <div
-      className="@container w-full h-full overflow-hidden relative font-sans"
+      className="w-full h-full overflow-hidden relative font-sans"
       style={{
         backgroundColor: colors.primary,
         color: colors.secondary,
       }}
     >
       <div
-        className="absolute inset-[3cqi] pointer-events-none"
+        className="absolute pointer-events-none"
         style={{
+          inset: "calc(3*var(--ci))",
           border: `1px solid ${hexToRgba(colors.secondary, 0.08)}`,
         }}
       />
@@ -308,8 +305,11 @@ function VariantGrandOpening({
         colors={colors}
       />
 
-      <main className="absolute inset-x-0 top-[14cqi] bottom-0">
-        <div className="absolute inset-x-[5cqi] top-[8cqi] bottom-[23cqi] overflow-hidden">
+      <main className="absolute inset-x-0 bottom-0" style={{ top: "calc(14*var(--cb))" }}>
+        <div
+          className="absolute overflow-hidden"
+          style={{ left: "calc(5*var(--ci))", right: "calc(5*var(--ci))", top: "calc(8*var(--cb))", bottom: "calc(23*var(--cb))" }}
+        >
           <Image
             src={productImage}
             alt=""
@@ -322,32 +322,23 @@ function VariantGrandOpening({
           <div
             className="absolute inset-x-0 bottom-0 h-[18%]"
             style={{
-              background: `linear-gradient(
-                to top,
-                ${colors.primary},
-                transparent
-              )`,
+              background: `linear-gradient(to top, ${colors.primary}, transparent)`,
             }}
           />
         </div>
 
-        <div className="absolute left-[6cqi] right-[6cqi] top-0 z-10">
+        <div className="absolute top-0 z-10" style={{ left: "calc(6*var(--ci))", right: "calc(6*var(--ci))" }}>
           <p
-            className="text-[1.65cqi] uppercase tracking-[0.25em] mb-[2cqi] opacity-45"
-            style={{ color: colors.secondary }}
+            className="uppercase tracking-[0.25em] opacity-45"
+            style={{ fontSize: "calc(1.65*var(--ci))", marginBottom: "calc(2*var(--cb))", color: colors.secondary }}
           >
             {parsed.kicker || "New"}
           </p>
 
           <h1
-            className="
-              font-semibold
-              uppercase
-              tracking-[-0.055em]
-              leading-[0.86]
-            "
+            className="font-semibold uppercase tracking-[-0.055em] leading-[0.86]"
             style={{
-              fontSize: "10cqi",
+              fontSize: "calc(10*var(--ci))",
               color: colors.secondary,
             }}
           >
@@ -373,8 +364,8 @@ function VariantGrandOpening({
           </h1>
         </div>
 
-        <div className="absolute left-[6cqi] right-[6cqi] bottom-[5cqi] z-20">
-          <div className="flex items-end justify-between gap-[4cqi]">
+        <div className="absolute z-20" style={{ left: "calc(6*var(--ci))", right: "calc(6*var(--ci))", bottom: "calc(5*var(--cb))" }}>
+          <div className="flex items-end justify-between" style={{ gap: "calc(4*var(--ci))" }}>
             <div className="max-w-[52%]">
               {price && (
                 <EditableText
@@ -385,13 +376,8 @@ function VariantGrandOpening({
                   onChange={(v) => onUpdate?.("price", v)}
                   onFocusEl={onFocusEl}
                   onBlurEl={onBlurEl}
-                  className="
-                    font-semibold
-                    leading-none
-                    tracking-[-0.04em]
-                    text-[6.5cqi]
-                  "
-                  style={{ color: colors.accent }}
+                  className="font-semibold leading-none tracking-[-0.04em]"
+                  style={{ fontSize: "calc(6.5*var(--ci))", color: colors.accent }}
                 />
               )}
 
@@ -403,12 +389,8 @@ function VariantGrandOpening({
                 onChange={(v) => onUpdate?.("subtext", v)}
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
-                className="
-                  mt-[1cqi]
-                  text-[2cqi]
-                  leading-[1.35]
-                  opacity-55
-                "
+                className="leading-[1.35] opacity-55"
+                style={{ marginTop: "calc(1*var(--cb))", fontSize: "calc(2*var(--ci))" }}
               />
 
               <FeatureList
@@ -447,7 +429,7 @@ function VariantGrandOpening({
             />
           </div>
 
-          <div className="mt-[3cqi]">
+          <div style={{ marginTop: "calc(3*var(--cb))" }}>
             <ContactBar
               phone={phone}
               website={website}
@@ -519,7 +501,7 @@ function VariantDigitalAgency({
 
   return (
     <div
-      className="@container w-full h-full relative overflow-hidden font-sans"
+      className="w-full h-full relative overflow-hidden font-sans"
       style={{
         backgroundColor: colors.primary,
         color: colors.secondary,
@@ -535,39 +517,33 @@ function VariantDigitalAgency({
         colors={colors}
       />
 
-      <div className="absolute left-[6cqi] right-[6cqi] top-[17cqi] bottom-[6cqi]">
+      <div
+        className="absolute"
+        style={{ left: "calc(6*var(--ci))", right: "calc(6*var(--ci))", top: "calc(17*var(--cb))", bottom: "calc(6*var(--cb))" }}
+      >
         <div
-          className="absolute left-[58%] top-0 bottom-0 w-px"
-          style={{
-            backgroundColor: hexToRgba(colors.secondary, 0.08),
-          }}
+          className="absolute top-0 bottom-0 w-px"
+          style={{ left: "58%", backgroundColor: hexToRgba(colors.secondary, 0.08) }}
         />
 
-        <section className="absolute left-0 top-0 w-[52%] pr-[5cqi]">
-          <div className="flex items-center gap-[1.5cqi] mb-[3cqi]">
+        <section className="absolute left-0 top-0 w-[52%]" style={{ paddingRight: "calc(5*var(--ci))" }}>
+          <div className="flex items-center" style={{ gap: "calc(1.5*var(--ci))", marginBottom: "calc(3*var(--cb))" }}>
             <span
-              className="w-[3.5cqi] h-[1px]"
-              style={{ backgroundColor: colors.accent }}
+              className="h-px"
+              style={{ width: "calc(3.5*var(--ci))", backgroundColor: colors.accent }}
             />
 
             <span
-              className="text-[1.65cqi] uppercase tracking-[0.25em] opacity-45"
-              style={{ color: colors.secondary }}
+              className="uppercase tracking-[0.25em] opacity-45"
+              style={{ fontSize: "calc(1.65*var(--ci))", color: colors.secondary }}
             >
               {parsed.kicker || "Services"}
             </span>
           </div>
 
           <h1
-            className="
-              font-semibold
-              uppercase
-              tracking-[-0.055em]
-              leading-[0.88]
-            "
-            style={{
-              fontSize: "8.3cqi",
-            }}
+            className="font-semibold uppercase tracking-[-0.055em] leading-[0.88]"
+            style={{ fontSize: "calc(8.3*var(--ci))" }}
           >
             <EditableHeadlineLines
               value={headline}
@@ -598,16 +574,11 @@ function VariantDigitalAgency({
             onChange={(v) => onUpdate?.("subtext", v)}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
-            className="
-              mt-[4cqi]
-              text-[2.15cqi]
-              leading-[1.45]
-              opacity-55
-              max-w-[85%]
-            "
+            className="leading-[1.45] opacity-55 max-w-[85%]"
+            style={{ marginTop: "calc(4*var(--cb))", fontSize: "calc(2.15*var(--ci))" }}
           />
 
-          <div className="mt-[5cqi]">
+          <div style={{ marginTop: "calc(5*var(--cb))" }}>
             <FeatureList
               features={parsed.features}
               colors={colors}
@@ -649,7 +620,7 @@ function VariantDigitalAgency({
             />
           </div>
 
-          <div className="mt-[5cqi] flex items-end gap-[3cqi]">
+          <div className="flex items-end" style={{ marginTop: "calc(5*var(--cb))", gap: "calc(3*var(--ci))" }}>
             {price && (
               <EditableText
                 as="p"
@@ -659,10 +630,8 @@ function VariantDigitalAgency({
                 onChange={(v) => onUpdate?.("price", v)}
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
-                className="text-[5cqi] font-semibold tracking-tight"
-                style={{
-                  color: colors.accent,
-                }}
+                className="font-semibold tracking-tight"
+                style={{ fontSize: "calc(5*var(--ci))", color: colors.accent }}
               />
             )}
 
@@ -678,7 +647,7 @@ function VariantDigitalAgency({
         </section>
 
         <section className="absolute right-0 top-0 bottom-[12%] w-[38%]">
-          <div className="absolute inset-[2cqi] overflow-hidden rounded-[2cqi]">
+          <div className="absolute overflow-hidden" style={{ inset: "calc(2*var(--ci))", borderRadius: "calc(2*var(--ci))" }}>
             <Image
               src={productImage}
               alt=""
@@ -690,10 +659,11 @@ function VariantDigitalAgency({
           </div>
 
           <div
-            className="absolute -bottom-[2cqi] -left-[2cqi] w-[10cqi] h-[10cqi] rounded-full"
+            className="absolute rounded-full"
             style={{
-              backgroundColor: colors.accent,
-              opacity: 0.9,
+              bottom: "calc(-2*var(--ci))", left: "calc(-2*var(--ci))",
+              width: "calc(10*var(--ci))", height: "calc(10*var(--ci))",
+              backgroundColor: colors.accent, opacity: 0.9,
             }}
           />
         </section>
@@ -765,20 +735,18 @@ function VariantPremiumGold({
 
   return (
     <div
-      className="@container w-full h-full relative overflow-hidden font-serif"
+      className="w-full h-full relative overflow-hidden font-serif"
       style={{
         backgroundColor: colors.primary,
         color: colors.secondary,
       }}
     >
       <div
-        className="absolute inset-[4cqi] pointer-events-none"
-        style={{
-          border: `1px solid ${hexToRgba(colors.accent, 0.35)}`,
-        }}
+        className="absolute pointer-events-none"
+        style={{ inset: "calc(4*var(--ci))", border: `1px solid ${hexToRgba(colors.accent, 0.35)}` }}
       />
 
-      <header className="relative z-20 text-center pt-[7cqi]">
+      <header className="relative z-20 text-center" style={{ paddingTop: "calc(7*var(--cb))" }}>
         <EditableText
           as="p"
           fieldId="f-brand"
@@ -787,50 +755,33 @@ function VariantPremiumGold({
           onChange={(v) => onUpdate?.("brandName", v)}
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
-          className="
-            text-[2.2cqi]
-            uppercase
-            tracking-[0.45em]
-            opacity-55
-          "
+          className="uppercase tracking-[0.45em] opacity-55"
+          style={{ fontSize: "calc(2.2*var(--ci))" }}
         />
 
-        <div className="flex justify-center items-center gap-[2cqi] mt-[2cqi]">
+        <div className="flex justify-center items-center" style={{ gap: "calc(2*var(--ci))", marginTop: "calc(2*var(--cb))" }}>
           <span
-            className="w-[10cqi] h-px"
-            style={{
-              backgroundColor: hexToRgba(colors.accent, 0.4),
-            }}
+            className="h-px"
+            style={{ width: "calc(10*var(--ci))", backgroundColor: hexToRgba(colors.accent, 0.4) }}
           />
 
           <span
-            className="w-[0.9cqi] h-[0.9cqi] rotate-45"
-            style={{
-              backgroundColor: colors.accent,
-            }}
+            className="rotate-45"
+            style={{ width: "calc(0.9*var(--ci))", height: "calc(0.9*var(--ci))", backgroundColor: colors.accent }}
           />
 
           <span
-            className="w-[10cqi] h-px"
-            style={{
-              backgroundColor: hexToRgba(colors.accent, 0.4),
-            }}
+            className="h-px"
+            style={{ width: "calc(10*var(--ci))", backgroundColor: hexToRgba(colors.accent, 0.4) }}
           />
         </div>
       </header>
 
-      <div className="absolute inset-x-[8cqi] top-[20cqi] bottom-[6cqi]">
+      <div className="absolute" style={{ left: "calc(8*var(--ci))", right: "calc(8*var(--ci))", top: "calc(20*var(--cb))", bottom: "calc(6*var(--cb))" }}>
         <div className="text-center relative z-20">
           <h1
-            className="
-              font-medium
-              uppercase
-              tracking-[-0.04em]
-              leading-[0.9]
-            "
-            style={{
-              fontSize: "8cqi",
-            }}
+            className="font-medium uppercase tracking-[-0.04em] leading-[0.9]"
+            style={{ fontSize: "calc(8*var(--ci))" }}
           >
             <EditableHeadlineLines
               value={headline}
@@ -867,10 +818,8 @@ function VariantPremiumGold({
 
         <div className="absolute left-0 right-0 bottom-0">
           <div
-            className="w-full h-px mb-[3cqi]"
-            style={{
-              backgroundColor: hexToRgba(colors.accent, 0.25),
-            }}
+            className="w-full h-px"
+            style={{ marginBottom: "calc(3*var(--cb))", backgroundColor: hexToRgba(colors.accent, 0.25) }}
           />
 
           <div className="flex items-end justify-between">
@@ -884,14 +833,8 @@ function VariantPremiumGold({
                   onChange={(v) => onUpdate?.("price", v)}
                   onFocusEl={onFocusEl}
                   onBlurEl={onBlurEl}
-                  className="
-                    text-[6.2cqi]
-                    font-medium
-                    leading-none
-                  "
-                  style={{
-                    color: colors.accent,
-                  }}
+                  className="font-medium leading-none"
+                  style={{ fontSize: "calc(6.2*var(--ci))", color: colors.accent }}
                 />
               )}
 
@@ -903,12 +846,8 @@ function VariantPremiumGold({
                 onChange={(v) => onUpdate?.("subtext", v)}
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
-                className="
-                  mt-[1cqi]
-                  text-[1.95cqi]
-                  leading-[1.4]
-                  opacity-50
-                "
+                className="leading-[1.4] opacity-50"
+                style={{ marginTop: "calc(1*var(--cb))", fontSize: "calc(1.95*var(--ci))" }}
               />
             </div>
 
@@ -923,7 +862,7 @@ function VariantPremiumGold({
             />
           </div>
 
-          <div className="mt-[2.5cqi]">
+          <div style={{ marginTop: "calc(2.5*var(--cb))" }}>
             <ContactBar
               phone={phone}
               website={website}
@@ -995,20 +934,18 @@ function VariantCleaningService({
 
   return (
     <div
-      className="@container w-full h-full relative overflow-hidden font-sans"
+      className="w-full h-full relative overflow-hidden font-sans"
       style={{
         backgroundColor: colors.primary,
         color: colors.secondary,
       }}
     >
       <div
-        className="absolute top-0 left-0 right-0 h-[15cqi]"
-        style={{
-          backgroundColor: colors.accent,
-        }}
+        className="absolute top-0 left-0 right-0"
+        style={{ height: "calc(15*var(--cb))", backgroundColor: colors.accent }}
       />
 
-      <div className="relative z-10 px-[6cqi] pt-[5cqi]">
+      <div className="relative z-10" style={{ padding: "calc(5*var(--cb)) calc(6*var(--ci)) 0" }}>
         <div className="flex justify-between items-center">
           <EditableText
             as="p"
@@ -1018,15 +955,8 @@ function VariantCleaningService({
             onChange={(v) => onUpdate?.("brandName", v)}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
-            className="
-              text-[2.25cqi]
-              font-bold
-              uppercase
-              tracking-[0.18em]
-            "
-            style={{
-              color: colors.primary,
-            }}
+            className="font-bold uppercase tracking-[0.18em]"
+            style={{ fontSize: "calc(2.25*var(--ci))", color: colors.primary }}
           />
 
           {website && (
@@ -1038,16 +968,14 @@ function VariantCleaningService({
               onChange={(v) => onUpdate?.("website", v)}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
-              className="text-[1.7cqi] opacity-65"
-              style={{
-                color: colors.primary,
-              }}
+              className="opacity-65"
+              style={{ fontSize: "calc(1.7*var(--ci))", color: colors.primary }}
             />
           )}
         </div>
       </div>
 
-      <div className="absolute inset-x-0 top-[15cqi] bottom-0">
+      <div className="absolute inset-x-0 bottom-0" style={{ top: "calc(15*var(--cb))" }}>
         <div className="absolute right-0 top-0 bottom-0 w-[47%] overflow-hidden">
           <Image
             src={productImage}
@@ -1061,35 +989,22 @@ function VariantCleaningService({
           <div
             className="absolute inset-y-0 left-0 w-[30%]"
             style={{
-              background: `linear-gradient(
-                to right,
-                ${colors.primary},
-                transparent
-              )`,
+              background: `linear-gradient(to right, ${colors.primary}, transparent)`,
             }}
           />
         </div>
 
-        <div className="absolute left-[6cqi] top-[6cqi] w-[52%] bottom-[5cqi]">
+        <div className="absolute w-[52%]" style={{ left: "calc(6*var(--ci))", top: "calc(6*var(--cb))", bottom: "calc(5*var(--cb))" }}>
           <p
-            className="text-[1.7cqi] uppercase tracking-[0.28em] opacity-45 mb-[2.5cqi]"
-            style={{
-              color: colors.secondary,
-            }}
+            className="uppercase tracking-[0.28em] opacity-45"
+            style={{ fontSize: "calc(1.7*var(--ci))", marginBottom: "calc(2.5*var(--cb))", color: colors.secondary }}
           >
             {parsed.kicker || "Professional service"}
           </p>
 
           <h1
-            className="
-              font-semibold
-              uppercase
-              tracking-[-0.05em]
-              leading-[0.88]
-            "
-            style={{
-              fontSize: "8.2cqi",
-            }}
+            className="font-semibold uppercase tracking-[-0.05em] leading-[0.88]"
+            style={{ fontSize: "calc(8.2*var(--ci))" }}
           >
             <EditableHeadlineLines
               value={headline}
@@ -1120,16 +1035,11 @@ function VariantCleaningService({
             onChange={(v) => onUpdate?.("subtext", v)}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
-            className="
-              mt-[3.5cqi]
-              text-[2.1cqi]
-              leading-[1.45]
-              opacity-55
-              max-w-[85%]
-            "
+            className="leading-[1.45] opacity-55 max-w-[85%]"
+            style={{ marginTop: "calc(3.5*var(--cb))", fontSize: "calc(2.1*var(--ci))" }}
           />
 
-          <div className="mt-[4cqi]">
+          <div style={{ marginTop: "calc(4*var(--cb))" }}>
             <FeatureList
               features={parsed.features}
               colors={colors}
@@ -1179,10 +1089,8 @@ function VariantCleaningService({
                   onChange={(v) => onUpdate?.("price", v)}
                   onFocusEl={onFocusEl}
                   onBlurEl={onBlurEl}
-                  className="text-[5cqi] font-semibold"
-                  style={{
-                    color: colors.accent,
-                  }}
+                  className="font-semibold"
+                  style={{ fontSize: "calc(5*var(--ci))", color: colors.accent }}
                 />
               )}
 
@@ -1196,7 +1104,7 @@ function VariantCleaningService({
               />
             </div>
 
-            <div className="mt-[2.5cqi]">
+            <div style={{ marginTop: "calc(2.5*var(--cb))" }}>
               <ContactBar
                 phone={phone}
                 website={website}
@@ -1269,17 +1177,18 @@ function VariantOrganicDeal({
 
   return (
     <div
-      className="@container w-full h-full relative overflow-hidden font-sans"
+      className="w-full h-full relative overflow-hidden font-sans"
       style={{
         backgroundColor: colors.primary,
         color: colors.secondary,
       }}
     >
       <div
-        className="absolute -right-[15cqi] -top-[12cqi] w-[55cqi] h-[55cqi] rounded-full"
+        className="absolute rounded-full"
         style={{
-          backgroundColor: colors.accent,
-          opacity: 0.07,
+          right: "calc(-15*var(--ci))", top: "calc(-12*var(--cb))",
+          width: "calc(55*var(--ci))", height: "calc(55*var(--ci))",
+          backgroundColor: colors.accent, opacity: 0.07,
         }}
       />
 
@@ -1293,7 +1202,7 @@ function VariantOrganicDeal({
         colors={colors}
       />
 
-      <div className="absolute inset-x-[6cqi] top-[17cqi] bottom-[6cqi]">
+      <div className="absolute" style={{ left: "calc(6*var(--ci))", right: "calc(6*var(--ci))", top: "calc(17*var(--cb))", bottom: "calc(6*var(--cb))" }}>
         <div className="absolute right-0 top-0 w-[58%] h-[50%]">
           <Image
             src={productImage}
@@ -1305,26 +1214,17 @@ function VariantOrganicDeal({
           />
         </div>
 
-        <div className="absolute left-0 top-[3cqi] w-[67%] z-10">
+        <div className="absolute left-0 w-[67%] z-10" style={{ top: "calc(3*var(--cb))" }}>
           <p
-            className="text-[1.7cqi] uppercase tracking-[0.3em] opacity-45 mb-[2cqi]"
-            style={{
-              color: colors.secondary,
-            }}
+            className="uppercase tracking-[0.3em] opacity-45"
+            style={{ fontSize: "calc(1.7*var(--ci))", marginBottom: "calc(2*var(--cb))", color: colors.secondary }}
           >
             {parsed.kicker || "Naturally better"}
           </p>
 
           <h1
-            className="
-              font-semibold
-              uppercase
-              tracking-[-0.055em]
-              leading-[0.88]
-            "
-            style={{
-              fontSize: "8.7cqi",
-            }}
+            className="font-semibold uppercase tracking-[-0.055em] leading-[0.88]"
+            style={{ fontSize: "calc(8.7*var(--ci))" }}
           >
             <EditableHeadlineLines
               value={headline}
@@ -1349,9 +1249,10 @@ function VariantOrganicDeal({
         </div>
 
         <div className="absolute left-0 right-0 bottom-0">
-          <div className="w-full h-px mb-[4cqi]" style={{
-            backgroundColor: hexToRgba(colors.secondary, 0.1),
-          }} />
+          <div
+            className="w-full h-px"
+            style={{ marginBottom: "calc(4*var(--cb))", backgroundColor: hexToRgba(colors.secondary, 0.1) }}
+          />
 
           <EditableText
             as="p"
@@ -1361,16 +1262,12 @@ function VariantOrganicDeal({
             onChange={(v) => onUpdate?.("subtext", v)}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
-            className="
-              text-[2.15cqi]
-              leading-[1.45]
-              opacity-55
-              max-w-[72%]
-            "
+            className="leading-[1.45] opacity-55 max-w-[72%]"
+            style={{ fontSize: "calc(2.15*var(--ci))" }}
           />
 
           {parsed.features.length > 0 && (
-            <div className="mt-[3cqi]">
+            <div style={{ marginTop: "calc(3*var(--cb))" }}>
               <FeatureList
                 features={parsed.features}
                 colors={colors}
@@ -1410,7 +1307,7 @@ function VariantOrganicDeal({
             </div>
           )}
 
-          <div className="flex items-center justify-between mt-[4cqi]">
+          <div className="flex items-center justify-between" style={{ marginTop: "calc(4*var(--cb))" }}>
             {price ? (
               <EditableText
                 as="p"
@@ -1420,14 +1317,8 @@ function VariantOrganicDeal({
                 onChange={(v) => onUpdate?.("price", v)}
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
-                className="
-                  text-[5.5cqi]
-                  font-semibold
-                  tracking-[-0.03em]
-                "
-                style={{
-                  color: colors.accent,
-                }}
+                className="font-semibold tracking-[-0.03em]"
+                style={{ fontSize: "calc(5.5*var(--ci))", color: colors.accent }}
               />
             ) : (
               <div />
@@ -1443,7 +1334,7 @@ function VariantOrganicDeal({
             />
           </div>
 
-          <div className="mt-[2.5cqi]">
+          <div style={{ marginTop: "calc(2.5*var(--cb))" }}>
             <ContactBar
               phone={phone}
               website={website}
@@ -1472,4 +1363,3 @@ function VariantOrganicDeal({
     </div>
   );
 }
-
