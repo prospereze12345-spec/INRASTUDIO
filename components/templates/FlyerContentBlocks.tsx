@@ -2,16 +2,19 @@
 
 import React from "react";
 import {
-  Phone,
-  Mail,
-  Globe,
   CheckCircle2,
+  Globe,
+  Mail,
+  Phone,
   Plus,
   X,
 } from "lucide-react";
 
 import { EditableText } from "@/components/EditableText";
 
+// ============================================================================
+// Types
+// ============================================================================
 
 export type FlyerColors = {
   primary: string;
@@ -26,10 +29,11 @@ export type SharedBlockProps = {
   onBlurEl?: () => void;
 };
 
-type FeatureListProps = SharedBlockProps & {
+export type FeatureListProps = SharedBlockProps & {
   features?: string[];
   visible?: boolean;
   title?: string;
+
   onUpdateTitle?: (value: string) => void;
   onUpdateFeature?: (index: number, value: string) => void;
   onAddFeature?: () => void;
@@ -37,10 +41,11 @@ type FeatureListProps = SharedBlockProps & {
   onRestoreSection?: () => void;
 };
 
-type WhyChooseUsListProps = SharedBlockProps & {
+export type WhyChooseUsListProps = SharedBlockProps & {
   items?: string[];
   visible?: boolean;
   title?: string;
+
   onUpdateTitle?: (value: string) => void;
   onUpdate?: (index: number, value: string) => void;
   onAdd?: () => void;
@@ -48,18 +53,85 @@ type WhyChooseUsListProps = SharedBlockProps & {
   onRestoreSection?: () => void;
 };
 
-// ---------------------------------------------------------------------------
-// Small remove button (shared)
-// ---------------------------------------------------------------------------
+export type ContactBarProps = {
+  phone?: string;
+  website?: string;
+  email?: string;
+
+  accentColor: string;
+  textColor: string;
+
+  editable?: boolean;
+
+  phoneVisible?: boolean;
+  websiteVisible?: boolean;
+  emailVisible?: boolean;
+
+  onUpdatePhone?: (value: string) => void;
+  onUpdateWebsite?: (value: string) => void;
+  onUpdateEmail?: (value: string) => void;
+
+  onRemovePhone?: () => void;
+  onRemoveWebsite?: () => void;
+  onRemoveEmail?: () => void;
+
+  onRestorePhone?: () => void;
+  onRestoreWebsite?: () => void;
+  onRestoreEmail?: () => void;
+
+  onFocusEl?: (el: HTMLElement) => void;
+  onBlurEl?: () => void;
+};
+
+type ContactItemProps = {
+  id: string;
+  icon: React.ReactNode;
+  value: string;
+
+  accentColor: string;
+  textColor: string;
+
+  editable?: boolean;
+
+  onChange?: (value: string) => void;
+  onRemove?: () => void;
+
+  onFocusEl?: (el: HTMLElement) => void;
+  onBlurEl?: () => void;
+};
+
+type RemoveButtonProps = {
+  onClick?: () => void;
+  label?: string;
+};
+
+type RestoreButtonProps = {
+  label: string;
+  onClick?: () => void;
+};
+
+// ============================================================================
+// Shared helpers
+// ============================================================================
+
+function cleanStringArray(values: unknown): string[] {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+
+  return values.filter(
+    (value): value is string =>
+      typeof value === "string" && value.trim().length > 0
+  );
+}
 
 function RemoveButton({
   onClick,
   label = "Remove",
-}: {
-  onClick?: () => void;
-  label?: string;
-}) {
-  if (!onClick) return null;
+}: RemoveButtonProps) {
+  if (!onClick) {
+    return null;
+  }
 
   return (
     <button
@@ -68,56 +140,116 @@ function RemoveButton({
       aria-label={label}
       title={label}
       onClick={onClick}
-      className="ml-1 inline-flex h-5 w-5 shrink-0 items-center justify-center
-                 rounded-full bg-red-500/10 text-red-400 opacity-0 transition
-                 hover:bg-red-500/20 hover:text-red-300
-                 group-hover:opacity-100 focus:opacity-100"
+      className="
+        ml-1 inline-flex h-5 w-5 shrink-0
+        items-center justify-center
+        rounded-full
+        bg-red-500/10
+        text-red-400
+        opacity-0
+        transition
+        hover:bg-red-500/20
+        hover:text-red-300
+        group-hover:opacity-100
+        focus:opacity-100
+      "
     >
       <X size={12} />
     </button>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Restore placeholder - only ever used when the caller explicitly passes
-// onClick. FIX: the editor page no longer passes onRestore* handlers for
-// contact fields / sections, so these components simply won't render for
-// those cases any more - a toggled-off field disappears completely instead
-// of leaving a "+ Email" ghost chip behind on the canvas. Restoring lives
-// only in the Content tab now, which is the single obvious place for it.
-// ---------------------------------------------------------------------------
-
 function RestoreSectionButton({
   label,
   onClick,
-}: {
-  label: string;
-  onClick?: () => void;
-}) {
-  if (!onClick) return null;
+}: RestoreButtonProps) {
+  if (!onClick) {
+    return null;
+  }
 
   return (
     <button
       type="button"
       data-flyer-control="true"
       onClick={onClick}
-      className="flex w-full items-center justify-center gap-1.5 rounded-lg
-                 border border-dashed border-white/25 text-white/50 transition hover:border-white/50 hover:text-white/80"
+      className="
+        flex w-full items-center justify-center gap-1.5
+        rounded-lg
+        border border-dashed border-white/25
+        text-white/50
+        transition
+        hover:border-white/50
+        hover:text-white/80
+      "
       style={{
         paddingTop: "calc(1.2 * var(--cb))",
         paddingBottom: "calc(1.2 * var(--cb))",
         fontSize: "calc(1.8 * var(--ci))",
       }}
     >
-      <Plus style={{ width: "calc(1.6 * var(--ci))", height: "calc(1.6 * var(--ci))" }} />
+      <Plus
+        style={{
+          width: "calc(1.6 * var(--ci))",
+          height: "calc(1.6 * var(--ci))",
+        }}
+      />
+
       {label}
     </button>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Feature list
-// ---------------------------------------------------------------------------
+/**
+ * Used only for contact fields that have been hidden.
+ *
+ * Keeping this separate from RestoreSectionButton makes the distinction
+ * between restoring an entire section and restoring one contact field clear.
+ */
+function RestoreChip({
+  label,
+  onClick,
+}: RestoreButtonProps) {
+  if (!onClick) {
+    return null;
+  }
+
+  return (
+    <button
+      type="button"
+      data-flyer-control="true"
+      onClick={onClick}
+      aria-label={`Restore ${label}`}
+      title={`Restore ${label}`}
+      className="
+        inline-flex min-w-0 max-w-full
+        items-center gap-1
+        rounded-md
+        border border-dashed border-white/20
+        px-2 py-1
+        text-white/50
+        transition
+        hover:border-white/40
+        hover:text-white/80
+      "
+      style={{
+        fontSize: "calc(1.3 * var(--ci))",
+      }}
+    >
+      <Plus
+        style={{
+          width: "calc(1.4 * var(--ci))",
+          height: "calc(1.4 * var(--ci))",
+        }}
+      />
+
+      <span className="truncate">{label}</span>
+    </button>
+  );
+}
+
+// ============================================================================
+// Feature List
+// ============================================================================
 
 export function FeatureList({
   features = [],
@@ -133,18 +265,14 @@ export function FeatureList({
   onFocusEl,
   onBlurEl,
 }: FeatureListProps) {
-  const cleanFeatures = features.filter(
-    (f) => typeof f === "string" && f.trim().length > 0
-  );
+  const cleanFeatures = cleanStringArray(features);
 
+  // Hidden and not editable => completely remove from canvas.
   if (!visible) {
-    // FIX: previously this fell through to <RestoreSectionButton editable ...>
-    // any time editable was true, regardless of whether the caller wanted a
-    // restore affordance on canvas. Now RestoreSectionButton itself no-ops
-    // when onRestoreSection is undefined (see above), and the editor no
-    // longer passes that handler - so a hidden section is just gone, and the
-    // Content tab toggle is the only way to bring it back.
-    if (!editable) return null;
+    if (!editable) {
+      return null;
+    }
+
     return (
       <RestoreSectionButton
         label="Add features section"
@@ -153,40 +281,41 @@ export function FeatureList({
     );
   }
 
-  // NOTE: FeatureList/WhyChooseUsList/ContactBar previously sized everything
-  // with container-query units (cqi/cqb), which require `container-type` on
-  // an ancestor AND container-query support in the browser (iOS 16+ only).
-  // They now use `calc(N * var(--ci))` / `calc(N * var(--cb))` instead - the
-  // canvas wrapper in the editor sets --ci / --cb as plain CSS custom
-  // properties (1% of the canvas width/height), which every browser back to
-  // iOS 9 supports. If you ever render these blocks somewhere else (SSR PNG
-  // export, video composition, a public "view flyer" page), make sure THAT
-  // root element also sets --ci and --cb, or these sections render at 0 size.
-  if (!cleanFeatures.length && !editable) return null;
+  // Nothing to render in view-only mode.
+  if (cleanFeatures.length === 0 && !editable) {
+    return null;
+  }
 
   return (
     <section
       data-flyer-block="features"
-      className="flex flex-col mt-[calc(3*var(--cb))] max-w-[85%]"
-      style={{ gap: "calc(1.5 * var(--cb))" }}
+      className="mt-[calc(3*var(--cb))] flex max-w-[85%] flex-col"
+      style={{
+        gap: "calc(1.5 * var(--cb))",
+      }}
     >
       <EditableText
         as="h3"
         fieldId="f-features-title"
         editable={editable}
         value={title}
-        onChange={(v) => onUpdateTitle?.(v)}
+        onChange={onUpdateTitle}
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
         className="font-black tracking-widest"
-        style={{ color: colors.accent, fontSize: "calc(2.5 * var(--ci))" }}
+        style={{
+          color: colors.accent,
+          fontSize: "calc(2.5 * var(--ci))",
+        }}
       />
 
       {cleanFeatures.map((feature, index) => (
         <div
           key={`feature-${index}`}
           className="group flex items-center"
-          style={{ gap: "calc(1 * var(--ci))" }}
+          style={{
+            gap: "calc(1 * var(--ci))",
+          }}
         >
           <span
             className="flex shrink-0 items-center justify-center rounded-full"
@@ -210,11 +339,15 @@ export function FeatureList({
             fieldId={`f-feature-${index}`}
             editable={editable}
             value={feature}
-            onChange={(v) => onUpdateFeature?.(index, v)}
+            onChange={(value) =>
+              onUpdateFeature?.(index, value)
+            }
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             className="min-w-0 flex-1"
-            style={{ fontSize: "calc(2 * var(--ci))" }}
+            style={{
+              fontSize: "calc(2 * var(--ci))",
+            }}
           />
 
           {editable && (
@@ -231,11 +364,24 @@ export function FeatureList({
           type="button"
           data-flyer-control="true"
           onClick={onAddFeature}
-          className="inline-flex w-fit items-center gap-1 rounded-md px-1 py-0.5
-                     transition hover:bg-black/5"
-          style={{ color: colors.accent, fontSize: "calc(1.8 * var(--ci))" }}
+          className="
+            inline-flex w-fit items-center gap-1
+            rounded-md px-1 py-0.5
+            transition
+            hover:bg-black/5
+          "
+          style={{
+            color: colors.accent,
+            fontSize: "calc(1.8 * var(--ci))",
+          }}
         >
-          <Plus style={{ width: "calc(1.8 * var(--ci))", height: "calc(1.8 * var(--ci))" }} />
+          <Plus
+            style={{
+              width: "calc(1.8 * var(--ci))",
+              height: "calc(1.8 * var(--ci))",
+            }}
+          />
+
           Add feature
         </button>
       )}
@@ -243,9 +389,9 @@ export function FeatureList({
   );
 }
 
-// ---------------------------------------------------------------------------
+// ============================================================================
 // Why Choose Us
-// ---------------------------------------------------------------------------
+// ============================================================================
 
 export function WhyChooseUsList({
   items = [],
@@ -261,12 +407,13 @@ export function WhyChooseUsList({
   onFocusEl,
   onBlurEl,
 }: WhyChooseUsListProps) {
-  const cleanItems = items.filter(
-    (i) => typeof i === "string" && i.trim().length > 0
-  );
+  const cleanItems = cleanStringArray(items);
 
   if (!visible) {
-    if (!editable) return null;
+    if (!editable) {
+      return null;
+    }
+
     return (
       <RestoreSectionButton
         label="Add why-choose-us section"
@@ -275,31 +422,40 @@ export function WhyChooseUsList({
     );
   }
 
-  if (!cleanItems.length && !editable) return null;
+  if (cleanItems.length === 0 && !editable) {
+    return null;
+  }
 
   return (
     <section
       data-flyer-block="why-choose-us"
-      className="flex flex-col mt-[calc(3.5*var(--cb))] max-w-[85%]"
-      style={{ gap: "calc(1.5 * var(--cb))" }}
+      className="mt-[calc(3.5*var(--cb))] flex max-w-[85%] flex-col"
+      style={{
+        gap: "calc(1.5 * var(--cb))",
+      }}
     >
       <EditableText
         as="h3"
         fieldId="f-why-title"
         editable={editable}
         value={title}
-        onChange={(v) => onUpdateTitle?.(v)}
+        onChange={onUpdateTitle}
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
         className="font-black tracking-widest"
-        style={{ color: colors.accent, fontSize: "calc(2.5 * var(--ci))" }}
+        style={{
+          color: colors.accent,
+          fontSize: "calc(2.5 * var(--ci))",
+        }}
       />
 
       {cleanItems.map((item, index) => (
         <div
           key={`why-${index}`}
           className="group flex items-center"
-          style={{ gap: "calc(1 * var(--ci))" }}
+          style={{
+            gap: "calc(1 * var(--ci))",
+          }}
         >
           <span
             className="flex shrink-0 items-center justify-center rounded-full"
@@ -323,11 +479,13 @@ export function WhyChooseUsList({
             fieldId={`f-why-${index}`}
             editable={editable}
             value={item}
-            onChange={(v) => onUpdate?.(index, v)}
+            onChange={(value) => onUpdate?.(index, value)}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             className="min-w-0 flex-1"
-            style={{ fontSize: "calc(2 * var(--ci))" }}
+            style={{
+              fontSize: "calc(2 * var(--ci))",
+            }}
           />
 
           {editable && (
@@ -344,11 +502,24 @@ export function WhyChooseUsList({
           type="button"
           data-flyer-control="true"
           onClick={onAdd}
-          className="inline-flex w-fit items-center gap-1 rounded-md px-1 py-0.5
-                     transition hover:bg-black/5"
-          style={{ color: colors.accent, fontSize: "calc(1.8 * var(--ci))" }}
+          className="
+            inline-flex w-fit items-center gap-1
+            rounded-md px-1 py-0.5
+            transition
+            hover:bg-black/5
+          "
+          style={{
+            color: colors.accent,
+            fontSize: "calc(1.8 * var(--ci))",
+          }}
         >
-          <Plus style={{ width: "calc(1.8 * var(--ci))", height: "calc(1.8 * var(--ci))" }} />
+          <Plus
+            style={{
+              width: "calc(1.8 * var(--ci))",
+              height: "calc(1.8 * var(--ci))",
+            }}
+          />
+
           Add reason
         </button>
       )}
@@ -356,34 +527,44 @@ export function WhyChooseUsList({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Contact item
-// ---------------------------------------------------------------------------
-
-type ContactItemProps = {
-  icon: React.ReactNode;
-  value: string;
-  editable?: boolean;
-  onChange?: (value: string) => void;
-  onFocusEl?: (el: HTMLElement) => void;
-  onBlurEl?: () => void;
-  id: string;
-  accentColor: string;
-  textColor: string;
-  onRemove?: () => void;
-};
+// ============================================================================
+// Contact Item
+// ============================================================================
 
 function ContactItem({
-  icon, value, editable = false, onChange, onFocusEl, onBlurEl,
-  id, accentColor, textColor, onRemove,
+  id,
+  icon,
+  value,
+  accentColor,
+  textColor,
+  editable = false,
+  onChange,
+  onRemove,
+  onFocusEl,
+  onBlurEl,
 }: ContactItemProps) {
-  if (!editable && !value.trim()) return null;
+  const hasValue = value.trim().length > 0;
+
+  if (!editable && !hasValue) {
+    return null;
+  }
 
   return (
-    <div className="group flex min-w-0 items-center gap-1.5">
+    <div
+      className="
+        group flex min-w-0 items-center
+      "
+      style={{
+        gap: "calc(0.8 * var(--ci))",
+      }}
+    >
       <span
         className="flex shrink-0 items-center justify-center rounded-full"
-        style={{ width: 20, height: 20, backgroundColor: accentColor }}
+        style={{
+          width: "calc(2 * var(--ci))",
+          height: "calc(2 * var(--ci))",
+          backgroundColor: accentColor,
+        }}
       >
         {icon}
       </span>
@@ -394,171 +575,215 @@ function ContactItem({
           fieldId={id}
           editable
           value={value}
-          onChange={(v) => onChange?.(v)}
+          onChange={onChange}
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
-          className="min-w-[30px] max-w-[28cqi] truncate text-[10px]"
-          style={{ color: textColor }}
+          className="min-w-0 flex-1 truncate"
+          style={{
+            color: textColor,
+            fontSize: "calc(1.5 * var(--ci))",
+          }}
         />
       ) : (
-        <span className="max-w-[28cqi] truncate text-[10px]" style={{ color: textColor }}>
+        <span
+          className="min-w-0 flex-1 truncate"
+          style={{
+            color: textColor,
+            fontSize: "calc(1.5 * var(--ci))",
+          }}
+        >
           {value}
         </span>
       )}
 
-      {editable && onRemove && value.trim() && (
-        <RemoveButton label="Remove contact field" onClick={onRemove} />
+      {editable && onRemove && hasValue && (
+        <RemoveButton
+          label="Remove contact field"
+          onClick={onRemove}
+        />
       )}
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Contact bar
-// ---------------------------------------------------------------------------
-
-export type ContactBarProps = {
-  phone?: string;
-  website?: string;
-  email?: string;
-  accentColor: string;
-  textColor: string;
-  editable?: boolean;
-
-  phoneVisible?: boolean;
-  websiteVisible?: boolean;
-  emailVisible?: boolean;
-
-  onUpdatePhone?: (value: string) => void;
-  onUpdateWebsite?: (value: string) => void;
-  onUpdateEmail?: (value: string) => void;
-
-  onRemovePhone?: () => void;
-  onRemoveWebsite?: () => void;
-  onRemoveEmail?: () => void;
-
-  onRestorePhone?: () => void;
-  onRestoreWebsite?: () => void;
-  onRestoreEmail?: () => void;
-
-  onFocusEl?: (el: HTMLElement) => void;
-  onBlurEl?: () => void;
-};
-
-function RestoreChip({ label, onClick }: { label: string; onClick?: () => void }) {
-  if (!onClick) return null;
-  return (
-    <button
-      type="button"
-      data-flyer-control="true"
-      onClick={onClick}
-      className="inline-flex items-center gap-1 rounded-full border border-dashed
-                 border-white/30 px-2 py-1 text-[10px] text-white/50 hover:text-white/80"
-    >
-      <Plus size={10} /> {label}
-    </button>
-  );
-}
+// ============================================================================
+// Contact Bar
+// ============================================================================
 
 export function ContactBar({
-  phone = "", website = "", email = "",
-  accentColor, textColor, editable = false,
-  phoneVisible = true, websiteVisible = true, emailVisible = true,
-  onUpdatePhone, onUpdateWebsite, onUpdateEmail,
-  onRemovePhone, onRemoveWebsite, onRemoveEmail,
-  onRestorePhone, onRestoreWebsite, onRestoreEmail,
-  onFocusEl, onBlurEl,
+  phone = "",
+  website = "",
+  email = "",
+
+  accentColor,
+  textColor,
+
+  editable = false,
+
+  phoneVisible = true,
+  websiteVisible = true,
+  emailVisible = true,
+
+  onUpdatePhone,
+  onUpdateWebsite,
+  onUpdateEmail,
+
+  onRemovePhone,
+  onRemoveWebsite,
+  onRemoveEmail,
+
+  onRestorePhone,
+  onRestoreWebsite,
+  onRestoreEmail,
+
+  onFocusEl,
+  onBlurEl,
 }: ContactBarProps) {
-  const visibleItems = [
-    phoneVisible && phone.trim(),
-    websiteVisible && website.trim(),
-    emailVisible && email.trim(),
-  ].filter(Boolean);
+  const hasVisibleContact = Boolean(
+    (phoneVisible && phone.trim()) ||
+      (websiteVisible && website.trim()) ||
+      (emailVisible && email.trim())
+  );
 
-  if (!editable && visibleItems.length === 0) return null;
+  if (!editable && !hasVisibleContact) {
+    return null;
+  }
 
-  const iconStyle = { color: "#ffffff" };
+  const iconStyle = {
+    color: "#ffffff",
+  };
 
   return (
-    <section data-flyer-block="contact" className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-      {phoneVisible ? (
-        <ContactItem
-          id="contact-phone"
-          icon={<Phone size={11} style={iconStyle} />}
-          value={phone}
-          editable={editable}
-          onChange={onUpdatePhone}
-          onRemove={onRemovePhone}
-          onFocusEl={onFocusEl}
-          onBlurEl={onBlurEl}
-          accentColor={accentColor}
-          textColor={textColor}
-        />
-      ) : (
-        // FIX: was `editable ? <RestoreChip .../> : null`, which put a
-        // "+ Phone" chip on the live canvas any time the field was hidden
-        // while editing. RestoreChip already no-ops without onClick, and the
-        // editor no longer passes onRestorePhone, so this now renders
-        // nothing - toggling a field off in the Content tab makes it vanish
-        // from the canvas completely, and toggling it back on is the only
-        // way to bring it back.
-        <RestoreChip label="Phone" onClick={onRestorePhone} />
-      )}
+    <section
+      data-flyer-block="contact"
+      className="flex w-full flex-nowrap items-center"
+      style={{
+        gap: "calc(2 * var(--ci))",
+      }}
+    >
+      {/* Phone */}
+      <div className="min-w-0 flex-1">
+        {phoneVisible ? (
+          <ContactItem
+            id="contact-phone"
+            icon={<Phone size={11} style={iconStyle} />}
+            value={phone}
+            editable={editable}
+            onChange={onUpdatePhone}
+            onRemove={onRemovePhone}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            accentColor={accentColor}
+            textColor={textColor}
+          />
+        ) : (
+          <RestoreChip
+            label="Phone"
+            onClick={onRestorePhone}
+          />
+        )}
+      </div>
 
-      {websiteVisible ? (
-        <ContactItem
-          id="contact-website"
-          icon={<Globe size={11} style={iconStyle} />}
-          value={website}
-          editable={editable}
-          onChange={onUpdateWebsite}
-          onRemove={onRemoveWebsite}
-          onFocusEl={onFocusEl}
-          onBlurEl={onBlurEl}
-          accentColor={accentColor}
-          textColor={textColor}
-        />
-      ) : (
-        <RestoreChip label="Website" onClick={onRestoreWebsite} />
-      )}
+      {/* Website */}
+      <div className="min-w-0 flex-1">
+        {websiteVisible ? (
+          <ContactItem
+            id="contact-website"
+            icon={<Globe size={11} style={iconStyle} />}
+            value={website}
+            editable={editable}
+            onChange={onUpdateWebsite}
+            onRemove={onRemoveWebsite}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            accentColor={accentColor}
+            textColor={textColor}
+          />
+        ) : (
+          <RestoreChip
+            label="Website"
+            onClick={onRestoreWebsite}
+          />
+        )}
+      </div>
 
-      {emailVisible ? (
-        <ContactItem
-          id="contact-email"
-          icon={<Mail size={11} style={iconStyle} />}
-          value={email}
-          editable={editable}
-          onChange={onUpdateEmail}
-          onRemove={onRemoveEmail}
-          onFocusEl={onFocusEl}
-          onBlurEl={onBlurEl}
-          accentColor={accentColor}
-          textColor={textColor}
-        />
-      ) : (
-        <RestoreChip label="Email" onClick={onRestoreEmail} />
-      )}
+      {/* Email */}
+      <div className="min-w-0 flex-1">
+        {emailVisible ? (
+          <ContactItem
+            id="contact-email"
+            icon={<Mail size={11} style={iconStyle} />}
+            value={email}
+            editable={editable}
+            onChange={onUpdateEmail}
+            onRemove={onRemoveEmail}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            accentColor={accentColor}
+            textColor={textColor}
+          />
+        ) : (
+          <RestoreChip
+            label="Email"
+            onClick={onRestoreEmail}
+          />
+        )}
+      </div>
     </section>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Flyer content parser (unchanged logic - was never broken)
-// ---------------------------------------------------------------------------
+// ============================================================================
+// Flyer Content Parser
+// ============================================================================
 
 export interface ParsedFlyerContent {
   features: string[];
+
   kicker?: string;
+
   phone?: string;
   email?: string;
   website?: string;
-  updateFeature: (index: number, value: string) => string;
+
+  updateFeature: (
+    index: number,
+    value: string
+  ) => string;
+
   addFeature: () => string;
-  removeFeature: (index: number) => string;
+
+  removeFeature: (
+    index: number
+  ) => string;
 }
 
+// ---------------------------------------------------------------------------
+// Parser constants
+// ---------------------------------------------------------------------------
+
+const MAX_FEATURES = 6;
+
+const BULLET_PREFIX = /^[-•●✓✔▪◦]\s*/;
+
+const PHONE_PATTERN =
+  /(?:\+?\d[\d\s().-]{7,}\d)/i;
+
+const EMAIL_PATTERN =
+  /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
+
+const WEBSITE_PATTERN =
+  /(?:https?:\/\/|www\.)[^\s]+/i;
+
+// ---------------------------------------------------------------------------
+// Parser helpers
+// ---------------------------------------------------------------------------
+
 function normalizeLine(value: string): string {
-  return value.replace(/^[-•●✓✔▪◦]\s*/, "").replace(/\s+/g, " ").trim();
+  return value
+    .replace(BULLET_PREFIX, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function isHeading(value: string): boolean {
@@ -573,49 +798,111 @@ function isHeading(value: string): boolean {
 }
 
 function isContactLine(value: string): boolean {
-  const phone = /(?:\+?\d[\d\s().-]{7,}\d)/i;
-  const email = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
-  const website = /(?:https?:\/\/|www\.)[^\s]+/i;
-  return phone.test(value) || email.test(value) || website.test(value);
+  return (
+    PHONE_PATTERN.test(value) ||
+    EMAIL_PATTERN.test(value) ||
+    WEBSITE_PATTERN.test(value)
+  );
 }
 
-export function parseFlyerContent(badgeText?: string, extraText?: string): ParsedFlyerContent {
-  const badge = (badgeText ?? "").trim();
-  const extra = (extraText ?? "").trim();
+// ============================================================================
+// Public parser
+// ============================================================================
+
+export function parseFlyerContent(
+  badgeText?: string,
+  extraText?: string
+): ParsedFlyerContent {
+  const badge = badgeText?.trim() ?? "";
+  const extra = extraText?.trim() ?? "";
+
   const source = `${badge}\n${extra}`;
 
-  const rawLines = source.split(/\r?\n/).map(normalizeLine).filter(Boolean);
+  const rawLines = source
+    .split(/\r?\n/)
+    .map(normalizeLine)
+    .filter(Boolean);
+
   const features: string[] = [];
 
   for (const line of rawLines) {
-    if (isHeading(line) || isContactLine(line)) continue;
-    if (!features.some((f) => f.toLowerCase() === line.toLowerCase())) {
+    if (isHeading(line) || isContactLine(line)) {
+      continue;
+    }
+
+    const alreadyExists = features.some(
+      (feature) =>
+        feature.toLowerCase() === line.toLowerCase()
+    );
+
+    if (!alreadyExists) {
       features.push(line);
     }
   }
 
-  const cleanFeatures = features.slice(0, 6);
-  const phoneMatch = source.match(/(?:\+?\d[\d\s().-]{7,}\d)/i);
-  const emailMatch = source.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
-  const websiteMatch = source.match(/(?:https?:\/\/|www\.)[^\s]+/i);
+  const cleanFeatures = features.slice(
+    0,
+    MAX_FEATURES
+  );
 
-  const updateFeature = (index: number, value: string): string => {
+  const phone = source.match(PHONE_PATTERN)?.[0]?.trim();
+  const email = source.match(EMAIL_PATTERN)?.[0]?.trim();
+  const website = source
+    .match(WEBSITE_PATTERN)?.[0]
+    ?.trim();
+
+  const updateFeature = (
+    index: number,
+    value: string
+  ): string => {
+    if (
+      index < 0 ||
+      index >= cleanFeatures.length
+    ) {
+      return cleanFeatures.join("\n");
+    }
+
     const updated = [...cleanFeatures];
-    if (index >= 0 && index < updated.length) updated[index] = value.trim();
-    return updated.filter(Boolean).join("\n");
+
+    updated[index] = value.trim();
+
+    return updated
+      .filter(Boolean)
+      .join("\n");
   };
 
-  const addFeature = (): string => [...cleanFeatures, "New feature"].join("\n");
+  const addFeature = (): string => {
+    if (cleanFeatures.length >= MAX_FEATURES) {
+      return cleanFeatures.join("\n");
+    }
 
-  const removeFeature = (index: number): string =>
-    cleanFeatures.filter((_, i) => i !== index).join("\n");
+    return [
+      ...cleanFeatures,
+      "New feature",
+    ].join("\n");
+  };
+
+  const removeFeature = (
+    index: number
+  ): string => {
+    if (
+      index < 0 ||
+      index >= cleanFeatures.length
+    ) {
+      return cleanFeatures.join("\n");
+    }
+
+    return cleanFeatures
+      .filter((_, itemIndex) => itemIndex !== index)
+      .join("\n");
+  };
 
   return {
     features: cleanFeatures,
     kicker: undefined,
-    phone: phoneMatch?.[0]?.trim(),
-    email: emailMatch?.[0]?.trim(),
-    website: websiteMatch?.[0]?.trim(),
+    phone,
+    email,
+    website,
     updateFeature,
     addFeature,
     removeFeature,
