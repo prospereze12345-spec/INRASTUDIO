@@ -2,18 +2,19 @@
 
 import React from "react";
 import Image from "next/image";
-import { ArrowUpRight, Check, Sparkles } from "lucide-react";
+import {
+  ArrowUpRight,
+  Check,
+  Phone,
+  Mail,
+  Globe,
+  Tag,
+  Sparkles,
+} from "lucide-react";
 
 import { EditableText } from "@/components/EditableText";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
-import {
-  ContactBar,
-  WhyChooseUsList,
-} from "./FlyerContentBlocks";
-
-// ============================================================================
-// Types
-// ============================================================================
+import { WhyChooseUsList, ContactBar } from "./FlyerContentBlocks";
 
 export interface SalePromotionProps {
   name?: string;
@@ -47,18 +48,15 @@ export interface SalePromotionProps {
 
   featuresVisible?: boolean;
   whyChooseUsVisible?: boolean;
-
   phoneVisible?: boolean;
   emailVisible?: boolean;
   websiteVisible?: boolean;
 
   onRestoreFeatures?: () => void;
   onRestoreWhyChooseUs?: () => void;
-
   onRemovePhone?: () => void;
   onRemoveEmail?: () => void;
   onRemoveWebsite?: () => void;
-
   onRestorePhone?: () => void;
   onRestoreEmail?: () => void;
   onRestoreWebsite?: () => void;
@@ -77,51 +75,14 @@ export interface SalePromotionProps {
   onBlurEl?: () => void;
 }
 
-// ============================================================================
-// Helpers
-// ============================================================================
-
-function safeArray(values?: string[]) {
-  return (values ?? [])
-    .filter(
-      (value): value is string =>
-        typeof value === "string" && value.trim().length > 0
-    )
-    .slice(0, 4);
-}
-
-function rgba(hex: string, alpha: number) {
-  if (!hex) {
-    return `rgba(0,0,0,${alpha})`;
-  }
-
-  const value = hex.replace("#", "");
-
-  if (value.length !== 6) {
-    return hex;
-  }
-
-  const r = parseInt(value.slice(0, 2), 16);
-  const g = parseInt(value.slice(2, 4), 16);
-  const b = parseInt(value.slice(4, 6), 16);
-
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-// ============================================================================
-// Template entry
-// ============================================================================
-
 export function SalePromotionTemplate(props: SalePromotionProps) {
-  const {
-    headline,
-    productImage,
-    colors,
-  } = props;
-
-  if (!headline || !productImage || !colors) {
+  if (
+    !props.headline ||
+    !props.productImage ||
+    !props.colors
+  ) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-sm text-neutral-400">
+      <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
         Loading template...
       </div>
     );
@@ -130,52 +91,49 @@ export function SalePromotionTemplate(props: SalePromotionProps) {
   return <ModernSalesPromotion {...props} />;
 }
 
-// ============================================================================
-// Main template
-// ============================================================================
-
 function ModernSalesPromotion({
   headline,
   subtext,
   ctaText,
-
+  badgeText,
+  extraText,
   productImage,
-
   brandName,
   website,
   phone,
   email,
-
+  price,
+  oldPrice,
   features,
-
+  onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
   whyChooseUs,
   onUpdateWhyChooseUs,
   onAddWhyChooseUs,
   onRemoveWhyChooseUs,
-
+  featuresVisible,
   whyChooseUsVisible,
-
   phoneVisible,
   emailVisible,
   websiteVisible,
-
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
   onRemovePhone,
   onRemoveEmail,
   onRemoveWebsite,
-
   onRestorePhone,
   onRestoreEmail,
   onRestoreWebsite,
-
   colors,
-
   editable,
-
   onUpdate,
   onFocusEl,
   onBlurEl,
 }: SalePromotionProps) {
-  const safeFeatures = safeArray(features);
+  const safeFeatures = (features ?? [])
+    .filter(Boolean)
+    .slice(0, 4);
 
   const update = (field: string, value: string) => {
     onUpdate?.(field, value);
@@ -183,12 +141,11 @@ function ModernSalesPromotion({
 
   return (
     <div
-      data-flyer-template="sale-promotion"
       className="
+        @container
         relative
-        isolate
-        h-full
         w-full
+        h-full
         overflow-hidden
         font-sans
         antialiased
@@ -198,100 +155,69 @@ function ModernSalesPromotion({
         color: colors.secondary,
       }}
     >
-      {/* ================================================================== */}
-      {/* BACKGROUND                                                         */}
-      {/* ================================================================== */}
-
       <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
+        className="absolute inset-0 pointer-events-none"
         style={{
           background: `
             linear-gradient(
               135deg,
               ${colors.primary} 0%,
-              ${colors.primary} 72%,
-              ${rgba(colors.accent, 0.08)} 100%
+              ${colors.primary} 58%,
+              ${colors.accent}08 100%
             )
           `,
         }}
       />
 
       <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.025]"
+        className="absolute inset-0 pointer-events-none opacity-[0.035]"
         style={{
           backgroundImage: `
             linear-gradient(${colors.secondary} 1px, transparent 1px),
             linear-gradient(90deg, ${colors.secondary} 1px, transparent 1px)
           `,
-          backgroundSize:
-            "calc(8 * var(--ci)) calc(8 * var(--ci))",
+          backgroundSize: "calc(8*var(--ci)) calc(8*var(--ci))",
         }}
       />
 
-      {/* Right decorative rail */}
       <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-          absolute
-          right-[calc(3*var(--ci))]
-          top-[calc(3*var(--ci))]
-          bottom-[calc(3*var(--ci))]
-          w-px
-        "
+        className="absolute right-[calc(7*var(--ci))] top-0 bottom-0 w-[calc(0.15*var(--ci))] pointer-events-none"
         style={{
           backgroundColor: colors.accent,
-          opacity: 0.14,
+          opacity: 0.25,
         }}
       />
-
-      {/* ================================================================== */}
-      {/* HEADER                                                             */}
-      {/* ================================================================== */}
 
       <header
         className="
-          absolute
-          left-[calc(5*var(--ci))]
-          right-[calc(5*var(--ci))]
-          top-[calc(3*var(--ci))]
-          z-40
+          relative
+          z-20
           flex
           items-center
           justify-between
+          px-[calc(5*var(--ci))]
+          pt-[calc(4*var(--ci))]
+          pb-[calc(2*var(--ci))]
         "
       >
-        {/* Brand */}
-        <div
-          className="
-            flex
-            min-w-0
-            items-center
-            gap-[calc(1.6*var(--ci))]
-          "
-        >
+        <div className="flex items-center gap-[calc(2*var(--ci))]">
           <div
             className="
               flex
-              shrink-0
               items-center
               justify-center
-              rounded-full
+              w-[calc(6*var(--ci))]
+              h-[calc(6*var(--ci))]
+              rounded-[calc(1.5*var(--ci))]
+              shrink-0
             "
             style={{
-              width: "calc(5 * var(--ci))",
-              height: "calc(5 * var(--ci))",
               backgroundColor: colors.accent,
               color: colors.primary,
             }}
           >
             <Sparkles
-              style={{
-                width: "calc(2.6 * var(--ci))",
-                height: "calc(2.6 * var(--ci))",
-              }}
+              size={18}
               strokeWidth={2.5}
             />
           </div>
@@ -301,260 +227,281 @@ function ModernSalesPromotion({
             fieldId="sale-brand"
             editable={editable}
             value={brandName ?? ""}
-            onChange={(value) =>
-              update("brandName", value)
-            }
+            onChange={(v) => update("brandName", v)}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             className="
-              min-w-0
-              truncate
-              font-black
-              uppercase
-              tracking-[0.02em]
+              text-[calc(2.4*var(--ci))]
+              font-bold
+              tracking-[-0.03em]
             "
-            style={{
-              fontSize: "calc(2.3 * var(--ci))",
-            }}
           />
         </div>
 
-        {/* Website */}
-        {website && (
-          <EditableText
-            as="p"
-            fieldId="sale-website"
-            editable={editable}
-            value={website}
-            onChange={(value) =>
-              update("website", value)
-            }
-            onFocusEl={onFocusEl}
-            onBlurEl={onBlurEl}
-            className="
-              min-w-0
-              max-w-[30%]
-              truncate
-              uppercase
-              tracking-[0.08em]
-              opacity-50
-            "
-            style={{
-              fontSize: "calc(1.65 * var(--ci))",
-            }}
-          />
-        )}
+        <EditableText
+          as="p"
+          fieldId="sale-website"
+          editable={editable}
+          value={website ?? ""}
+          onChange={(v) => update("website", v)}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          className="
+            text-[calc(1.8*var(--ci))]
+            tracking-[0.08em]
+            uppercase
+            opacity-45
+          "
+        />
       </header>
 
-      {/* ================================================================== */}
-      {/* MAIN CONTENT                                                       */}
-      {/* ================================================================== */}
+      <main className="relative z-10 h-[calc(100%-calc(11*var(--ci)))] px-[calc(5*var(--ci))] pb-[calc(4*var(--ci))]">
+        <div className="relative h-full">
 
-      <main
-        className="
-          absolute
-          inset-x-0
-          top-[calc(9*var(--ci))]
-          bottom-[calc(9*var(--ci))]
-        "
-      >
-        {/* ================================================================= */}
-        {/* LEFT CONTENT                                                      */}
-        {/* ================================================================= */}
-
-        <section
-          className="
-            absolute
-            left-[calc(5*var(--ci))]
-            top-[calc(1.5*var(--ci))]
-            z-30
-            w-[53%]
-          "
-        >
-          {/* --------------------------------------------------------------- */}
-          {/* HEADLINE                                                        */}
-          {/* --------------------------------------------------------------- */}
-
-          <h1
+          <div
             className="
-              m-0
-              max-w-full
-              font-black
-              uppercase
-              tracking-[-0.055em]
-              leading-[0.84]
+              absolute
+              right-0
+              top-[calc(4*var(--ci))]
+              bottom-[calc(9*var(--ci))]
+              w-[58%]
+              overflow-hidden
+              rounded-[calc(4*var(--ci))]
             "
             style={{
-              fontSize:
-                "clamp(30px, calc(8.7 * var(--ci)), 108px)",
+              backgroundColor: `${colors.secondary}08`,
             }}
           >
-            <EditableHeadlineLines
-              value={headline}
-              editable={editable}
-              onChange={(value) =>
-                update("headline", value)
-              }
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-              renderLine={(line, index, node) => (
-                <span
-                  className="block"
-                  key={`${line}-${index}`}
-                  style={
-                    index === 1
-                      ? {
-                          color: colors.secondary,
-                        }
-                      : undefined
-                  }
-                >
-                  {node}
-                </span>
-              )}
+            <Image
+              src={productImage}
+              alt="Product"
+              fill
+              priority
+              crossOrigin="anonymous"
+              className="
+                object-cover
+                object-center
+              "
             />
-          </h1>
 
-          {/* --------------------------------------------------------------- */}
-          {/* SUBTEXT                                                         */}
-          {/* --------------------------------------------------------------- */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: `
+                  linear-gradient(
+                    90deg,
+                    ${colors.primary} 0%,
+                    ${colors.primary}22 28%,
+                    transparent 58%
+                  )
+                `,
+              }}
+            />
 
-          {subtext && (
+            <div
+              className="absolute inset-x-0 bottom-0 h-[28%]"
+              style={{
+                background: `
+                  linear-gradient(
+                    to top,
+                    ${colors.primary}55,
+                    transparent
+                  )
+                `,
+              }}
+            />
+
+            {badgeText && (
+              <div
+                className="
+                  absolute
+                  top-[calc(4*var(--ci))]
+                  right-[calc(4*var(--ci))]
+                  px-[calc(3*var(--ci))]
+                  py-[calc(1.7*var(--ci))]
+                  rounded-full
+                  flex
+                  items-center
+                  gap-[calc(1.2*var(--ci))]
+                  shadow-xl
+                "
+                style={{
+                  backgroundColor: colors.accent,
+                  color: colors.primary,
+                }}
+              >
+                <Tag
+                  size={13}
+                  strokeWidth={2.5}
+                />
+
+                <EditableText
+                  as="span"
+                  fieldId="sale-badge"
+                  editable={editable}
+                  value={badgeText}
+                  onChange={(v) => update("badgeText", v)}
+                  onFocusEl={onFocusEl}
+                  onBlurEl={onBlurEl}
+                  className="
+                    text-[calc(2*var(--ci))]
+                    font-black
+                    uppercase
+                    tracking-[0.08em]
+                  "
+                />
+              </div>
+            )}
+          </div>
+
+          <section
+            className="
+              absolute
+              left-0
+              top-[calc(3*var(--ci))]
+              z-20
+              w-[57%]
+              flex
+              flex-col
+            "
+          >
+
+            <div
+              className="
+                flex
+                items-center
+                gap-[calc(1.8*var(--ci))]
+                mb-[calc(3*var(--ci))]
+              "
+            >
+              <div
+                className="w-[calc(5*var(--ci))] h-[calc(0.3*var(--ci))]"
+                style={{
+                  backgroundColor: colors.accent,
+                }}
+              />
+
+              <span
+                className="
+                  text-[calc(1.8*var(--ci))]
+                  uppercase
+                  tracking-[0.22em]
+                  font-bold
+                  opacity-50
+                "
+              >
+                Limited offer
+              </span>
+            </div>
+
+            <h1
+              className="
+                font-black
+                uppercase
+                tracking-[-0.055em]
+                leading-[0.84]
+                text-[calc(10.5*var(--ci))]
+                max-w-[calc(55*var(--ci))]
+              "
+            >
+              <EditableHeadlineLines
+                value={headline}
+                editable={editable}
+                onChange={(v) => update("headline", v)}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                renderLine={(line, index, node) => (
+                  <span
+                    className="block"
+                    style={
+                      index === 1
+                        ? {
+                            color: colors.accent,
+                          }
+                        : undefined
+                    }
+                  >
+                    {node}
+                  </span>
+                )}
+              />
+            </h1>
+
             <EditableText
               as="p"
               fieldId="sale-subtext"
               editable={editable}
               value={subtext}
-              onChange={(value) =>
-                update("subtext", value)
-              }
+              onChange={(v) => update("subtext", v)}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               className="
-                mt-[calc(1.8*var(--ci))]
-                max-w-[88%]
-                leading-[1.3]
-                opacity-60
+                mt-[calc(3*var(--ci))]
+                text-[calc(2.35*var(--ci))]
+                leading-[1.45]
+                opacity-55
+                max-w-[calc(40*var(--ci))]
               "
-              style={{
-                fontSize: "calc(1.85 * var(--ci))",
-              }}
             />
-          )}
 
-          {/* --------------------------------------------------------------- */}
-          {/* FEATURES                                                         */}
-          {/* --------------------------------------------------------------- */}
-
-          {safeFeatures.length > 0 && (
-            <section
-              data-flyer-block="features"
-              className="
-                mt-[calc(3.2*var(--ci))]
-                flex
-                max-w-[82%]
-                flex-col
-              "
-              style={{
-                gap: "calc(1.25 * var(--ci))",
-              }}
-            >
-              <h3
-                className="
-                  m-0
-                  font-black
-                  tracking-[0.15em]
-                "
-                style={{
-                  color: colors.accent,
-                  fontSize: "calc(2.25 * var(--ci))",
-                }}
-              >
-                FEATURES
-              </h3>
-
-              {safeFeatures.map((feature, index) => (
-                <div
-                  key={`sale-feature-${index}`}
-                  className="
-                    group
-                    flex
-                    min-w-0
-                    items-center
-                  "
-                  style={{
-                    gap: "calc(1.1 * var(--ci))",
-                  }}
-                >
-                  <span
+            {safeFeatures.length > 0 && (
+              <div className="mt-[calc(3.5*var(--ci))] flex flex-col gap-[calc(1.3*var(--ci))]">
+                {safeFeatures.map((feature, index) => (
+                  <div
+                    key={index}
                     className="
                       flex
-                      shrink-0
                       items-center
-                      justify-center
-                      rounded-full
+                      gap-[calc(1.5*var(--ci))]
                     "
-                    style={{
-                      width: "calc(2.7 * var(--ci))",
-                      height: "calc(2.7 * var(--ci))",
-                      backgroundColor:
-                        rgba(colors.accent, 0.14),
-                    }}
                   >
-                    <Check
+                    <span
+                      className="
+                        flex
+                        items-center
+                        justify-center
+                        shrink-0
+                        rounded-full
+                        w-[calc(3.5*var(--ci))]
+                        h-[calc(3.5*var(--ci))]
+                      "
                       style={{
-                        width: "calc(1.6 * var(--ci))",
-                        height: "calc(1.6 * var(--ci))",
-                        color: colors.accent,
+                        backgroundColor: `${colors.accent}20`,
                       }}
-                      strokeWidth={3}
+                    >
+                      <Check
+                        size={11}
+                        strokeWidth={3}
+                        style={{
+                          color: colors.accent,
+                        }}
+                      />
+                    </span>
+
+                    <EditableText
+                      as="span"
+                      fieldId={`sale-feature-${index}`}
+                      editable={editable}
+                      value={feature}
+                      onChange={(v) => {
+                        onUpdateFeature?.(index, v);
+                        const updated = [...safeFeatures];
+                        updated[index] = v;
+                        update("features", updated.join("\n"));
+                      }}
+                      onFocusEl={onFocusEl}
+                      onBlurEl={onBlurEl}
+                      className="
+                        text-[calc(2*var(--ci))]
+                        font-medium
+                        opacity-75
+                      "
                     />
-                  </span>
+                  </div>
+                ))}
+              </div>
+            )}
 
-                  <EditableText
-                    as="span"
-                    fieldId={`sale-feature-${index}`}
-                    editable={editable}
-                    value={feature}
-                    onChange={(value) => {
-                      update(
-                        "features",
-                        safeFeatures
-                          .map((item, itemIndex) =>
-                            itemIndex === index
-                              ? value
-                              : item
-                          )
-                          .join("\n")
-                      );
-                    }}
-                    onFocusEl={onFocusEl}
-                    onBlurEl={onBlurEl}
-                    className="
-                      min-w-0
-                      flex-1
-                      leading-[1.15]
-                    "
-                    style={{
-                      fontSize:
-                        "calc(1.7 * var(--ci))",
-                    }}
-                  />
-                </div>
-              ))}
-            </section>
-          )}
-
-          {/* --------------------------------------------------------------- */}
-          {/* WHY CHOOSE US                                                    */}
-          {/* --------------------------------------------------------------- */}
-
-          <div
-            className="
-              mt-[calc(3.2*var(--ci))]
-              max-w-[82%]
-            "
-          >
             <WhyChooseUsList
               items={whyChooseUs}
               colors={colors}
@@ -565,160 +512,271 @@ function ModernSalesPromotion({
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               visible={whyChooseUsVisible}
+              onRestoreSection={onRestoreWhyChooseUs}
             />
-          </div>
-        </section>
 
-        {/* ================================================================= */}
-        {/* PRODUCT IMAGE — RIGHT                                             */}
-        {/* ================================================================= */}
+            <div
+              className="
+                mt-[calc(4*var(--ci))]
+                w-[calc(48*var(--ci))]
+                rounded-[calc(3*var(--ci))]
+                p-[calc(3*var(--ci))]
+                flex
+                items-end
+                justify-between
+                shadow-2xl
+              "
+              style={{
+                backgroundColor: colors.secondary,
+                color: colors.primary,
+              }}
+            >
 
-        <div
-          className="
-            pointer-events-none
-            absolute
-            right-[-1%]
-            top-[calc(1*var(--ci))]
-            z-10
-            h-[72%]
-            w-[45%]
-          "
-        >
-          {/* Image glow */}
+              <div>
+
+                <div
+                  className="
+                    text-[calc(1.5*var(--ci))]
+                    uppercase
+                    tracking-[0.18em]
+                    opacity-45
+                    mb-[calc(1*var(--ci))]
+                  "
+                >
+                  Special price
+                </div>
+
+                <div className="flex items-end gap-[calc(2*var(--ci))]">
+
+                  {price !== undefined &&
+                    price !== "" && (
+                      <EditableText
+                        as="p"
+                        fieldId="sale-price"
+                        editable={editable}
+                        value={price}
+                        onChange={(v) =>
+                          update("price", v)
+                        }
+                        onFocusEl={onFocusEl}
+                        onBlurEl={onBlurEl}
+                        className="
+                          text-[calc(7*var(--ci))]
+                          font-black
+                          leading-none
+                          tracking-[-0.05em]
+                        "
+                      />
+                    )}
+
+                  {oldPrice !== undefined &&
+                    oldPrice !== "" && (
+                      <EditableText
+                        as="p"
+                        fieldId="sale-old-price"
+                        editable={editable}
+                        value={oldPrice}
+                        onChange={(v) =>
+                          update("oldPrice", v)
+                        }
+                        onFocusEl={onFocusEl}
+                        onBlurEl={onBlurEl}
+                        className="
+                          text-[calc(2.3*var(--ci))]
+                          line-through
+                          opacity-35
+                          pb-[calc(0.7*var(--ci))]
+                        "
+                      />
+                    )}
+                </div>
+              </div>
+
+              <div
+                className="
+                  flex
+                  items-center
+                  justify-center
+                  w-[calc(8*var(--ci))]
+                  h-[calc(8*var(--ci))]
+                  rounded-[calc(2*var(--ci))]
+                  shrink-0
+                "
+                style={{
+                  backgroundColor: colors.accent,
+                  color: colors.primary,
+                }}
+              >
+                <ArrowUpRight
+                  size={20}
+                  strokeWidth={2.5}
+                />
+              </div>
+            </div>
+          </section>
+
           <div
-            aria-hidden="true"
             className="
               absolute
-              right-[8%]
-              top-[12%]
-              h-[55%]
-              w-[72%]
-              rounded-full
-              blur-3xl
+              left-0
+              bottom-0
+              z-30
+              flex
+              items-center
+              gap-[calc(2*var(--ci))]
             "
-            style={{
-              backgroundColor: colors.accent,
-              opacity: 0.08,
-            }}
-          />
-
-          {/* Product */}
-          <div className="absolute inset-0">
-            <Image
-              src={productImage}
-              alt="Product"
-              fill
-              priority
-              crossOrigin="anonymous"
-              sizes="45vw"
+          >
+            <div
               className="
-                object-contain
-                object-right
+                inline-flex
+                items-center
+                gap-[calc(2*var(--ci))]
+                px-[calc(4*var(--ci))]
+                py-[calc(2.2*var(--ci))]
+                rounded-full
+                font-black
+                uppercase
+                tracking-[0.12em]
+                text-[calc(2.1*var(--ci))]
               "
-            />
+              style={{
+                backgroundColor: colors.accent,
+                color: colors.primary,
+              }}
+            >
+              <EditableText
+                as="span"
+                fieldId="sale-cta"
+                editable={editable}
+                value={ctaText}
+                onChange={(v) =>
+                  update("ctaText", v)
+                }
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+              />
+
+              <ArrowUpRight
+                size={15}
+                strokeWidth={3}
+              />
+            </div>
+
+            {extraText && (
+              <EditableText
+                as="span"
+                fieldId="sale-extra"
+                editable={editable}
+                value={extraText}
+                onChange={(v) =>
+                  update("extraText", v)
+                }
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                className="
+                  text-[calc(1.7*var(--ci))]
+                  opacity-40
+                  max-w-[calc(20*var(--ci))]
+                "
+              />
+            )}
           </div>
-        </div>
 
-        {/* ================================================================= */}
-        {/* CTA — RIGHT / LOWER                                               */}
-        {/* ================================================================= */}
-
-        <div
-          className="
-            absolute
-            right-[calc(5*var(--ci))]
-            bottom-[calc(2.5*var(--ci))]
-            z-40
-            max-w-[43%]
-          "
-        >
           <div
             className="
-              inline-flex
-              max-w-full
-              items-center
-              gap-[calc(1.2*var(--ci))]
-              rounded-full
-              px-[calc(3*var(--ci))]
-              py-[calc(1.6*var(--ci))]
-              font-black
-              uppercase
-              tracking-[0.08em]
+              absolute
+              right-0
+              bottom-0
+              z-30
             "
-            style={{
-              backgroundColor: colors.accent,
-              color: colors.primary,
-              fontSize:
-                "calc(1.65 * var(--ci))",
-            }}
           >
-            <EditableText
-              as="span"
-              fieldId="sale-cta"
+            <ContactBar
+              phone={phone}
+              website={website}
+              email={email}
+              accentColor={colors.accent}
+              textColor={colors.secondary}
               editable={editable}
-              value={ctaText}
-              onChange={(value) =>
-                update("ctaText", value)
-              }
+              onUpdatePhone={(v) => update("phone", v)}
+              onUpdateWebsite={(v) => update("website", v)}
+              onUpdateEmail={(v) => update("email", v)}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
-              className="leading-[1.1]"
-            />
-
-            <ArrowUpRight
-              className="shrink-0"
-              style={{
-                width: "calc(2.2 * var(--ci))",
-                height: "calc(2.2 * var(--ci))",
-              }}
-              strokeWidth={3}
+              phoneVisible={phoneVisible}
+              websiteVisible={websiteVisible}
+              emailVisible={emailVisible}
+              onRemovePhone={onRemovePhone}
+              onRemoveWebsite={onRemoveWebsite}
+              onRemoveEmail={onRemoveEmail}
+              onRestorePhone={onRestorePhone}
+              onRestoreWebsite={onRestoreWebsite}
+              onRestoreEmail={onRestoreEmail}
             />
           </div>
         </div>
-
-        {/* ================================================================= */}
-        {/* CONTACT BAR                                                       */}
-        {/* ================================================================= */}
-
-        <div
-          className="
-            absolute
-            bottom-0
-            left-[calc(5*var(--ci))]
-            right-[calc(5*var(--ci))]
-            z-50
-          "
-        >
-          <ContactBar
-            phone={phone}
-            website={website}
-            email={email}
-            accentColor={colors.accent}
-            textColor={colors.secondary}
-            editable={editable}
-            onUpdatePhone={(value) =>
-              update("phone", value)
-            }
-            onUpdateWebsite={(value) =>
-              update("website", value)
-            }
-            onUpdateEmail={(value) =>
-              update("email", value)
-            }
-            onFocusEl={onFocusEl}
-            onBlurEl={onBlurEl}
-            phoneVisible={phoneVisible}
-            websiteVisible={websiteVisible}
-            emailVisible={emailVisible}
-            onRemovePhone={onRemovePhone}
-            onRemoveWebsite={onRemoveWebsite}
-            onRemoveEmail={onRemoveEmail}
-            onRestorePhone={onRestorePhone}
-            onRestoreWebsite={onRestoreWebsite}
-            onRestoreEmail={onRestoreEmail}
-          />
-        </div>
       </main>
+    </div>
+  );
+}
+
+function ContactMini({
+  icon,
+  value,
+  fieldId,
+  editable,
+  onChange,
+  onFocusEl,
+  onBlurEl,
+  colors,
+}: {
+  icon: React.ReactNode;
+  value: string;
+  fieldId: string;
+  editable?: boolean;
+  onChange?: (value: string) => void;
+  onFocusEl?: (el: HTMLElement) => void;
+  onBlurEl?: () => void;
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+  };
+}) {
+  return (
+    <div className="flex items-center gap-[calc(1*var(--ci))]">
+
+      <span
+        className="
+          flex
+          items-center
+          justify-center
+          w-[calc(3.5*var(--ci))]
+          h-[calc(3.5*var(--ci))]
+          rounded-full
+        "
+        style={{
+          backgroundColor: `${colors.accent}18`,
+          color: colors.accent,
+        }}
+      >
+        {icon}
+      </span>
+
+      <EditableText
+        as="span"
+        fieldId={fieldId}
+        editable={editable}
+        value={value}
+        onChange={onChange}
+        onFocusEl={onFocusEl}
+        onBlurEl={onBlurEl}
+        className="
+          text-[calc(1.45*var(--ci))]
+          opacity-45
+          whitespace-nowrap
+        "
+      />
+
     </div>
   );
 }
