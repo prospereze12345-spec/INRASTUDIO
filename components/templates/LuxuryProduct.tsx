@@ -323,8 +323,21 @@ const VariantDarkMarble = ({
   colors, editable, onUpdate, onFocusEl, onBlurEl,
 }: LuxuryProductProps) => (
   <div className="@container w-full h-full relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: colors.primary, color: colors.secondary }}>
-    <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/noise.png")' }} />
-
+{/* Subtle grain/grid texture — CSS only, no external asset */}
+<div
+  className="pointer-events-none absolute inset-0 opacity-[0.035]"
+  style={{
+    backgroundImage: `
+      radial-gradient(
+        circle at 1px 1px,
+        currentColor 0.7px,
+        transparent 0.8px
+      )
+    `,
+    backgroundSize: "calc(3 * var(--ci)) calc(3 * var(--ci))",
+    color: colors.secondary,
+  }}
+/>
     <div className="shrink-0 px-[calc(5*var(--ci))] pt-[calc(4*var(--ci))] flex items-center justify-between z-10 relative">
       <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
         onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
