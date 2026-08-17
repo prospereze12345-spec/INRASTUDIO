@@ -1118,8 +1118,6 @@ async function saveOrShareFile(blob: Blob, filename: string, mimeType: string) {
   URL.revokeObjectURL(url);
 }
 
-
-
 async function uploadAsset(file: File): Promise<string> {
   const form = new FormData();
   form.append("file", file);
@@ -1287,184 +1285,86 @@ const removeFeature = useCallback((index: number) => {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [exportingFormat, setExportingFormat] = useState<"png" | "jpg" | "pdf" | null>(null);
 
-  const handleExportFlyer = async (
-  format: "png" | "jpg" | "pdf"
-) => {
-  const node = flyerNodeRef.current;
-
-  if (!node) return;
-
+  const handleExportFlyer = async (format: "png" | "jpg" | "pdf") => {
+  if (!flyerNodeRef.current) return;
   if (pendingUploads > 0) {
-    setExportError(
-      "Still uploading your image - please wait a moment and try again."
-    );
-    return;
+    return setExportError("Still uploading your image - please wait a moment and try again.");
   }
 
   setExportingFormat(format);
   setExportError(null);
   setShowExportMenu(false);
 
+  const node = flyerNodeRef.current;
+  const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
+  const prevWidth = node.style.width;
+  const prevHeight = node.style.height;
+  const prevCi = node.style.getPropertyValue("--ci");
+  const prevCb = node.style.getPropertyValue("--cb");
+
   try {
-    /*
-     * IMPORTANT:
-     *
-     * Do NOT resize the live editor canvas before exporting.
-     *
-     * The editor canvas is already the source of truth.
-     * We capture exactly what the user sees and then scale
-     * the resulting bitmap to the platform's export dimensions.
-     */
+    // Resize to the platform's real pixel dimensions just for the snapshot
+    node.style.width = `${fmt.exportW}px`;
+    node.style.height = `${fmt.exportH}px`;
+    node.style.setProperty("--ci", `${fmt.exportW / 100}px`);
+    node.style.setProperty("--cb", `${fmt.exportH / 100}px`);
+    await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+
     const { toPng, toJpeg } = await import("html-to-image");
-
-    // Make sure fonts/images have had a chance to finish rendering.
-    await document.fonts?.ready;
-
-    await new Promise<void>((resolve) => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => resolve());
-      });
-    });
-
-    const editorWidth = node.getBoundingClientRect().width;
-    const editorHeight = node.getBoundingClientRect().height;
-
-    if (!editorWidth || !editorHeight) {
-      throw new Error("Flyer canvas has no measurable dimensions.");
-    }
-
-    /*
-     * Capture the CURRENT editor exactly as displayed.
-     *
-     * No width mutation.
-     * No height mutation.
-     * No --ci mutation.
-     * No --cb mutation.
-     */
-    const snapshotOptions = {
-      cacheBust: true,
-
-      width: Math.round(editorWidth),
-      height: Math.round(editorHeight),
-
+    const snapshotOpts = {
       pixelRatio: 1,
-
-      filter: (element: HTMLElement) => {
-        return (
-          element.getAttribute("data-flyer-control") !== "true"
-        );
+      cacheBust: true,
+      width: fmt.exportW,
+      height: fmt.exportH,
+      filter: (node: HTMLElement) => {
+        if (node.getAttribute && node.getAttribute("data-flyer-control") === "true") return false;
+        return true;
       },
     };
+        if (format === "png" || format === "jpg") {
+  const dataUrl = format === "png"
+    ? await toPng(flyerNodeRef.current, snapshotOpts)
+    : await toJpeg(flyerNodeRef.current, { ...snapshotOpts, quality: 0.95, backgroundColor: "#ffffff" });
+  const blob = await (await fetch(dataUrl)).blob();
+  await saveOrShareFile(blob, `flyer-${Date.now()}.${format}`, blob.type);
+  return;
+}
 
-    const dataUrl =
-      format === "jpg"
-        ? await toJpeg(node, {
-            ...snapshotOptions,
-            quality: 0.95,
-            backgroundColor: flyer.colors.primary || "#ffffff",
-          })
-        : await toPng(node, snapshotOptions);
+      const [{ default: jsPDF }, dataUrl] = await Promise.all([
+        import("jspdf"),
+        toPng(flyerNodeRef.current, snapshotOpts),
+      ]);
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+img.src = dataUrl;
+await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
 
-    /*
-     * The captured image is now an exact representation
-     * of the editor.
-     *
-     * We scale the BITMAP afterwards rather than changing
-     * the DOM layout.
-     */
-    const exportSize = SOCIAL_FORMATS.find(
-      (item) => item.id === activeFormat
-    );
+const pdf = new jsPDF({
+  orientation: img.width >= img.height ? "landscape" : "portrait",
+  unit: "px",
+  format: [img.width, img.height],
+});
+pdf.addImage(dataUrl, "PNG", 0, 0, img.width, img.height);
 
-    if (!exportSize) {
-      throw new Error("Unsupported export format.");
-    }
+      const pdfBlob = pdf.output("blob");
+      await saveOrShareFile(pdfBlob, `flyer-${Date.now()}.pdf`, "application/pdf");
 
-    const outputBlob = await resizeExportImage(
-      dataUrl,
-      exportSize.exportW,
-      exportSize.exportH,
-      format === "jpg"
-        ? "image/jpeg"
-        : "image/png",
-      format === "jpg" ? 0.95 : undefined
-    );
-
-    if (format === "png" || format === "jpg") {
-      await saveOrShareFile(
-        outputBlob,
-        `flyer-${Date.now()}.${format}`,
-        outputBlob.type
+    } catch (err) {
+      console.error(err);
+      setExportError(
+        err instanceof Error
+          ? `${err.message} - this is usually a CORS issue with your product image.`
+          : "Export failed."
       );
-
-      return;
-    }
-
-    /*
-     * PDF uses the exact same exported bitmap.
-     * Therefore PNG/JPG/PDF all originate from the
-     * exact same visual representation.
-     */
-    const [{ default: jsPDF }] = await Promise.all([
-      import("jspdf"),
-    ]);
-
-    const pdfUrl = URL.createObjectURL(outputBlob);
-
-    const img = new Image();
-
-    img.src = pdfUrl;
-
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () =>
-        reject(new Error("Failed to prepare flyer for PDF export."));
-    });
-
-    const pdf = new jsPDF({
-      orientation:
-        img.width >= img.height
-          ? "landscape"
-          : "portrait",
-      unit: "px",
-      format: [img.width, img.height],
-    });
-
-    pdf.addImage(
-      img,
-      "PNG",
-      0,
-      0,
-      img.width,
-      img.height
-    );
-
-    URL.revokeObjectURL(pdfUrl);
-
-    const pdfBlob = pdf.output("blob");
-
-    await saveOrShareFile(
-      pdfBlob,
-      `flyer-${Date.now()}.pdf`,
-      "application/pdf"
-    );
-  } catch (error) {
-    console.error("Flyer export failed:", error);
-
-    setExportError(
-      error instanceof Error
-        ? error.message
-        : "Flyer export failed."
-    );
-  } finally {
-    /*
-     * Nothing needs restoring here because we never mutated
-     * the live editor canvas.
-     */
+    } finally {
+    node.style.width = prevWidth;
+    node.style.height = prevHeight;
+    if (prevCi) node.style.setProperty("--ci", prevCi); else node.style.removeProperty("--ci");
+    if (prevCb) node.style.setProperty("--cb", prevCb); else node.style.removeProperty("--cb");
     setExportingFormat(null);
   }
 };
-
 useEffect(() => {
   let cancelled = false;
 
