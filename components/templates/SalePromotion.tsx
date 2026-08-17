@@ -6,7 +6,6 @@ import { ArrowUpRight, Check, Sparkles } from "lucide-react";
 
 import { EditableText } from "@/components/EditableText";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
-
 import {
   ContactBar,
   WhyChooseUsList,
@@ -37,30 +36,14 @@ export interface SalePromotionProps {
   oldPrice?: string;
 
   features?: string[];
-
-  onUpdateFeature?: (
-    index: number,
-    value: string
-  ) => void;
-
+  onUpdateFeature?: (index: number, value: string) => void;
   onAddFeature?: () => void;
-
-  onRemoveFeature?: (
-    index: number
-  ) => void;
+  onRemoveFeature?: (index: number) => void;
 
   whyChooseUs?: string[];
-
-  onUpdateWhyChooseUs?: (
-    index: number,
-    value: string
-  ) => void;
-
+  onUpdateWhyChooseUs?: (index: number, value: string) => void;
   onAddWhyChooseUs?: () => void;
-
-  onRemoveWhyChooseUs?: (
-    index: number
-  ) => void;
+  onRemoveWhyChooseUs?: (index: number) => void;
 
   featuresVisible?: boolean;
   whyChooseUsVisible?: boolean;
@@ -88,15 +71,9 @@ export interface SalePromotionProps {
 
   editable?: boolean;
 
-  onUpdate?: (
-    field: string,
-    value: string
-  ) => void;
+  onUpdate?: (field: string, value: string) => void;
 
-  onFocusEl?: (
-    el: HTMLElement
-  ) => void;
-
+  onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
 }
 
@@ -104,22 +81,16 @@ export interface SalePromotionProps {
 // Helpers
 // ============================================================================
 
-function safeArray(
-  values?: string[]
-): string[] {
+function safeArray(values?: string[]) {
   return (values ?? [])
     .filter(
       (value): value is string =>
-        typeof value === "string" &&
-        value.trim().length > 0
+        typeof value === "string" && value.trim().length > 0
     )
     .slice(0, 4);
 }
 
-function rgba(
-  hex: string,
-  alpha: number
-) {
+function rgba(hex: string, alpha: number) {
   if (!hex) {
     return `rgba(0,0,0,${alpha})`;
   }
@@ -130,20 +101,9 @@ function rgba(
     return hex;
   }
 
-  const r = parseInt(
-    value.slice(0, 2),
-    16
-  );
-
-  const g = parseInt(
-    value.slice(2, 4),
-    16
-  );
-
-  const b = parseInt(
-    value.slice(4, 6),
-    16
-  );
+  const r = parseInt(value.slice(0, 2), 16);
+  const g = parseInt(value.slice(2, 4), 16);
+  const b = parseInt(value.slice(4, 6), 16);
 
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
@@ -152,20 +112,14 @@ function rgba(
 // Template entry
 // ============================================================================
 
-export function SalePromotionTemplate(
-  props: SalePromotionProps
-) {
+export function SalePromotionTemplate(props: SalePromotionProps) {
   const {
     headline,
     productImage,
     colors,
   } = props;
 
-  if (
-    !headline ||
-    !productImage ||
-    !colors
-  ) {
+  if (!headline || !productImage || !colors) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-sm text-neutral-400">
         Loading template...
@@ -173,11 +127,7 @@ export function SalePromotionTemplate(
     );
   }
 
-  return (
-    <ModernSalesPromotion
-      {...props}
-    />
-  );
+  return <ModernSalesPromotion {...props} />;
 }
 
 // ============================================================================
@@ -197,7 +147,6 @@ function ModernSalesPromotion({
   email,
 
   features,
-  onUpdateFeature,
 
   whyChooseUs,
   onUpdateWhyChooseUs,
@@ -226,21 +175,16 @@ function ModernSalesPromotion({
   onFocusEl,
   onBlurEl,
 }: SalePromotionProps) {
-  const safeFeatures =
-    safeArray(features);
+  const safeFeatures = safeArray(features);
 
-  const update = (
-    field: string,
-    value: string
-  ) => {
+  const update = (field: string, value: string) => {
     onUpdate?.(field, value);
   };
 
   return (
     <div
-      data-flyer-canvas="true"
+      data-flyer-template="sale-promotion"
       className="
-        @container
         relative
         isolate
         h-full
@@ -250,11 +194,8 @@ function ModernSalesPromotion({
         antialiased
       "
       style={{
-        backgroundColor:
-          colors.primary,
-
-        color:
-          colors.secondary,
+        backgroundColor: colors.primary,
+        color: colors.secondary,
       }}
     >
       {/* ================================================================== */}
@@ -262,11 +203,8 @@ function ModernSalesPromotion({
       {/* ================================================================== */}
 
       <div
-        className="
-          pointer-events-none
-          absolute
-          inset-0
-        "
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
         style={{
           background: `
             linear-gradient(
@@ -279,45 +217,33 @@ function ModernSalesPromotion({
         }}
       />
 
-      {/* Very subtle grid */}
       <div
-        className="
-          pointer-events-none
-          absolute
-          inset-0
-          opacity-[0.018]
-        "
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.025]"
         style={{
           backgroundImage: `
-            linear-gradient(
-              ${colors.secondary} 1px,
-              transparent 1px
-            ),
-            linear-gradient(
-              90deg,
-              ${colors.secondary} 1px,
-              transparent 1px
-            )
+            linear-gradient(${colors.secondary} 1px, transparent 1px),
+            linear-gradient(90deg, ${colors.secondary} 1px, transparent 1px)
           `,
           backgroundSize:
-            "calc(10 * var(--ci)) calc(10 * var(--ci))",
+            "calc(8 * var(--ci)) calc(8 * var(--ci))",
         }}
       />
 
-      {/* Right accent rail */}
+      {/* Right decorative rail */}
       <div
+        aria-hidden="true"
         className="
           pointer-events-none
           absolute
-          right-[calc(4*var(--ci))]
-          top-[calc(4*var(--ci))]
-          bottom-[calc(4*var(--ci))]
+          right-[calc(3*var(--ci))]
+          top-[calc(3*var(--ci))]
+          bottom-[calc(3*var(--ci))]
           w-px
         "
         style={{
-          backgroundColor:
-            colors.accent,
-          opacity: 0.12,
+          backgroundColor: colors.accent,
+          opacity: 0.14,
         }}
       />
 
@@ -330,7 +256,7 @@ function ModernSalesPromotion({
           absolute
           left-[calc(5*var(--ci))]
           right-[calc(5*var(--ci))]
-          top-[calc(3.5*var(--ci))]
+          top-[calc(3*var(--ci))]
           z-40
           flex
           items-center
@@ -343,7 +269,7 @@ function ModernSalesPromotion({
             flex
             min-w-0
             items-center
-            gap-[calc(1.5*var(--ci))]
+            gap-[calc(1.6*var(--ci))]
           "
         >
           <div
@@ -355,26 +281,16 @@ function ModernSalesPromotion({
               rounded-full
             "
             style={{
-              width:
-                "calc(5 * var(--ci))",
-
-              height:
-                "calc(5 * var(--ci))",
-
-              backgroundColor:
-                colors.accent,
-
-              color:
-                colors.primary,
+              width: "calc(5 * var(--ci))",
+              height: "calc(5 * var(--ci))",
+              backgroundColor: colors.accent,
+              color: colors.primary,
             }}
           >
             <Sparkles
               style={{
-                width:
-                  "calc(2.5 * var(--ci))",
-
-                height:
-                  "calc(2.5 * var(--ci))",
+                width: "calc(2.6 * var(--ci))",
+                height: "calc(2.6 * var(--ci))",
               }}
               strokeWidth={2.5}
             />
@@ -386,10 +302,7 @@ function ModernSalesPromotion({
             editable={editable}
             value={brandName ?? ""}
             onChange={(value) =>
-              update(
-                "brandName",
-                value
-              )
+              update("brandName", value)
             }
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
@@ -398,11 +311,10 @@ function ModernSalesPromotion({
               truncate
               font-black
               uppercase
-              tracking-[-0.025em]
+              tracking-[0.02em]
             "
             style={{
-              fontSize:
-                "calc(2.7 * var(--ci))",
+              fontSize: "calc(2.3 * var(--ci))",
             }}
           />
         </div>
@@ -415,24 +327,20 @@ function ModernSalesPromotion({
             editable={editable}
             value={website}
             onChange={(value) =>
-              update(
-                "website",
-                value
-              )
+              update("website", value)
             }
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             className="
               min-w-0
-              max-w-[28%]
+              max-w-[30%]
               truncate
               uppercase
               tracking-[0.08em]
-              opacity-45
+              opacity-50
             "
             style={{
-              fontSize:
-                "calc(1.65 * var(--ci))",
+              fontSize: "calc(1.65 * var(--ci))",
             }}
           />
         )}
@@ -446,67 +354,10 @@ function ModernSalesPromotion({
         className="
           absolute
           inset-x-0
-          top-0
-          bottom-0
+          top-[calc(9*var(--ci))]
+          bottom-[calc(9*var(--ci))]
         "
       >
-        {/* ================================================================= */}
-        {/* PRODUCT IMAGE — RIGHT                                             */}
-        {/* ================================================================= */}
-
-        <div
-          className="
-            pointer-events-none
-            absolute
-            right-[calc(1.5*var(--ci))]
-            top-[calc(18*var(--ci))]
-            z-10
-            h-[52%]
-            w-[46%]
-            overflow-visible
-          "
-        >
-          {/* Image glow */}
-          <div
-            className="
-              absolute
-              right-[5%]
-              top-[8%]
-              h-[65%]
-              w-[78%]
-              rounded-full
-              blur-3xl
-            "
-            style={{
-              backgroundColor:
-                colors.accent,
-
-              opacity: 0.09,
-            }}
-          />
-
-          {/* Product image */}
-          <div
-            className="
-              absolute
-              inset-0
-            "
-          >
-            <Image
-              src={productImage}
-              alt="Product"
-              fill
-              priority
-              crossOrigin="anonymous"
-              sizes="46vw"
-              className="
-                object-contain
-                object-right
-              "
-            />
-          </div>
-        </div>
-
         {/* ================================================================= */}
         {/* LEFT CONTENT                                                      */}
         {/* ================================================================= */}
@@ -515,7 +366,7 @@ function ModernSalesPromotion({
           className="
             absolute
             left-[calc(5*var(--ci))]
-            top-[calc(14*var(--ci))]
+            top-[calc(1.5*var(--ci))]
             z-30
             w-[53%]
           "
@@ -527,40 +378,33 @@ function ModernSalesPromotion({
           <h1
             className="
               m-0
-              max-w-[100%]
+              max-w-full
               font-black
               uppercase
-              tracking-[-0.065em]
+              tracking-[-0.055em]
               leading-[0.84]
             "
             style={{
               fontSize:
-                "clamp(28px, calc(8.8 * var(--ci)), 108px)",
+                "clamp(30px, calc(8.7 * var(--ci)), 108px)",
             }}
           >
             <EditableHeadlineLines
               value={headline}
               editable={editable}
               onChange={(value) =>
-                update(
-                  "headline",
-                  value
-                )
+                update("headline", value)
               }
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
-              renderLine={(
-                line,
-                index,
-                node
-              ) => (
+              renderLine={(line, index, node) => (
                 <span
                   className="block"
+                  key={`${line}-${index}`}
                   style={
                     index === 1
                       ? {
-                          color:
-                            colors.secondary,
+                          color: colors.secondary,
                         }
                       : undefined
                   }
@@ -572,209 +416,208 @@ function ModernSalesPromotion({
           </h1>
 
           {/* --------------------------------------------------------------- */}
-          {/* SUBHEADING                                                      */}
+          {/* SUBTEXT                                                         */}
           {/* --------------------------------------------------------------- */}
 
-          <EditableText
-            as="p"
-            fieldId="sale-subtext"
-            editable={editable}
-            value={subtext}
-            onChange={(value) =>
-              update(
-                "subtext",
-                value
-              )
-            }
-            onFocusEl={onFocusEl}
-            onBlurEl={onBlurEl}
-            className="
-              mt-[calc(2*var(--ci))]
-              max-w-[76%]
-              leading-[1.35]
-              opacity-60
-            "
-            style={{
-              fontSize:
-                "calc(1.85 * var(--ci))",
-            }}
-          />
+          {subtext && (
+            <EditableText
+              as="p"
+              fieldId="sale-subtext"
+              editable={editable}
+              value={subtext}
+              onChange={(value) =>
+                update("subtext", value)
+              }
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              className="
+                mt-[calc(1.8*var(--ci))]
+                max-w-[88%]
+                leading-[1.3]
+                opacity-60
+              "
+              style={{
+                fontSize: "calc(1.85 * var(--ci))",
+              }}
+            />
+          )}
 
           {/* --------------------------------------------------------------- */}
-          {/* FEATURES                                                        */}
+          {/* FEATURES                                                         */}
           {/* --------------------------------------------------------------- */}
 
           {safeFeatures.length > 0 && (
-            <div
+            <section
               data-flyer-block="features"
               className="
-                mt-[calc(3.5*var(--ci))]
+                mt-[calc(3.2*var(--ci))]
                 flex
-                max-w-[75%]
+                max-w-[82%]
                 flex-col
               "
               style={{
-                gap:
-                  "calc(1.35 * var(--ci))",
+                gap: "calc(1.25 * var(--ci))",
               }}
             >
               <h3
                 className="
+                  m-0
                   font-black
-                  tracking-[0.16em]
+                  tracking-[0.15em]
                 "
                 style={{
-                  color:
-                    colors.accent,
-
-                  fontSize:
-                    "calc(2.4 * var(--ci))",
+                  color: colors.accent,
+                  fontSize: "calc(2.25 * var(--ci))",
                 }}
               >
                 FEATURES
               </h3>
 
-              {safeFeatures.map(
-                (
-                  feature,
-                  index
-                ) => (
-                  <div
-                    key={`sale-feature-${index}`}
+              {safeFeatures.map((feature, index) => (
+                <div
+                  key={`sale-feature-${index}`}
+                  className="
+                    group
+                    flex
+                    min-w-0
+                    items-center
+                  "
+                  style={{
+                    gap: "calc(1.1 * var(--ci))",
+                  }}
+                >
+                  <span
                     className="
-                      group
                       flex
-                      min-w-0
-                      items-start
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-full
                     "
                     style={{
-                      gap:
-                        "calc(1.1 * var(--ci))",
+                      width: "calc(2.7 * var(--ci))",
+                      height: "calc(2.7 * var(--ci))",
+                      backgroundColor:
+                        rgba(colors.accent, 0.14),
                     }}
                   >
-                    <span
-                      className="
-                        flex
-                        shrink-0
-                        items-center
-                        justify-center
-                        rounded-full
-                      "
+                    <Check
                       style={{
-                        width:
-                          "calc(2.8 * var(--ci))",
-
-                        height:
-                          "calc(2.8 * var(--ci))",
-
-                        backgroundColor:
-                          rgba(
-                            colors.accent,
-                            0.12
-                          ),
+                        width: "calc(1.6 * var(--ci))",
+                        height: "calc(1.6 * var(--ci))",
+                        color: colors.accent,
                       }}
-                    >
-                      <Check
-                        style={{
-                          width:
-                            "calc(1.7 * var(--ci))",
-
-                          height:
-                            "calc(1.7 * var(--ci))",
-
-                          color:
-                            colors.accent,
-                        }}
-                        strokeWidth={3}
-                      />
-                    </span>
-
-                    <EditableText
-                      as="span"
-                      fieldId={`sale-feature-${index}`}
-                      editable={editable}
-                      value={feature}
-                      onChange={(value) => {
-                        onUpdateFeature?.(
-                          index,
-                          value
-                        );
-
-                        const updated =
-                          [
-                            ...safeFeatures,
-                          ];
-
-                        updated[index] =
-                          value;
-
-                        update(
-                          "features",
-                          updated.join(
-                            "\n"
-                          )
-                        );
-                      }}
-                      onFocusEl={
-                        onFocusEl
-                      }
-                      onBlurEl={
-                        onBlurEl
-                      }
-                      className="
-                        min-w-0
-                        flex-1
-                        leading-[1.2]
-                        opacity-75
-                      "
-                      style={{
-                        fontSize:
-                          "calc(1.75 * var(--ci))",
-                      }}
+                      strokeWidth={3}
                     />
-                  </div>
-                )
-              )}
-            </div>
+                  </span>
+
+                  <EditableText
+                    as="span"
+                    fieldId={`sale-feature-${index}`}
+                    editable={editable}
+                    value={feature}
+                    onChange={(value) => {
+                      update(
+                        "features",
+                        safeFeatures
+                          .map((item, itemIndex) =>
+                            itemIndex === index
+                              ? value
+                              : item
+                          )
+                          .join("\n")
+                      );
+                    }}
+                    onFocusEl={onFocusEl}
+                    onBlurEl={onBlurEl}
+                    className="
+                      min-w-0
+                      flex-1
+                      leading-[1.15]
+                    "
+                    style={{
+                      fontSize:
+                        "calc(1.7 * var(--ci))",
+                    }}
+                  />
+                </div>
+              ))}
+            </section>
           )}
 
           {/* --------------------------------------------------------------- */}
-          {/* WHY CHOOSE US                                                   */}
+          {/* WHY CHOOSE US                                                    */}
           {/* --------------------------------------------------------------- */}
 
           <div
             className="
-              mt-[calc(3.5*var(--ci))]
-              max-w-[75%]
+              mt-[calc(3.2*var(--ci))]
+              max-w-[82%]
             "
           >
             <WhyChooseUsList
-              items={
-                whyChooseUs
-              }
+              items={whyChooseUs}
               colors={colors}
               editable={editable}
-              visible={
-                whyChooseUsVisible
-              }
-              onUpdate={
-                onUpdateWhyChooseUs
-              }
-              onAdd={
-                onAddWhyChooseUs
-              }
-              onRemove={
-                onRemoveWhyChooseUs
-              }
-              onFocusEl={
-                onFocusEl
-              }
-              onBlurEl={
-                onBlurEl
-              }
+              onUpdate={onUpdateWhyChooseUs}
+              onAdd={onAddWhyChooseUs}
+              onRemove={onRemoveWhyChooseUs}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              visible={whyChooseUsVisible}
             />
           </div>
         </section>
+
+        {/* ================================================================= */}
+        {/* PRODUCT IMAGE — RIGHT                                             */}
+        {/* ================================================================= */}
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            right-[-1%]
+            top-[calc(1*var(--ci))]
+            z-10
+            h-[72%]
+            w-[45%]
+          "
+        >
+          {/* Image glow */}
+          <div
+            aria-hidden="true"
+            className="
+              absolute
+              right-[8%]
+              top-[12%]
+              h-[55%]
+              w-[72%]
+              rounded-full
+              blur-3xl
+            "
+            style={{
+              backgroundColor: colors.accent,
+              opacity: 0.08,
+            }}
+          />
+
+          {/* Product */}
+          <div className="absolute inset-0">
+            <Image
+              src={productImage}
+              alt="Product"
+              fill
+              priority
+              crossOrigin="anonymous"
+              sizes="45vw"
+              className="
+                object-contain
+                object-right
+              "
+            />
+          </div>
+        </div>
 
         {/* ================================================================= */}
         {/* CTA — RIGHT / LOWER                                               */}
@@ -783,10 +626,10 @@ function ModernSalesPromotion({
         <div
           className="
             absolute
-            right-[calc(9*var(--ci))]
-            bottom-[calc(11*var(--ci))]
+            right-[calc(5*var(--ci))]
+            bottom-[calc(2.5*var(--ci))]
             z-40
-            max-w-[39%]
+            max-w-[43%]
           "
         >
           <div
@@ -794,23 +637,19 @@ function ModernSalesPromotion({
               inline-flex
               max-w-full
               items-center
-              gap-[calc(1.4*var(--ci))]
+              gap-[calc(1.2*var(--ci))]
               rounded-full
-              px-[calc(3.2*var(--ci))]
-              py-[calc(1.7*var(--ci))]
+              px-[calc(3*var(--ci))]
+              py-[calc(1.6*var(--ci))]
               font-black
               uppercase
               tracking-[0.08em]
             "
             style={{
-              backgroundColor:
-                colors.accent,
-
-              color:
-                colors.primary,
-
+              backgroundColor: colors.accent,
+              color: colors.primary,
               fontSize:
-                "calc(1.7 * var(--ci))",
+                "calc(1.65 * var(--ci))",
             }}
           >
             <EditableText
@@ -819,31 +658,18 @@ function ModernSalesPromotion({
               editable={editable}
               value={ctaText}
               onChange={(value) =>
-                update(
-                  "ctaText",
-                  value
-                )
+                update("ctaText", value)
               }
-              onFocusEl={
-                onFocusEl
-              }
-              onBlurEl={
-                onBlurEl
-              }
-              className="
-                min-w-0
-                truncate
-              "
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              className="leading-[1.1]"
             />
 
             <ArrowUpRight
               className="shrink-0"
               style={{
-                width:
-                  "calc(2.2 * var(--ci))",
-
-                height:
-                  "calc(2.2 * var(--ci))",
+                width: "calc(2.2 * var(--ci))",
+                height: "calc(2.2 * var(--ci))",
               }}
               strokeWidth={3}
             />
@@ -857,9 +683,9 @@ function ModernSalesPromotion({
         <div
           className="
             absolute
+            bottom-0
             left-[calc(5*var(--ci))]
             right-[calc(5*var(--ci))]
-            bottom-[calc(2.5*var(--ci))]
             z-50
           "
         >
@@ -867,72 +693,29 @@ function ModernSalesPromotion({
             phone={phone}
             website={website}
             email={email}
-            accentColor={
-              colors.accent
+            accentColor={colors.accent}
+            textColor={colors.secondary}
+            editable={editable}
+            onUpdatePhone={(value) =>
+              update("phone", value)
             }
-            textColor={
-              colors.secondary
+            onUpdateWebsite={(value) =>
+              update("website", value)
             }
-            editable={
-              editable
+            onUpdateEmail={(value) =>
+              update("email", value)
             }
-            onUpdatePhone={(
-              value
-            ) =>
-              update(
-                "phone",
-                value
-              )
-            }
-            onUpdateWebsite={(
-              value
-            ) =>
-              update(
-                "website",
-                value
-              )
-            }
-            onUpdateEmail={(
-              value
-            ) =>
-              update(
-                "email",
-                value
-              )
-            }
-            onFocusEl={
-              onFocusEl
-            }
-            onBlurEl={
-              onBlurEl
-            }
-            phoneVisible={
-              phoneVisible
-            }
-            websiteVisible={
-              websiteVisible
-            }
-            emailVisible={
-              emailVisible
-            }
-            onRemovePhone={
-              onRemovePhone
-            }
-            onRemoveWebsite={
-              onRemoveWebsite
-            }
-            onRemoveEmail={
-              onRemoveEmail
-            }
-            onRestorePhone={
-              onRestorePhone
-            }
-            onRestoreWebsite={
-              onRestoreWebsite
-            }
-            onRestoreEmail={
-              onRestoreEmail
-            }
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            phoneVisible={phoneVisible}
+            websiteVisible={websiteVisible}
+            emailVisible={emailVisible}
+            onRemovePhone={onRemovePhone}
+            onRemoveWebsite={onRemoveWebsite}
+            onRemoveEmail={onRemoveEmail}
+            onRestorePhone={onRestorePhone}
+            onRestoreWebsite={onRestoreWebsite}
+            onRestoreEmail={onRestoreEmail}
           />
         </div>
       </main>
