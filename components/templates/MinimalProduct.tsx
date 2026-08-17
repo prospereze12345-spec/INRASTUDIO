@@ -1,14 +1,12 @@
 "use client";
 
+import { EditableText } from "@/components/EditableText";
+
 import React from "react";
 import Image from "next/image";
-import { EditableText } from "@/components/EditableText";
+import { Phone, Mail, Globe, CheckCircle2, Plus, X } from "lucide-react";
+import { FeatureList, ContactBar, WhyChooseUsList } from "./FlyerContentBlocks";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
-import {
-  FeatureList,
-  ContactBar,
-  WhyChooseUsList,
-} from "./FlyerContentBlocks";
 
 export interface SleekFlyerProps {
   name?: string;
@@ -24,729 +22,537 @@ export interface SleekFlyerProps {
   features?: string[];
   phone?: string;
   email?: string;
-
   colors: {
     primary: string;
     secondary: string;
     accent: string;
   };
-
   editable?: boolean;
   onUpdate?: (field: string, value: string) => void;
-
   onUpdateFeature?: (index: number, value: string) => void;
   onAddFeature?: () => void;
   onRemoveFeature?: (index: number) => void;
-
   onUpdatePhone?: (value: string) => void;
   onUpdateWebsite?: (value: string) => void;
   onUpdateEmail?: (value: string) => void;
-
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
-
   whyChooseUs?: string[];
-  onUpdateWhyChooseUs?: (index: number, value: string) => void;
-  onAddWhyChooseUs?: () => void;
-  onRemoveWhyChooseUs?: (index: number) => void;
+onUpdateWhyChooseUs?: (index: number, value: string) => void;
+onAddWhyChooseUs?: () => void;
+onRemoveWhyChooseUs?: (index: number) => void;
 
-  featuresVisible?: boolean;
-  whyChooseUsVisible?: boolean;
-  phoneVisible?: boolean;
-  emailVisible?: boolean;
-  websiteVisible?: boolean;
+featuresVisible?: boolean;
+whyChooseUsVisible?: boolean;
+phoneVisible?: boolean;
+emailVisible?: boolean;
+websiteVisible?: boolean;
 
-  onRestoreFeatures?: () => void;
-  onRestoreWhyChooseUs?: () => void;
-
-  onRemovePhone?: () => void;
-  onRemoveEmail?: () => void;
-  onRemoveWebsite?: () => void;
-
-  onRestorePhone?: () => void;
-  onRestoreEmail?: () => void;
-  onRestoreWebsite?: () => void;
+onRestoreFeatures?: () => void;
+onRestoreWhyChooseUs?: () => void;
+onRemovePhone?: () => void;
+onRemoveEmail?: () => void;
+onRemoveWebsite?: () => void;
+onRestorePhone?: () => void;
+onRestoreEmail?: () => void;
+onRestoreWebsite?: () => void;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Shared constants/helpers                                                   */
-/* -------------------------------------------------------------------------- */
 
-const FONT =
-  "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif";
-
-const rootStyle = (colors: SleekFlyerProps["colors"]): React.CSSProperties => ({
-  width: "100%",
-  height: "100%",
-  minWidth: 0,
-  minHeight: 0,
-  position: "relative",
-  overflow: "hidden",
-  fontFamily: FONT,
-  backgroundColor: colors.primary,
-  color: colors.secondary,
-  boxSizing: "border-box",
-});
-
-const ci = (value: number) => `calc(${value} * var(--ci, 1px))`;
-
-const textOverflowStyle: React.CSSProperties = {
-  minWidth: 0,
-  overflowWrap: "anywhere",
-  wordBreak: "break-word",
-};
-
-type FlyerImageProps = {
-  src: string;
-  alt?: string;
-  position?: string;
-  contain?: boolean;
-  style?: React.CSSProperties;
-};
-
-function FlyerImage({
-  src,
-  alt = "Product",
-  position = "50% 50%",
-  contain = true,
-  style,
-}: FlyerImageProps) {
-  return (
-    <Image
-      src={src}
-      alt={alt}
-      fill
-      sizes="100vw"
-      priority
-      unoptimized
-      draggable={false}
-      className={contain ? "sleek-flyer-image contain" : "sleek-flyer-image cover"}
-      style={{
-        objectPosition: position,
-        ...style,
-      }}
-    />
-  );
-}
-
-function Brand({
-  brandName,
-  editable,
-  onUpdate,
-  onFocusEl,
-  onBlurEl,
-  color,
-  opacity = 0.5,
-  fontSize = 2.2,
-}: Pick<
-  SleekFlyerProps,
-  "brandName" | "editable" | "onUpdate" | "onFocusEl" | "onBlurEl"
-> & {
-  color: string;
-  opacity?: number;
-  fontSize?: number;
-}) {
-  return (
-    <EditableText
-      as="span"
-      fieldId="f-brand"
-      editable={editable}
-      value={brandName ?? ""}
-      onChange={(value) => onUpdate?.("brandName", value)}
-      onFocusEl={onFocusEl}
-      onBlurEl={onBlurEl}
-      style={{
-        ...textOverflowStyle,
-        fontSize: ci(fontSize),
-        fontWeight: 700,
-        letterSpacing: "0.22em",
-        textTransform: "uppercase",
-        color,
-        opacity,
-      }}
-    />
-  );
-}
-
-function Subheadline({
-  value,
-  editable,
-  onUpdate,
-  onFocusEl,
-  onBlurEl,
-  color,
-  fontSize = 2.4,
-  maxWidth = "30ch",
-}: {
-  value?: string;
-  editable?: boolean;
-  onUpdate?: SleekFlyerProps["onUpdate"];
-  onFocusEl?: SleekFlyerProps["onFocusEl"];
-  onBlurEl?: SleekFlyerProps["onBlurEl"];
-  color: string;
-  fontSize?: number;
-  maxWidth?: string;
-}) {
-  if (value === undefined) return null;
-
-  return (
-    <EditableText
-      as="p"
-      fieldId="f-sub"
-      editable={editable}
-      value={value}
-      onChange={(next) => onUpdate?.("subtext", next)}
-      onFocusEl={onFocusEl}
-      onBlurEl={onBlurEl}
-      style={{
-        ...textOverflowStyle,
-        margin: 0,
-        maxWidth,
-        fontSize: ci(fontSize),
-        lineHeight: 1.45,
-        fontWeight: 400,
-        color,
-        opacity: 0.55,
-      }}
-    />
-  );
-}
-
-function Price({
-  value,
-  editable,
-  onUpdate,
-  onFocusEl,
-  onBlurEl,
-  color,
-  fontSize = 6,
-}: {
-  value?: string;
-  editable?: boolean;
-  onUpdate?: SleekFlyerProps["onUpdate"];
-  onFocusEl?: SleekFlyerProps["onFocusEl"];
-  onBlurEl?: SleekFlyerProps["onBlurEl"];
-  color: string;
-  fontSize?: number;
-}) {
-  if (!value) return null;
-
-  return (
-    <EditableText
-      as="span"
-      fieldId="f-price"
-      editable={editable}
-      value={value}
-      onChange={(next) => onUpdate?.("price", next)}
-      onFocusEl={onFocusEl}
-      onBlurEl={onBlurEl}
-      style={{
-        ...textOverflowStyle,
-        fontSize: ci(fontSize),
-        fontWeight: 700,
-        letterSpacing: "-0.035em",
-        color,
-      }}
-    />
-  );
-}
-
-function CTA({
-  value,
-  editable,
-  onUpdate,
-  onFocusEl,
-  onBlurEl,
-  backgroundColor,
-  color,
-  border,
-}: {
-  value: string;
-  editable?: boolean;
-  onUpdate?: SleekFlyerProps["onUpdate"];
-  onFocusEl?: SleekFlyerProps["onFocusEl"];
-  onBlurEl?: SleekFlyerProps["onBlurEl"];
-  backgroundColor?: string;
-  color: string;
-  border?: string;
-}) {
-  return (
-    <EditableText
-      as="div"
-      fieldId="f-cta"
-      editable={editable}
-      value={value}
-      onChange={(next) => onUpdate?.("ctaText", next)}
-      onFocusEl={onFocusEl}
-      onBlurEl={onBlurEl}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        maxWidth: "100%",
-        minHeight: ci(7),
-        padding: `${ci(1.8)} ${ci(4)}`,
-        borderRadius: "999px",
-        backgroundColor,
-        border,
-        color,
-        fontSize: ci(2.2),
-        lineHeight: 1.15,
-        fontWeight: 600,
-        letterSpacing: "0.03em",
-        boxSizing: "border-box",
-        overflowWrap: "anywhere",
-      }}
-    />
-  );
-}
-
-function ContentLists({
-  props,
-  colorOverride,
-}: {
-  props: SleekFlyerProps;
-  colorOverride?: string;
-}) {
+export function SleekFlyerTemplate(
+  props: SleekFlyerProps
+) {
   const {
-    features,
-    whyChooseUs,
-    colors,
-    editable,
-    onUpdateFeature,
-    onAddFeature,
-    onRemoveFeature,
-    onUpdateWhyChooseUs,
-    onAddWhyChooseUs,
-    onRemoveWhyChooseUs,
-    featuresVisible,
-    whyChooseUsVisible,
-    onRestoreFeatures,
-    onRestoreWhyChooseUs,
-    onFocusEl,
-    onBlurEl,
+    name = "Mono Split",
   } = props;
 
-  const color = colorOverride ?? colors.secondary;
-
-  return (
-    <div
-      style={{
-        minWidth: 0,
-        maxWidth: "100%",
-        display: "flex",
-        flexDirection: "column",
-        gap: ci(1.5),
-        color,
-      }}
-    >
-      <FeatureList
-        features={features}
-        colors={{
-          ...colors,
-          secondary: color,
-        }}
-        editable={editable}
-        onUpdateFeature={onUpdateFeature}
-        onAddFeature={onAddFeature}
-        onRemoveFeature={onRemoveFeature}
-        onFocusEl={onFocusEl}
-        onBlurEl={onBlurEl}
-        visible={featuresVisible}
-        onRestoreSection={onRestoreFeatures}
-      />
-
-      <WhyChooseUsList
-        items={whyChooseUs}
-        colors={{
-          ...colors,
-          secondary: color,
-        }}
-        editable={editable}
-        onUpdate={onUpdateWhyChooseUs}
-        onAdd={onAddWhyChooseUs}
-        onRemove={onRemoveWhyChooseUs}
-        onFocusEl={onFocusEl}
-        onBlurEl={onBlurEl}
-        visible={whyChooseUsVisible}
-        onRestoreSection={onRestoreWhyChooseUs}
-      />
-    </div>
-  );
-}
-
-function Contacts(props: SleekFlyerProps & { accent?: string; text?: string }) {
-  return (
-    <ContactBar
-      phone={props.phone}
-      website={props.website}
-      email={props.email}
-      accentColor={props.accent ?? props.colors.accent}
-      textColor={props.text ?? props.colors.secondary}
-      editable={props.editable}
-      onUpdatePhone={props.onUpdatePhone}
-      onUpdateWebsite={props.onUpdateWebsite}
-      onUpdateEmail={props.onUpdateEmail}
-      onFocusEl={props.onFocusEl}
-      onBlurEl={props.onBlurEl}
-      phoneVisible={props.phoneVisible}
-      websiteVisible={props.websiteVisible}
-      emailVisible={props.emailVisible}
-      onRemovePhone={props.onRemovePhone}
-      onRemoveWebsite={props.onRemoveWebsite}
-      onRemoveEmail={props.onRemoveEmail}
-      onRestorePhone={props.onRestorePhone}
-      onRestoreWebsite={props.onRestoreWebsite}
-      onRestoreEmail={props.onRestoreEmail}
-    />
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Template switcher                                                          */
-/* -------------------------------------------------------------------------- */
-
-export function SleekFlyerTemplate(props: SleekFlyerProps) {
-  switch (props.name ?? "Mono Split") {
+  switch (name) {
     case "Mono Split":
       return <VariantMonoSplit {...props} />;
+
     case "Editorial Arc":
       return <VariantEditorialArc {...props} />;
+
     case "Negative Space":
       return <VariantNegativeSpace {...props} />;
+
     case "Studio Grid":
       return <VariantStudioGrid {...props} />;
+
     case "Kōan":
       return <VariantKoan {...props} />;
+
     default:
       return <VariantMonoSplit {...props} />;
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/* 1. MONO SPLIT                                                              */
-/*                                                                            */
-/* Main responsive fix:                                                      */
-/* - product image is now on the RIGHT                                       */
-/* - image is vertically/horizontally centered                               */
-/* - text is on the LEFT                                                      */
-/* - no @container dependency                                                 */
-/* -------------------------------------------------------------------------- */
 
-function VariantMonoSplit(props: SleekFlyerProps) {
-  const {
-    headline,
-    subheadline,
-    ctaText,
-    productImage,
-    brandName,
-    website,
-    price,
-    phone,
-    email,
-    colors,
-    editable,
-    onUpdate,
-    onFocusEl,
-    onBlurEl,
-  } = props;
+/* ═══════════════════════════════════════════════════════════════════════════
+   1. MONO SPLIT
+═══════════════════════════════════════════════════════════════════════════ */
 
-  return (
-    <div style={rootStyle(colors)}>
+const VariantMonoSplit = ({
+  headline,
+  subheadline,
+  ctaText,
+
+  productImage,
+  brandName,
+  website,
+  price,
+
+  features,
+  phone,
+  email,
+
+  colors,
+
+  editable,
+
+  onUpdate,
+  onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
+
+  whyChooseUs,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
+  onUpdateWebsite,
+  onUpdateEmail,
+  onUpdatePhone,
+  featuresVisible,
+  whyChooseUsVisible,
+  phoneVisible,
+  emailVisible,
+  websiteVisible,
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
+  onFocusEl,
+  onBlurEl,
+}: SleekFlyerProps) => (
+  <div
+    className="@container w-full h-full relative overflow-hidden flex flex-row font-sans"
+    style={{
+      backgroundColor: colors.primary,
+      color: colors.secondary,
+    }}
+  >
+    <div
+      className="relative overflow-hidden"
+      style={{
+        width: "55%",
+        height: "100%",
+      }}
+    >
+      <Image
+        src={productImage}
+        alt="Product"
+        fill
+        className="object-cover object-center"
+        crossOrigin="anonymous"
+      />
+
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `linear-gradient(to right, transparent 60%, ${colors.primary}CC 100%)`,
+        }}
+      />
+    </div>
+
+    <div
+      className="flex flex-col justify-between relative z-10"
+      style={{
+        width: "45%",
+        height: "100%",
+        backgroundColor: colors.primary,
+        padding: "calc(7*var(--ci)) calc(6*var(--ci)) calc(7*var(--ci)) calc(5*var(--ci))",
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <EditableText
+          as="span"
+          fieldId="f-brand"
+          editable={editable}
+          value={brandName ?? ""}
+          onChange={(value) =>
+            onUpdate?.("brandName", value)
+          }
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          style={{
+            fontSize: "calc(2.2*var(--ci))",
+            fontWeight: 700,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            opacity: 0.45,
+            color: colors.secondary,
+          }}
+        />
+
+        <div
+          style={{
+            width: "calc(1.8*var(--ci))",
+            height: "calc(1.8*var(--ci))",
+            borderRadius: "50%",
+            backgroundColor: colors.accent,
+          }}
+        />
+      </div>
+
       <div
         style={{
-          position: "absolute",
-          inset: 0,
+          flex: 1,
           display: "flex",
-          flexDirection: "row",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: "calc(3*var(--ci))",
+          overflow: "hidden",
         }}
       >
-        {/* TEXT SIDE */}
         <div
           style={{
-            position: "relative",
-            zIndex: 10,
-            width: "46%",
-            height: "100%",
-            minWidth: 0,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            padding: `${ci(7)} ${ci(3)} ${ci(6)} ${ci(6)}`,
-            boxSizing: "border-box",
-            backgroundColor: colors.primary,
+            width: "calc(8*var(--ci))",
+            height: "calc(0.3*var(--ci))",
+            backgroundColor: colors.accent,
+            marginBottom: "calc(1*var(--ci))",
+          }}
+        />
+
+        <h1
+          style={{
+            fontSize: "clamp(24px, calc(11*var(--ci)), 96px)",
+            fontWeight: 800,
+            lineHeight: 0.92,
+            letterSpacing: "-0.03em",
+            color: colors.secondary,
+            margin: 0,
+            fontFamily:
+              "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif",
           }}
         >
+          <EditableHeadlineLines
+            value={headline}
+            editable={editable}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            onChange={(value) =>
+              onUpdate?.("headline", value)
+            }
+            renderLine={(line, index, node) => (
+              <span
+                key={index}
+                style={{
+                  display: "block",
+                }}
+              >
+                {node}
+              </span>
+            )}
+          />
+        </h1>
+
+        {subheadline !== undefined && (
+          <EditableText
+            as="p"
+            fieldId="f-sub"
+            editable={editable}
+            value={subheadline}
+            onChange={(value) =>
+              onUpdate?.("subtext", value)
+            }
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            style={{
+              fontSize: "calc(2.6*var(--ci))",
+              lineHeight: 1.5,
+              color: colors.secondary,
+              opacity: 0.55,
+              margin: 0,
+              maxWidth: "28ch",
+              fontWeight: 400,
+            }}
+          />
+        )}
+
+        <FeatureList
+  features={features}
+  colors={colors}
+  editable={editable}
+  onUpdateFeature={onUpdateFeature}
+  onAddFeature={onAddFeature}
+  onRemoveFeature={onRemoveFeature}
+  onFocusEl={onFocusEl}
+  onBlurEl={onBlurEl}
+  visible={featuresVisible}
+  onRestoreSection={onRestoreFeatures}
+/>
+        <WhyChooseUsList
+    items={whyChooseUs}
+    colors={colors}
+    editable={editable}
+    onUpdate={onUpdateWhyChooseUs}
+    onAdd={onAddWhyChooseUs}
+    onRemove={onRemoveWhyChooseUs}
+    onFocusEl={onFocusEl}
+    onBlurEl={onBlurEl}
+    visible={whyChooseUsVisible}
+    onRestoreSection={onRestoreWhyChooseUs}
+  />
+
+        {price !== undefined && price !== "" && (
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              minWidth: 0,
+              display: "inline-flex",
+              alignItems: "baseline",
+              gap: "calc(0.8*var(--ci))",
+              marginTop: "calc(1*var(--ci))",
             }}
           >
-            <Brand
-              brandName={brandName}
+            <EditableText
+              as="span"
+              fieldId="f-price"
               editable={editable}
-              onUpdate={onUpdate}
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-              color={colors.secondary}
-              fontSize={2.1}
-            />
-          </div>
-
-          <div
-            style={{
-              minHeight: 0,
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              gap: ci(2.2),
-              overflow: "hidden",
-              padding: `${ci(3)} 0`,
-              boxSizing: "border-box",
-            }}
-          >
-            <div
-              style={{
-                width: ci(8),
-                height: ci(0.35),
-                flexShrink: 0,
-                backgroundColor: colors.accent,
-              }}
-            />
-
-            <h1
-              style={{
-                ...textOverflowStyle,
-                margin: 0,
-                fontSize: "clamp(24px, 11cqi, 96px)",
-                fontWeight: 800,
-                lineHeight: 0.92,
-                letterSpacing: "-0.03em",
-                color: colors.secondary,
-                fontFamily: FONT,
-              }}
-            >
-              <EditableHeadlineLines
-                value={headline}
-                editable={editable}
-                onFocusEl={onFocusEl}
-                onBlurEl={onBlurEl}
-                onChange={(value) => onUpdate?.("headline", value)}
-                renderLine={(line, index, node) => (
-                  <span key={`${index}-${line}`} style={{ display: "block" }}>
-                    {node}
-                  </span>
-                )}
-              />
-            </h1>
-
-            <Subheadline
-              value={subheadline}
-              editable={editable}
-              onUpdate={onUpdate}
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-              color={colors.secondary}
-              fontSize={2.45}
-              maxWidth="28ch"
-            />
-
-            <ContentLists props={props} />
-
-            <Price
               value={price}
-              editable={editable}
-              onUpdate={onUpdate}
+              onChange={(value) =>
+                onUpdate?.("price", value)
+              }
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
-              color={colors.secondary}
-              fontSize={6}
-            />
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-start",
-              gap: ci(2.2),
-              minWidth: 0,
-            }}
-          >
-            <CTA
-              value={ctaText}
-              editable={editable}
-              onUpdate={onUpdate}
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-              backgroundColor={colors.secondary}
-              color={colors.primary}
-            />
-
-            <Contacts
-              {...props}
-              accent={colors.accent}
-              text={colors.secondary}
-            />
-          </div>
-        </div>
-
-        {/* IMAGE SIDE — centered right */}
-        <div
-          style={{
-            position: "relative",
-            width: "54%",
-            height: "100%",
-            minWidth: 0,
-            minHeight: 0,
-            overflow: "hidden",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: colors.primary,
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              backgroundColor: colors.primary,
-              opacity: 0.06,
-            }}
-          />
-
-          <div
-            style={{
-              position: "relative",
-              width: "92%",
-              height: "88%",
-              minWidth: 0,
-              minHeight: 0,
-              zIndex: 2,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <FlyerImage
-              src={productImage}
-              position="50% 50%"
-              contain
               style={{
-                filter: "drop-shadow(0 5% 4% rgba(0,0,0,0.14))",
+                fontSize: "calc(7*var(--ci))",
+                fontWeight: 700,
+                letterSpacing: "-0.04em",
+                color: colors.secondary,
               }}
             />
           </div>
-
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              zIndex: 3,
-              pointerEvents: "none",
-              background:
-                "linear-gradient(to right, rgba(0,0,0,0.08), transparent 35%)",
-            }}
-          />
-        </div>
+        )}
       </div>
-    </div>
-  );
-}
 
-/* -------------------------------------------------------------------------- */
-/* 2. EDITORIAL ARC                                                           */
-/* -------------------------------------------------------------------------- */
-
-function VariantEditorialArc(props: SleekFlyerProps) {
-  const {
-    headline,
-    subheadline,
-    ctaText,
-    productImage,
-    brandName,
-    badge,
-    price,
-    colors,
-    editable,
-    onUpdate,
-    onFocusEl,
-    onBlurEl,
-  } = props;
-
-  const lines = headline.split("\n");
-  const line0 = lines[0] ?? "";
-  const line1 = lines.slice(1).join("\n");
-
-  return (
-    <div style={rootStyle(colors)}>
       <div
         style={{
-          position: "relative",
-          zIndex: 30,
+          display: "flex",
+          flexDirection: "column",
+          gap: "calc(2.5*var(--ci))",
+        }}
+      >
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "calc(2*var(--ci))",
+            backgroundColor: colors.secondary,
+            color: colors.primary,
+            padding: "calc(2.2*var(--ci)) calc(4*var(--ci))",
+            borderRadius: "100px",
+            fontSize: "calc(2.4*var(--ci))",
+            fontWeight: 600,
+            letterSpacing: "0.02em",
+            width: "fit-content",
+          }}
+        >
+          <EditableText
+            as="span"
+            fieldId="f-cta"
+            editable={editable}
+            value={ctaText}
+            onChange={(value) =>
+              onUpdate?.("ctaText", value)
+            }
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+          />
+
+          <svg
+            width="calc(1.4*var(--ci))"
+            height="calc(1.4*var(--ci))"
+            viewBox="0 0 12 12"
+            fill="currentColor"
+          >
+            <path
+              d="M2 6h8M6 2l4 4-4 4"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              fill="none"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+
+        <ContactBar
+  phone={phone}
+  website={website}
+  email={email}
+  accentColor={colors.accent}
+  textColor={colors.secondary}
+  editable={editable}
+  onUpdatePhone={onUpdatePhone}
+  onUpdateWebsite={onUpdateWebsite}
+  onUpdateEmail={onUpdateEmail}
+  onFocusEl={onFocusEl}
+  onBlurEl={onBlurEl}
+  phoneVisible={phoneVisible}
+  websiteVisible={websiteVisible}
+  emailVisible={emailVisible}
+  onRemovePhone={onRemovePhone}
+  onRemoveWebsite={onRemoveWebsite}
+  onRemoveEmail={onRemoveEmail}
+  onRestorePhone={onRestorePhone}
+  onRestoreWebsite={onRestoreWebsite}
+  onRestoreEmail={onRestoreEmail}
+/>
+      </div>
+    </div>
+  </div>
+);
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2. EDITORIAL ARC
+═══════════════════════════════════════════════════════════════════════════ */
+
+const VariantEditorialArc = ({
+  headline,
+  subheadline,
+  ctaText,
+
+  productImage,
+  brandName,
+  website,
+  price,
+  badge,
+
+  features,
+  phone,
+  email,
+
+  colors,
+
+  editable,
+
+  onUpdate,
+
+  onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
+  whyChooseUs,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
+
+  onUpdatePhone,
+  onUpdateWebsite,
+  onUpdateEmail,
+  featuresVisible,
+  whyChooseUsVisible,
+  phoneVisible,
+  emailVisible,
+  websiteVisible,
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
+  onFocusEl,
+  onBlurEl,
+}: SleekFlyerProps) => {
+  const lines = headline.split("\n");
+
+  const line0 = lines[0] ?? "";
+  const line1 = lines[1] ?? "";
+
+  return (
+    <div
+      className="@container w-full h-full relative overflow-hidden flex flex-col font-sans"
+      style={{
+        backgroundColor: colors.primary,
+        color: colors.secondary,
+      }}
+    >
+      <div
+        style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          gap: ci(3),
-          padding: `${ci(5)} ${ci(6)} 0`,
-          boxSizing: "border-box",
+          padding: "calc(5*var(--ci)) calc(6*var(--ci)) 0",
+          position: "relative",
+          zIndex: 20,
         }}
       >
-        <Brand
-          brandName={brandName}
+        <EditableText
+          as="span"
+          fieldId="f-brand"
           editable={editable}
-          onUpdate={onUpdate}
+          value={brandName ?? ""}
+          onChange={(value) =>
+            onUpdate?.("brandName", value)
+          }
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
-          color={colors.secondary}
-          fontSize={2}
+          style={{
+            fontSize: "calc(2*var(--ci))",
+            fontWeight: 700,
+            letterSpacing: "0.25em",
+            textTransform: "uppercase",
+            color: colors.secondary,
+            opacity: 0.5,
+          }}
         />
 
-        {badge ? (
+        {badge && (
           <EditableText
             as="span"
             fieldId="f-badge"
             editable={editable}
             value={badge}
-            onChange={(value) => onUpdate?.("badgeText", value)}
+            onChange={(value) =>
+              onUpdate?.("badgeText", value)
+            }
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             style={{
-              flexShrink: 0,
-              maxWidth: "45%",
-              padding: `${ci(0.8)} ${ci(2.5)}`,
-              border: `${ci(0.15)} solid ${colors.accent}`,
-              borderRadius: "999px",
-              fontSize: ci(1.8),
+              fontSize: "calc(1.8*var(--ci))",
               fontWeight: 600,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
               color: colors.accent,
-              overflowWrap: "anywhere",
+              border: `calc(0.15*var(--ci)) solid ${colors.accent}`,
+              padding: "calc(0.8*var(--ci)) calc(2.5*var(--ci))",
+              borderRadius: "100px",
             }}
           />
-        ) : null}
+        )}
       </div>
 
       <div
         style={{
+          padding: "calc(2*var(--ci)) calc(6*var(--ci)) 0",
           position: "relative",
-          zIndex: 20,
-          padding: `${ci(2)} ${ci(6)} 0`,
-          lineHeight: 0.84,
+          zIndex: 5,
+          lineHeight: 0.82,
         }}
       >
         <h1
           style={{
-            margin: 0,
-            fontSize: "clamp(32px, 18cqi, 160px)",
+            fontSize: "clamp(32px, calc(18*var(--ci)), 160px)",
             fontWeight: 900,
             letterSpacing: "-0.04em",
             color: colors.secondary,
-            fontFamily: FONT,
+            margin: 0,
+            fontFamily:
+              "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif",
           }}
         >
           <EditableText
@@ -755,65 +561,77 @@ function VariantEditorialArc(props: SleekFlyerProps) {
             editable={editable}
             value={line0}
             onChange={(value) =>
-              onUpdate?.("headline", line1 ? `${value}\n${line1}` : value)
+              onUpdate?.(
+                "headline",
+                [value, line1].join("\n")
+              )
             }
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
-            style={{ display: "block", overflowWrap: "anywhere" }}
           />
+        </h1>
 
-          {line1 ? (
+        {line1 && (
+          <h1
+            style={{
+              fontSize: "clamp(32px, calc(18*var(--ci)), 160px)",
+              fontWeight: 900,
+              letterSpacing: "-0.04em",
+              color: "transparent",
+              WebkitTextStroke: `calc(0.15*var(--ci)) ${colors.secondary}`,
+              margin: 0,
+              fontFamily:
+                "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif",
+              opacity: 0.2,
+            }}
+          >
             <EditableText
               as="span"
               fieldId="f-headline-1"
               editable={editable}
               value={line1}
               onChange={(value) =>
-                onUpdate?.("headline", line0 ? `${line0}\n${value}` : value)
+                onUpdate?.(
+                  "headline",
+                  [line0, value].join("\n")
+                )
               }
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
-              style={{
-                display: "block",
-                color: "transparent",
-                WebkitTextStroke: `${ci(0.15)} ${colors.secondary}`,
-                opacity: 0.2,
-                overflowWrap: "anywhere",
-              }}
             />
-          ) : null}
-        </h1>
+          </h1>
+        )}
       </div>
 
-      {/* Image is centered in the remaining area and stays safely inside bounds. */}
       <div
         style={{
-          position: "absolute",
-          top: "22%",
-          right: "3%",
-          width: "58%",
-          height: "55%",
+          flex: 1,
+          position: "relative",
           zIndex: 15,
+          margin: "calc(-4*var(--ci)) 0 0",
+          minHeight: 0,
         }}
       >
-        <FlyerImage
+        <Image
           src={productImage}
-          position="50% 50%"
-          contain
+          alt="Product"
+          fill
+          className="object-contain object-bottom"
           style={{
-            transform: "scale(1.02)",
-            transformOrigin: "center center",
+            transform: "scale(1.05)",
+            transformOrigin: "bottom center",
           }}
+          crossOrigin="anonymous"
         />
       </div>
 
       <div
         style={{
           position: "absolute",
+          bottom: "calc(-15*var(--ci))",
           left: "-10%",
-          bottom: "-15%",
           width: "120%",
-          height: "45%",
+          height: "calc(45*var(--ci))",
           backgroundColor: colors.accent,
           borderRadius: "50% 50% 0 0",
           zIndex: 10,
@@ -823,834 +641,1229 @@ function VariantEditorialArc(props: SleekFlyerProps) {
       <div
         style={{
           position: "absolute",
+          bottom: "calc(5*var(--ci))",
           left: 0,
           right: 0,
-          bottom: ci(5),
-          zIndex: 30,
+          zIndex: 20,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-end",
-          gap: ci(4),
-          padding: `0 ${ci(7)}`,
-          boxSizing: "border-box",
+          padding: "0 calc(7*var(--ci))",
+          gap: "calc(4*var(--ci))",
         }}
       >
         <div
           style={{
             minWidth: 0,
-            maxWidth: "65%",
-            display: "flex",
-            flexDirection: "column",
-            gap: ci(1.5),
+            flex: 1,
           }}
         >
-          <Subheadline
-            value={subheadline}
+          {subheadline !== undefined && (
+            <EditableText
+              as="p"
+              fieldId="f-sub"
+              editable={editable}
+              value={subheadline}
+              onChange={(value) =>
+                onUpdate?.("subtext", value)
+              }
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              style={{
+                fontSize: "calc(2.5*var(--ci))",
+                color: colors.primary,
+                margin: "0 0 calc(1*var(--ci))",
+                opacity: 0.8,
+                fontWeight: 400,
+                maxWidth: "26ch",
+                lineHeight: 1.4,
+              }}
+            />
+          )}
+
+          <FeatureList
+            features={features}
+            colors={colors}
             editable={editable}
-            onUpdate={onUpdate}
+            onUpdateFeature={onUpdateFeature}
+            onAddFeature={onAddFeature}
+            onRemoveFeature={onRemoveFeature}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
-            color={colors.primary}
-            fontSize={2.5}
-            maxWidth="26ch"
+            visible={featuresVisible}
+onRestoreSection={onRestoreFeatures}
           />
+              <WhyChooseUsList
+      items={whyChooseUs}
+      colors={colors}
+      editable={editable}
+      onUpdate={onUpdateWhyChooseUs}
+      onAdd={onAddWhyChooseUs}
+      onRemove={onRemoveWhyChooseUs}
+      onFocusEl={onFocusEl}
+      onBlurEl={onBlurEl}
+      visible={whyChooseUsVisible}
+onRestoreSection={onRestoreWhyChooseUs}
+    />
 
-          <ContentLists props={props} colorOverride={colors.primary} />
-
-          <Price
-            value={price}
-            editable={editable}
-            onUpdate={onUpdate}
-            onFocusEl={onFocusEl}
-            onBlurEl={onBlurEl}
-            color={colors.primary}
-            fontSize={6.5}
-          />
+          {price !== undefined && price !== "" && (
+            <EditableText
+              as="span"
+              fieldId="f-price"
+              editable={editable}
+              value={price}
+              onChange={(value) =>
+                onUpdate?.("price", value)
+              }
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              style={{
+                fontSize: "calc(8*var(--ci))",
+                fontWeight: 800,
+                letterSpacing: "-0.04em",
+                color: colors.primary,
+              }}
+            />
+          )}
         </div>
 
         <div
           style={{
+            textAlign: "right",
             flexShrink: 0,
-            maxWidth: "35%",
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-end",
-            gap: ci(1.5),
-            textAlign: "right",
+            gap: "calc(1.5*var(--ci))",
           }}
         >
-          <CTA
-            value={ctaText}
+          <div
+            style={{
+              fontSize: "calc(2.8*var(--ci))",
+              fontWeight: 700,
+              color: colors.primary,
+              letterSpacing: "0.04em",
+            }}
+          >
+            <EditableText
+              as="span"
+              fieldId="f-cta"
+              editable={editable}
+              value={ctaText}
+              onChange={(value) =>
+                onUpdate?.("ctaText", value)
+              }
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+            />{" "}
+            →
+          </div>
+
+          <ContactBar
+            phone={phone}
+            website={website}
+            email={email}
+            accentColor={colors.primary}
+            textColor={colors.primary}
             editable={editable}
-            onUpdate={onUpdate}
+            onUpdatePhone={onUpdatePhone}
+            onUpdateWebsite={onUpdateWebsite}
+            onUpdateEmail={onUpdateEmail}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
-            color={colors.primary}
-            backgroundColor="transparent"
-            border="none"
-          />
-
-          <Contacts
-            {...props}
-            accent={colors.primary}
-            text={colors.primary}
+            phoneVisible={phoneVisible}
+websiteVisible={websiteVisible}
+emailVisible={emailVisible}
+onRemovePhone={onRemovePhone}
+onRemoveWebsite={onRemoveWebsite}
+onRemoveEmail={onRemoveEmail}
+onRestorePhone={onRestorePhone}
+onRestoreWebsite={onRestoreWebsite}
+onRestoreEmail={onRestoreEmail}
           />
         </div>
       </div>
     </div>
   );
-}
+};
 
-/* -------------------------------------------------------------------------- */
-/* 3. NEGATIVE SPACE                                                           */
-/* -------------------------------------------------------------------------- */
 
-function VariantNegativeSpace(props: SleekFlyerProps) {
-  const {
-    headline,
-    subheadline,
-    tagline,
-    ctaText,
-    productImage,
-    brandName,
-    price,
-    colors,
-    editable,
-    onUpdate,
-    onFocusEl,
-    onBlurEl,
-  } = props;
+/* ═══════════════════════════════════════════════════════════════════════════
+   3. NEGATIVE SPACE
+═══════════════════════════════════════════════════════════════════════════ */
 
-  return (
-    <div style={rootStyle(colors)}>
+const VariantNegativeSpace = ({
+  headline,
+  subheadline,
+  tagline,
+  ctaText,
+
+  productImage,
+  brandName,
+  website,
+  price,
+
+  features,
+  phone,
+  email,
+
+  colors,
+
+  editable,
+
+  onUpdate,
+
+  onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
+
+  whyChooseUs,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
+  onUpdatePhone,
+  onUpdateWebsite,
+  onUpdateEmail,
+  featuresVisible,
+  whyChooseUsVisible,
+  phoneVisible,
+  emailVisible,
+  websiteVisible,
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
+  onFocusEl,
+  onBlurEl,
+}: SleekFlyerProps) => (
+  <div
+    className="@container w-full h-full relative overflow-hidden flex flex-col font-sans"
+    style={{
+      backgroundColor: colors.primary,
+      color: colors.secondary,
+    }}
+  >
+    <div
+      style={{
+        height: "calc(0.6*var(--ci))",
+        backgroundColor: colors.accent,
+        width: "100%",
+        flexShrink: 0,
+      }}
+    />
+
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "calc(4*var(--ci)) calc(6*var(--ci))",
+        flexShrink: 0,
+      }}
+    >
+      <EditableText
+        as="span"
+        fieldId="f-brand"
+        editable={editable}
+        value={brandName ?? ""}
+        onChange={(value) =>
+          onUpdate?.("brandName", value)
+        }
+        onFocusEl={onFocusEl}
+        onBlurEl={onBlurEl}
+        style={{
+          fontSize: "calc(2.2*var(--ci))",
+          fontWeight: 800,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: colors.secondary,
+        }}
+      />
+
+      {tagline !== undefined && (
+        <EditableText
+          as="span"
+          fieldId="f-tagline"
+          editable={editable}
+          value={tagline}
+          onChange={(value) =>
+            onUpdate?.("tagline", value)
+          }
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          style={{
+            fontSize: "calc(2*var(--ci))",
+            fontWeight: 400,
+            color: colors.secondary,
+            opacity: 0.35,
+            letterSpacing: "0.06em",
+          }}
+        />
+      )}
+    </div>
+
+    <div
+      style={{
+        flex: 1,
+        position: "relative",
+        margin: "0 calc(8*var(--ci))",
+        minHeight: 0,
+      }}
+    >
+      <Image
+        src={productImage}
+        alt="Product"
+        fill
+        className="object-contain"
+        style={{
+          filter:
+            "drop-shadow(0 calc(8*var(--ci)) calc(6*var(--ci)) rgba(0,0,0,0.08))",
+        }}
+        crossOrigin="anonymous"
+      />
+    </div>
+
+    <div
+      style={{
+        flexShrink: 0,
+        padding: "0 calc(6*var(--ci)) calc(5*var(--ci))",
+        display: "flex",
+        flexDirection: "column",
+        gap: "calc(2*var(--ci))",
+      }}
+    >
       <div
         style={{
-          height: ci(0.6),
-          width: "100%",
-          backgroundColor: colors.accent,
+          height: "calc(0.08*var(--ci))",
+          backgroundColor: colors.secondary,
+          opacity: 0.1,
+          marginBottom: "calc(1*var(--ci))",
         }}
       />
 
       <div
         style={{
-          height: "12%",
-          minHeight: 0,
           display: "flex",
-          alignItems: "center",
           justifyContent: "space-between",
-          gap: ci(3),
-          padding: `0 ${ci(6)}`,
-          boxSizing: "border-box",
+          alignItems: "flex-end",
+          gap: "calc(4*var(--ci))",
         }}
       >
-        <Brand
-          brandName={brandName}
-          editable={editable}
-          onUpdate={onUpdate}
-          onFocusEl={onFocusEl}
-          onBlurEl={onBlurEl}
-          color={colors.secondary}
-          fontSize={2.2}
-          opacity={1}
-        />
+        <div
+          style={{
+            minWidth: 0,
+            flex: 1,
+          }}
+        >
+          <h2
+            style={{
+              fontSize: "clamp(18px, calc(8*var(--ci)), 72px)",
+              fontWeight: 700,
+              letterSpacing: "-0.025em",
+              color: colors.secondary,
+              margin: 0,
+              lineHeight: 0.95,
+              fontFamily:
+                "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif",
+            }}
+          >
+            <EditableHeadlineLines
+              value={headline}
+              editable={editable}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              onChange={(value) =>
+                onUpdate?.("headline", value)
+              }
+              renderLine={(line, index, node) => (
+                <span
+                  key={index}
+                  style={{
+                    display: "block",
+                  }}
+                >
+                  {node}
+                </span>
+              )}
+            />
+          </h2>
 
-        {tagline !== undefined ? (
+          {subheadline !== undefined && (
+            <EditableText
+              as="p"
+              fieldId="f-sub"
+              editable={editable}
+              value={subheadline}
+              onChange={(value) =>
+                onUpdate?.("subtext", value)
+              }
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              style={{
+                fontSize: "calc(2.2*var(--ci))",
+                color: colors.secondary,
+                opacity: 0.5,
+                margin: "calc(1.5*var(--ci)) 0 0",
+                fontWeight: 400,
+                lineHeight: 1.5,
+                maxWidth: "30ch",
+              }}
+            />
+          )}
+
+          <div
+            style={{
+              marginTop: "calc(2*var(--ci))",
+            }}
+          >
+            <FeatureList
+              features={features}
+              colors={colors}
+              editable={editable}
+              onUpdateFeature={onUpdateFeature}
+              onAddFeature={onAddFeature}
+              onRemoveFeature={onRemoveFeature}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              visible={featuresVisible}
+onRestoreSection={onRestoreFeatures}
+            />
+            <WhyChooseUsList
+  items={whyChooseUs}
+  colors={colors}
+  editable={editable}
+  onUpdate={onUpdateWhyChooseUs}
+  onAdd={onAddWhyChooseUs}
+  onRemove={onRemoveWhyChooseUs}
+  onFocusEl={onFocusEl}
+  onBlurEl={onBlurEl}
+  visible={whyChooseUsVisible}
+onRestoreSection={onRestoreWhyChooseUs}
+/>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: "calc(2*var(--ci))",
+            flexShrink: 0,
+          }}
+        >
+          {price !== undefined && price !== "" && (
+            <EditableText
+              as="span"
+              fieldId="f-price"
+              editable={editable}
+              value={price}
+              onChange={(value) =>
+                onUpdate?.("price", value)
+              }
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              style={{
+                fontSize: "calc(6*var(--ci))",
+                fontWeight: 700,
+                letterSpacing: "-0.03em",
+                color: colors.accent,
+              }}
+            />
+          )}
+
           <EditableText
-            as="span"
-            fieldId="f-tagline"
+            as="div"
+            fieldId="f-cta"
             editable={editable}
-            value={tagline}
-            onChange={(value) => onUpdate?.("tagline", value)}
+            value={ctaText}
+            onChange={(value) =>
+              onUpdate?.("ctaText", value)
+            }
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             style={{
-              ...textOverflowStyle,
-              maxWidth: "45%",
-              fontSize: ci(2),
-              fontWeight: 400,
-              color: colors.secondary,
-              opacity: 0.35,
+              border: `calc(0.15*var(--ci)) solid ${colors.secondary}`,
+              padding: "calc(1.8*var(--ci)) calc(4.5*var(--ci))",
+              fontSize: "calc(2.2*var(--ci))",
+              fontWeight: 600,
               letterSpacing: "0.06em",
-              textAlign: "right",
+              color: colors.secondary,
+              borderRadius: "100px",
+              whiteSpace: "nowrap",
             }}
           />
-        ) : null}
-      </div>
 
-      {/* Large centered product image area */}
-      <div
-        style={{
-          position: "relative",
-          height: "48%",
-          minHeight: 0,
-          margin: `0 ${ci(7)}`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <div
-          style={{
-            position: "relative",
-            width: "88%",
-            height: "94%",
-            minHeight: 0,
-          }}
-        >
-          <FlyerImage
-            src={productImage}
-            position="50% 50%"
-            contain
-            style={{
-              filter: "drop-shadow(0 6% 5% rgba(0,0,0,0.08))",
-            }}
+          <ContactBar
+            phone={phone}
+            website={website}
+            email={email}
+            accentColor={colors.accent}
+            textColor={colors.secondary}
+            editable={editable}
+            onUpdatePhone={onUpdatePhone}
+            onUpdateWebsite={onUpdateWebsite}
+            onUpdateEmail={onUpdateEmail}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            phoneVisible={phoneVisible}
+websiteVisible={websiteVisible}
+emailVisible={emailVisible}
+onRemovePhone={onRemovePhone}
+onRemoveWebsite={onRemoveWebsite}
+onRemoveEmail={onRemoveEmail}
+onRestorePhone={onRestorePhone}
+onRestoreWebsite={onRestoreWebsite}
+onRestoreEmail={onRestoreEmail}
           />
         </div>
       </div>
+    </div>
+  </div>
+);
 
-      <div
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   4. STUDIO GRID
+═══════════════════════════════════════════════════════════════════════════ */
+
+const VariantStudioGrid = ({
+  headline,
+  subheadline,
+  ctaText,
+
+  productImage,
+  brandName,
+  website,
+  price,
+  badge,
+
+  features,
+  phone,
+  email,
+
+  colors,
+
+  editable,
+
+  onUpdate,
+
+  onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
+  whyChooseUs,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
+  onUpdatePhone,
+  onUpdateWebsite,
+  onUpdateEmail,
+featuresVisible,
+  whyChooseUsVisible,
+  phoneVisible,
+  emailVisible,
+  websiteVisible,
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
+  onFocusEl,
+  onBlurEl,
+}: SleekFlyerProps) => (
+  <div
+    className="@container w-full h-full relative overflow-hidden font-sans"
+    style={{
+      backgroundColor: colors.primary,
+      color: colors.secondary,
+    }}
+  >
+    <div
+      style={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform:
+          "translate(-50%, -50%) rotate(-20deg)",
+        fontSize: "calc(40*var(--ci))",
+        fontWeight: 900,
+        letterSpacing: "-0.05em",
+        color: colors.secondary,
+        opacity: 0.03,
+        whiteSpace: "nowrap",
+        pointerEvents: "none",
+        zIndex: 0,
+        userSelect: "none",
+      }}
+    >
+      {headline.split("\n")[0]}
+    </div>
+
+    <div
+      style={{
+        position: "absolute",
+        top: "33.33%",
+        left: 0,
+        right: 0,
+        height: "calc(0.08*var(--ci))",
+        backgroundColor: colors.secondary,
+        opacity: 0.08,
+        zIndex: 5,
+      }}
+    />
+
+    <div
+      style={{
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        right: "35%",
+        width: "calc(0.08*var(--ci))",
+        backgroundColor: colors.secondary,
+        opacity: 0.08,
+        zIndex: 5,
+      }}
+    />
+
+    <div
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "65%",
+        height: "33.33%",
+        backgroundColor: colors.accent,
+        zIndex: 2,
+      }}
+    />
+
+    <div
+      style={{
+        position: "absolute",
+        top: "calc(5*var(--ci))",
+        left: "calc(6*var(--ci))",
+        zIndex: 10,
+        display: "flex",
+        flexDirection: "column",
+        gap: "calc(1.2*var(--ci))",
+      }}
+    >
+      <EditableText
+        as="span"
+        fieldId="f-brand"
+        editable={editable}
+        value={brandName ?? ""}
+        onChange={(value) =>
+          onUpdate?.("brandName", value)
+        }
+        onFocusEl={onFocusEl}
+        onBlurEl={onBlurEl}
         style={{
-          height: "40%",
-          minHeight: 0,
-          padding: `0 ${ci(6)} ${ci(5)}`,
-          boxSizing: "border-box",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "flex-end",
-          gap: ci(2),
+          fontSize: "calc(3*var(--ci))",
+          fontWeight: 800,
+          letterSpacing: "0.15em",
+          textTransform: "uppercase",
+          color: colors.primary,
         }}
-      >
-        <div
+      />
+
+      {badge && (
+        <EditableText
+          as="span"
+          fieldId="f-badge"
+          editable={editable}
+          value={badge}
+          onChange={(value) =>
+            onUpdate?.("badgeText", value)
+          }
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
           style={{
-            height: ci(0.08),
-            width: "100%",
-            backgroundColor: colors.secondary,
-            opacity: 0.1,
+            fontSize: "calc(1.8*var(--ci))",
+            fontWeight: 500,
+            color: colors.primary,
+            opacity: 0.7,
+            letterSpacing: "0.06em",
           }}
         />
+      )}
+    </div>
 
-        <div
-          style={{
-            minHeight: 0,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-            gap: ci(4),
-          }}
-        >
-          <div
-            style={{
-              minWidth: 0,
-              flex: 1,
-              maxWidth: "68%",
-              display: "flex",
-              flexDirection: "column",
-              gap: ci(1.5),
-            }}
-          >
-            <h2
+    <div
+      style={{
+        position: "absolute",
+        top: "10%",
+        left: "5%",
+        right: "32%",
+        bottom: "10%",
+        zIndex: 15,
+      }}
+    >
+      <Image
+        src={productImage}
+        alt="Product"
+        fill
+        className="object-contain"
+        style={{
+          filter:
+            "drop-shadow(0 calc(6*var(--ci)) calc(8*var(--ci)) rgba(0,0,0,0.15))",
+        }}
+        crossOrigin="anonymous"
+      />
+    </div>
+
+    <div
+      style={{
+        position: "absolute",
+        top: 0,
+        right: 0,
+        width: "35%",
+        height: "100%",
+        zIndex: 20,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: "calc(6*var(--ci)) calc(5*var(--ci)) calc(12*var(--ci)) calc(4*var(--ci))",
+        gap: "calc(3*var(--ci))",
+        overflow: "hidden",
+      }}
+    >
+      <h1
+        style={{
+          fontSize: "clamp(16px, calc(7.5*var(--ci)), 64px)",
+          fontWeight: 800,
+          letterSpacing: "-0.03em",
+          lineHeight: 0.95,
+          color: colors.secondary,
+          margin: 0,
+          fontFamily:
+            "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif",
+        }}
+      >
+        <EditableHeadlineLines
+          value={headline}
+          editable={editable}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          onChange={(value) =>
+            onUpdate?.("headline", value)
+          }
+          renderLine={(line, index, node) => (
+            <span
+              key={index}
               style={{
-                ...textOverflowStyle,
-                margin: 0,
-                fontSize: "clamp(18px, 8cqi, 72px)",
-                fontWeight: 700,
-                letterSpacing: "-0.025em",
-                lineHeight: 0.95,
-                color: colors.secondary,
-                fontFamily: FONT,
+                display: "block",
               }}
             >
-              <EditableHeadlineLines
-                value={headline}
-                editable={editable}
-                onFocusEl={onFocusEl}
-                onBlurEl={onBlurEl}
-                onChange={(value) => onUpdate?.("headline", value)}
-                renderLine={(line, index, node) => (
-                  <span key={`${index}-${line}`} style={{ display: "block" }}>
-                    {node}
-                  </span>
-                )}
-              />
-            </h2>
-
-            <Subheadline
-              value={subheadline}
-              editable={editable}
-              onUpdate={onUpdate}
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-              color={colors.secondary}
-              fontSize={2.2}
-              maxWidth="30ch"
-            />
-
-            <ContentLists props={props} />
-          </div>
-
-          <div
-            style={{
-              flexShrink: 0,
-              maxWidth: "32%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-end",
-              gap: ci(2),
-            }}
-          >
-            <Price
-              value={price}
-              editable={editable}
-              onUpdate={onUpdate}
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-              color={colors.accent}
-              fontSize={5.5}
-            />
-
-            <CTA
-              value={ctaText}
-              editable={editable}
-              onUpdate={onUpdate}
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-              color={colors.secondary}
-              border={`${ci(0.15)} solid ${colors.secondary}`}
-            />
-
-            <Contacts
-              {...props}
-              accent={colors.accent}
-              text={colors.secondary}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* 4. STUDIO GRID                                                              */
-/* -------------------------------------------------------------------------- */
-
-function VariantStudioGrid(props: SleekFlyerProps) {
-  const {
-    headline,
-    subheadline,
-    ctaText,
-    productImage,
-    brandName,
-    badge,
-    price,
-    colors,
-    editable,
-    onUpdate,
-    onFocusEl,
-    onBlurEl,
-  } = props;
-
-  return (
-    <div style={rootStyle(colors)}>
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%) rotate(-20deg)",
-            fontSize: "clamp(80px, 40vw, 700px)",
-            fontWeight: 900,
-            letterSpacing: "-0.05em",
-            color: colors.secondary,
-            opacity: 0.03,
-            whiteSpace: "nowrap",
-          }}
-        >
-          {headline.split("\n")[0]}
-        </div>
-
-        <div
-          style={{
-            position: "absolute",
-            top: "33.33%",
-            left: 0,
-            right: 0,
-            height: ci(0.08),
-            backgroundColor: colors.secondary,
-            opacity: 0.08,
-          }}
+              {node}
+            </span>
+          )}
         />
-
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            bottom: 0,
-            right: "35%",
-            width: ci(0.08),
-            backgroundColor: colors.secondary,
-            opacity: 0.08,
-          }}
-        />
-
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "65%",
-            height: "33.33%",
-            backgroundColor: colors.accent,
-          }}
-        />
-      </div>
+      </h1>
 
       <div
         style={{
-          position: "absolute",
-          top: ci(5),
-          left: ci(6),
-          zIndex: 20,
-          maxWidth: "58%",
-          display: "flex",
-          flexDirection: "column",
-          gap: ci(1.2),
+          width: "calc(6*var(--ci))",
+          height: "calc(0.3*var(--ci))",
+          backgroundColor: colors.accent,
         }}
-      >
-        <Brand
-          brandName={brandName}
+      />
+
+      {subheadline !== undefined && (
+        <EditableText
+          as="p"
+          fieldId="f-sub"
           editable={editable}
-          onUpdate={onUpdate}
-          onFocusEl={onFocusEl}
-          onBlurEl={onBlurEl}
-          color={colors.primary}
-          fontSize={3}
-          opacity={1}
-        />
-
-        {badge ? (
-          <EditableText
-            as="span"
-            fieldId="f-badge"
-            editable={editable}
-            value={badge}
-            onChange={(value) => onUpdate?.("badgeText", value)}
-            onFocusEl={onFocusEl}
-            onBlurEl={onBlurEl}
-            style={{
-              fontSize: ci(1.8),
-              fontWeight: 500,
-              color: colors.primary,
-              opacity: 0.7,
-              letterSpacing: "0.06em",
-              overflowWrap: "anywhere",
-            }}
-          />
-        ) : null}
-      </div>
-
-      {/* Product image remains visually dominant and centered in the left area. */}
-      <div
-        style={{
-          position: "absolute",
-          top: "10%",
-          left: "4%",
-          width: "62%",
-          height: "70%",
-          zIndex: 15,
-        }}
-      >
-        <FlyerImage
-          src={productImage}
-          position="50% 50%"
-          contain
-          style={{
-            filter: "drop-shadow(0 5% 6% rgba(0,0,0,0.15))",
-          }}
-        />
-      </div>
-
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          width: "35%",
-          height: "100%",
-          zIndex: 20,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          padding: `${ci(7)} ${ci(5)} ${ci(12)} ${ci(4)}`,
-          gap: ci(2.5),
-          boxSizing: "border-box",
-          overflow: "hidden",
-        }}
-      >
-        <h1
-          style={{
-            ...textOverflowStyle,
-            margin: 0,
-            fontSize: "clamp(16px, 7.5cqi, 64px)",
-            fontWeight: 800,
-            letterSpacing: "-0.03em",
-            lineHeight: 0.95,
-            color: colors.secondary,
-            fontFamily: FONT,
-          }}
-        >
-          <EditableHeadlineLines
-            value={headline}
-            editable={editable}
-            onFocusEl={onFocusEl}
-            onBlurEl={onBlurEl}
-            onChange={(value) => onUpdate?.("headline", value)}
-            renderLine={(line, index, node) => (
-              <span key={`${index}-${line}`} style={{ display: "block" }}>
-                {node}
-              </span>
-            )}
-          />
-        </h1>
-
-        <div
-          style={{
-            width: ci(6),
-            height: ci(0.3),
-            backgroundColor: colors.accent,
-            flexShrink: 0,
-          }}
-        />
-
-        <Subheadline
           value={subheadline}
-          editable={editable}
-          onUpdate={onUpdate}
+          onChange={(value) =>
+            onUpdate?.("subtext", value)
+          }
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
-          color={colors.secondary}
-          fontSize={2.2}
+          style={{
+            fontSize: "calc(2.2*var(--ci))",
+            lineHeight: 1.55,
+            color: colors.secondary,
+            opacity: 0.5,
+            margin: 0,
+            fontWeight: 400,
+          }}
         />
+      )}
 
-        <ContentLists props={props} />
+      <FeatureList
+        features={features}
+        colors={colors}
+        editable={editable}
+        onUpdateFeature={onUpdateFeature}
+        onAddFeature={onAddFeature}
+        onRemoveFeature={onRemoveFeature}
+        onFocusEl={onFocusEl}
+        onBlurEl={onBlurEl}
+        visible={featuresVisible}
+onRestoreSection={onRestoreFeatures}
+      />
+      <WhyChooseUsList
+  items={whyChooseUs}
+  colors={colors}
+  editable={editable}
+  onUpdate={onUpdateWhyChooseUs}
+  onAdd={onAddWhyChooseUs}
+  onRemove={onRemoveWhyChooseUs}
+  onFocusEl={onFocusEl}
+  onBlurEl={onBlurEl}
+  visible={whyChooseUsVisible}
+onRestoreSection={onRestoreWhyChooseUs}
+/>
 
-        <Price
+      {price !== undefined && price !== "" && (
+        <EditableText
+          as="span"
+          fieldId="f-price"
+          editable={editable}
           value={price}
-          editable={editable}
-          onUpdate={onUpdate}
+          onChange={(value) =>
+            onUpdate?.("price", value)
+          }
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
-          color={colors.secondary}
-          fontSize={6.5}
+          style={{
+            fontSize: "calc(7*var(--ci))",
+            fontWeight: 700,
+            letterSpacing: "-0.04em",
+            color: colors.secondary,
+          }}
         />
-      </div>
+      )}
+    </div>
+
+    <div
+      style={{
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        minHeight: "calc(10*var(--ci))",
+        zIndex: 20,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "calc(2*var(--ci)) calc(6*var(--ci))",
+        borderTop: `calc(0.08*var(--ci)) solid ${colors.secondary}18`,
+        gap: "calc(3*var(--ci))",
+      }}
+    >
+      <EditableText
+        as="div"
+        fieldId="f-cta"
+        editable={editable}
+        value={ctaText}
+        onChange={(value) =>
+          onUpdate?.("ctaText", value)
+        }
+        onFocusEl={onFocusEl}
+        onBlurEl={onBlurEl}
+        style={{
+          backgroundColor: colors.secondary,
+          color: colors.primary,
+          padding: "calc(1.8*var(--ci)) calc(5*var(--ci))",
+          borderRadius: "100px",
+          fontSize: "calc(2.2*var(--ci))",
+          fontWeight: 600,
+          letterSpacing: "0.04em",
+          whiteSpace: "nowrap",
+        }}
+      />
+
+      <ContactBar
+        phone={phone}
+        website={website}
+        email={email}
+        accentColor={colors.accent}
+        textColor={colors.secondary}
+        editable={editable}
+        onUpdatePhone={onUpdatePhone}
+        onUpdateWebsite={onUpdateWebsite}
+        onUpdateEmail={onUpdateEmail}
+        onFocusEl={onFocusEl}
+        onBlurEl={onBlurEl}
+        phoneVisible={phoneVisible}
+websiteVisible={websiteVisible}
+emailVisible={emailVisible}
+onRemovePhone={onRemovePhone}
+onRemoveWebsite={onRemoveWebsite}
+onRemoveEmail={onRemoveEmail}
+onRestorePhone={onRestorePhone}
+onRestoreWebsite={onRestoreWebsite}
+onRestoreEmail={onRestoreEmail}
+      />
+    </div>
+  </div>
+);
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   5. KŌAN
+═══════════════════════════════════════════════════════════════════════════ */
+
+const VariantKoan = ({
+  headline,
+  subheadline,
+  tagline,
+  ctaText,
+
+  productImage,
+  brandName,
+  website,
+  price,
+
+  features,
+  phone,
+  email,
+
+  colors,
+
+  editable,
+
+  onUpdate,
+
+  onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
+  whyChooseUs,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
+  
+  onUpdatePhone,
+  onUpdateWebsite,
+  onUpdateEmail,
+featuresVisible,
+  whyChooseUsVisible,
+  phoneVisible,
+  emailVisible,
+  websiteVisible,
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
+  onFocusEl,
+  onBlurEl,
+}: SleekFlyerProps) => (
+  <div
+    className="@container w-full h-full relative overflow-hidden flex flex-col items-center font-sans"
+    style={{
+      backgroundColor: colors.primary,
+      color: colors.secondary,
+    }}
+  >
+    <div
+      style={{
+        padding: "calc(5*var(--ci)) 0 0",
+        textAlign: "center",
+        zIndex: 10,
+        flexShrink: 0,
+      }}
+    >
+      <EditableText
+        as="span"
+        fieldId="f-brand"
+        editable={editable}
+        value={brandName ?? ""}
+        onChange={(value) =>
+          onUpdate?.("brandName", value)
+        }
+        onFocusEl={onFocusEl}
+        onBlurEl={onBlurEl}
+        style={{
+          fontSize: "calc(2*var(--ci))",
+          fontWeight: 700,
+          letterSpacing: "0.3em",
+          textTransform: "uppercase",
+          color: colors.secondary,
+          opacity: 0.4,
+        }}
+      />
+    </div>
+
+    {tagline !== undefined && (
+      <EditableText
+        as="p"
+        fieldId="f-tagline"
+        editable={editable}
+        value={tagline}
+        onChange={(value) =>
+          onUpdate?.("tagline", value)
+        }
+        onFocusEl={onFocusEl}
+        onBlurEl={onBlurEl}
+        style={{
+          fontSize: "calc(2.4*var(--ci))",
+          fontStyle: "italic",
+          color: colors.secondary,
+          opacity: 0.35,
+          margin: "calc(2*var(--ci)) 0 0",
+          letterSpacing: "0.04em",
+          zIndex: 10,
+          flexShrink: 0,
+        }}
+      />
+    )}
+
+    <div
+      style={{
+        flex: 1,
+        position: "relative",
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: 0,
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          width: "calc(70*var(--ci))",
+          height: "calc(70*var(--ci))",
+          borderRadius: "50%",
+          border: `calc(0.12*var(--ci)) solid ${colors.secondary}`,
+          opacity: 0.08,
+          zIndex: 2,
+        }}
+      />
 
       <div
         style={{
           position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          minHeight: ci(10),
-          zIndex: 30,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: ci(3),
-          padding: `${ci(2)} ${ci(6)}`,
-          borderTop: `${ci(0.08)} solid ${colors.secondary}18`,
-          boxSizing: "border-box",
+          width: "calc(52*var(--ci))",
+          height: "calc(52*var(--ci))",
+          borderRadius: "50%",
+          border: `calc(0.2*var(--ci)) solid ${colors.accent}`,
+          opacity: 0.6,
+          zIndex: 2,
         }}
-      >
-        <CTA
-          value={ctaText}
-          editable={editable}
-          onUpdate={onUpdate}
-          onFocusEl={onFocusEl}
-          onBlurEl={onBlurEl}
-          backgroundColor={colors.secondary}
-          color={colors.primary}
-        />
+      />
 
-        <Contacts
-          {...props}
-          accent={colors.accent}
-          text={colors.secondary}
-        />
-      </div>
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* 5. KŌAN                                                                     */
-/* -------------------------------------------------------------------------- */
-
-function VariantKoan(props: SleekFlyerProps) {
-  const {
-    headline,
-    subheadline,
-    tagline,
-    ctaText,
-    productImage,
-    brandName,
-    price,
-    colors,
-    editable,
-    onUpdate,
-    onFocusEl,
-    onBlurEl,
-  } = props;
-
-  return (
-    <div style={rootStyle(colors)}>
-      <div
-        style={{
-          height: "12%",
-          minHeight: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: `${ci(4)} ${ci(4)} 0`,
-          boxSizing: "border-box",
-        }}
-      >
-        <Brand
-          brandName={brandName}
-          editable={editable}
-          onUpdate={onUpdate}
-          onFocusEl={onFocusEl}
-          onBlurEl={onBlurEl}
-          color={colors.secondary}
-          fontSize={2}
-          opacity={0.4}
-        />
-
-        {tagline !== undefined ? (
-          <EditableText
-            as="p"
-            fieldId="f-tagline"
-            editable={editable}
-            value={tagline}
-            onChange={(value) => onUpdate?.("tagline", value)}
-            onFocusEl={onFocusEl}
-            onBlurEl={onBlurEl}
-            style={{
-              margin: `${ci(1.5)} 0 0`,
-              maxWidth: "80%",
-              fontSize: ci(2.2),
-              fontStyle: "italic",
-              color: colors.secondary,
-              opacity: 0.35,
-              textAlign: "center",
-              overflowWrap: "anywhere",
-            }}
-          />
-        ) : null}
-      </div>
-
-      {/* Centered image — safe percentage sizing for small screens. */}
       <div
         style={{
           position: "relative",
-          height: "39%",
-          minHeight: 0,
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          width: "calc(62*var(--ci))",
+          height: "calc(62*var(--ci))",
+          zIndex: 10,
         }}
       >
-        <div
+        <Image
+          src={productImage}
+          alt="Product"
+          fill
+          className="object-contain"
           style={{
-            position: "absolute",
-            width: "58%",
-            height: "96%",
-            maxWidth: "62%",
-            maxHeight: "96%",
-            borderRadius: "50%",
-            border: `${ci(0.12)} solid ${colors.secondary}`,
-            opacity: 0.08,
+            filter:
+              "drop-shadow(0 calc(4*var(--ci)) calc(8*var(--ci)) rgba(0,0,0,0.12))",
+          }}
+          crossOrigin="anonymous"
+        />
+      </div>
+    </div>
+
+    <div
+      style={{
+        flexShrink: 0,
+        textAlign: "center",
+        padding: "0 calc(8*var(--ci)) calc(5.5*var(--ci))",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "calc(2.5*var(--ci))",
+        width: "100%",
+      }}
+    >
+      <div
+        style={{
+          width: "calc(5*var(--ci))",
+          height: "calc(0.25*var(--ci))",
+          backgroundColor: colors.accent,
+        }}
+      />
+
+      <h1
+        style={{
+          fontSize: "clamp(20px, calc(9*var(--ci)), 80px)",
+          fontWeight: 700,
+          letterSpacing: "-0.03em",
+          lineHeight: 0.95,
+          color: colors.secondary,
+          margin: 0,
+          fontFamily:
+            "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif",
+        }}
+      >
+        <EditableHeadlineLines
+          value={headline}
+          editable={editable}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          onChange={(value) =>
+            onUpdate?.("headline", value)
+          }
+          renderLine={(line, index, node) => (
+            <span
+              key={index}
+              style={{
+                display: "block",
+              }}
+            >
+              {node}
+            </span>
+          )}
+        />
+      </h1>
+
+      {subheadline !== undefined && (
+        <EditableText
+          as="p"
+          fieldId="f-sub"
+          editable={editable}
+          value={subheadline}
+          onChange={(value) =>
+            onUpdate?.("subtext", value)
+          }
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          style={{
+            fontSize: "calc(2.4*var(--ci))",
+            lineHeight: 1.5,
+            color: colors.secondary,
+            opacity: 0.45,
+            margin: 0,
+            fontWeight: 400,
+            maxWidth: "28ch",
           }}
         />
+      )}
 
-        <div
-          style={{
-            position: "absolute",
-            width: "43%",
-            height: "72%",
-            borderRadius: "50%",
-            border: `${ci(0.2)} solid ${colors.accent}`,
-            opacity: 0.6,
-          }}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "calc(65*var(--ci))",
+          textAlign: "left",
+        }}
+      >
+        <FeatureList
+          features={features}
+          colors={colors}
+          editable={editable}
+          onUpdateFeature={onUpdateFeature}
+          onAddFeature={onAddFeature}
+          onRemoveFeature={onRemoveFeature}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          visible={featuresVisible}
+          onRestoreSection={onRestoreFeatures}
         />
-
-        <div
-          style={{
-            position: "relative",
-            width: "60%",
-            height: "92%",
-            minHeight: 0,
-            zIndex: 10,
-          }}
-        >
-          <FlyerImage
-            src={productImage}
-            position="50% 50%"
-            contain
-            style={{
-              filter: "drop-shadow(0 4% 6% rgba(0,0,0,0.12))",
-            }}
-          />
-        </div>
+        <WhyChooseUsList
+  items={whyChooseUs}
+  colors={colors}
+  editable={editable}
+  onUpdate={onUpdateWhyChooseUs}
+  onAdd={onAddWhyChooseUs}
+  onRemove={onRemoveWhyChooseUs}
+  onFocusEl={onFocusEl}
+  onBlurEl={onBlurEl}
+  visible={whyChooseUsVisible}
+onRestoreSection={onRestoreWhyChooseUs}
+/>
       </div>
 
       <div
         style={{
-          height: "49%",
-          minHeight: 0,
-          padding: `0 ${ci(8)} ${ci(5)}`,
-          boxSizing: "border-box",
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
-          justifyContent: "flex-start",
-          gap: ci(2),
-          textAlign: "center",
+          justifyContent: "center",
+          gap: "calc(4*var(--ci))",
+          marginTop: "calc(0.5*var(--ci))",
+          flexWrap: "wrap",
         }}
       >
-        <div
-          style={{
-            width: ci(5),
-            height: ci(0.25),
-            backgroundColor: colors.accent,
-            flexShrink: 0,
-          }}
-        />
-
-        <h1
-          style={{
-            ...textOverflowStyle,
-            margin: 0,
-            fontSize: "clamp(20px, 9cqi, 80px)",
-            fontWeight: 700,
-            letterSpacing: "-0.03em",
-            lineHeight: 0.95,
-            color: colors.secondary,
-            fontFamily: FONT,
-          }}
-        >
-          <EditableHeadlineLines
-            value={headline}
+        {price !== undefined && price !== "" && (
+          <EditableText
+            as="span"
+            fieldId="f-price"
             editable={editable}
+            value={price}
+            onChange={(value) =>
+              onUpdate?.("price", value)
+            }
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
-            onChange={(value) => onUpdate?.("headline", value)}
-            renderLine={(line, index, node) => (
-              <span key={`${index}-${line}`} style={{ display: "block" }}>
-                {node}
-              </span>
-            )}
+            style={{
+              fontSize: "calc(4*var(--ci))",
+              fontWeight: 700,
+              color: colors.accent,
+              letterSpacing: "-0.02em",
+            }}
           />
-        </h1>
+        )}
 
-        <Subheadline
-          value={subheadline}
+        <EditableText
+          as="div"
+          fieldId="f-cta"
           editable={editable}
-          onUpdate={onUpdate}
+          value={ctaText}
+          onChange={(value) =>
+            onUpdate?.("ctaText", value)
+          }
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
-          color={colors.secondary}
-          fontSize={2.35}
-          maxWidth="28ch"
-        />
-
-        <div
           style={{
-            width: "100%",
-            maxWidth: "calc(65 * var(--ci, 1px))",
-            minWidth: 0,
-            textAlign: "left",
+            border: `calc(0.12*var(--ci)) solid ${colors.secondary}`,
+            padding: "calc(1.6*var(--ci)) calc(4.5*var(--ci))",
+            borderRadius: "100px",
+            fontSize: "calc(2.2*var(--ci))",
+            fontWeight: 500,
+            letterSpacing: "0.06em",
+            color: colors.secondary,
+            opacity: 0.75,
           }}
-        >
-          <ContentLists props={props} />
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: ci(3),
-            width: "100%",
-            flexWrap: "wrap",
-            marginTop: ci(0.5),
-          }}
-        >
-          <Price
-            value={price}
-            editable={editable}
-            onUpdate={onUpdate}
-            onFocusEl={onFocusEl}
-            onBlurEl={onBlurEl}
-            color={colors.accent}
-            fontSize={4}
-          />
-
-          <CTA
-            value={ctaText}
-            editable={editable}
-            onUpdate={onUpdate}
-            onFocusEl={onFocusEl}
-            onBlurEl={onBlurEl}
-            color={colors.secondary}
-            border={`${ci(0.12)} solid ${colors.secondary}`}
-          />
-        </div>
-
-        <Contacts
-          {...props}
-          accent={colors.accent}
-          text={colors.secondary}
         />
       </div>
+
+      <ContactBar
+        phone={phone}
+        website={website}
+        email={email}
+        accentColor={colors.accent}
+        textColor={colors.secondary}
+        editable={editable}
+        onUpdatePhone={onUpdatePhone}
+        onUpdateWebsite={onUpdateWebsite}
+        onUpdateEmail={onUpdateEmail}
+        onFocusEl={onFocusEl}
+        onBlurEl={onBlurEl}
+        phoneVisible={phoneVisible}
+websiteVisible={websiteVisible}
+emailVisible={emailVisible}
+onRemovePhone={onRemovePhone}
+onRemoveWebsite={onRemoveWebsite}
+onRemoveEmail={onRemoveEmail}
+onRestorePhone={onRestorePhone}
+onRestoreWebsite={onRestoreWebsite}
+onRestoreEmail={onRestoreEmail}
+      />
     </div>
-  );
-}
+  </div>
+);
 
-/* -------------------------------------------------------------------------- */
-/* iOS 15.8-safe CSS                                                          */
-/* -------------------------------------------------------------------------- */
-/*
-Add this to your global CSS once:
-
-.sleek-flyer-image {
-  width: 100% !important;
-  height: 100% !important;
-  display: block;
-  max-width: none;
-  max-height: none;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
-.sleek-flyer-image.contain {
-  object-fit: contain !important;
-}
-
-.sleek-flyer-image.cover {
-  object-fit: cover !important;
-}
-
-Do NOT add @container to this component.
-Safari 15.8 is the reason the previous @container-based approach was risky.
-*/
 

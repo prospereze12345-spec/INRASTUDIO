@@ -190,6 +190,7 @@ function BrandHeader({
     </header>
   );
 }
+
 function SmartCTA({
   value,
   editable,
@@ -198,7 +199,6 @@ function SmartCTA({
   onBlurEl,
   colors,
   rounded = true,
-  compact = false,
 }: {
   value: string;
   editable?: boolean;
@@ -207,15 +207,13 @@ function SmartCTA({
   onBlurEl?: () => void;
   colors: PremiumBrandProps["colors"];
   rounded?: boolean;
-  compact?: boolean;
 }) {
   return (
     <div
       className={[
         "inline-flex items-center",
-        compact
-          ? "px-[calc(3*var(--ci))] py-[calc(1.5*var(--ci))] text-[calc(1.7*var(--ci))]"
-          : "px-[calc(4.5*var(--ci))] py-[calc(2.4*var(--ci))] text-[calc(2.15*var(--ci))]",
+        "px-[calc(4.5*var(--ci))] py-[calc(2.4*var(--ci))]",
+        "text-[calc(2.15*var(--ci))]",
         "font-semibold",
         "tracking-[0.08em]",
         "uppercase",
@@ -235,6 +233,7 @@ function SmartCTA({
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
       />
+
       <span className="ml-[calc(2*var(--ci))] opacity-60">→</span>
     </div>
   );
@@ -309,8 +308,7 @@ function VariantGrandOpening({
         colors={colors}
       />
 
-      {/* main content area starts a bit sooner -> headline sits higher, more room overall */}
-      <main className="absolute inset-x-0 top-[calc(10*var(--ci))] bottom-0">
+      <main className="absolute inset-x-0 top-[calc(14*var(--ci))] bottom-0">
         <div className="absolute inset-x-[calc(5*var(--ci))] top-[calc(8*var(--ci))] bottom-[calc(23*var(--ci))] overflow-hidden">
           <Image
             src={productImage}
@@ -318,7 +316,7 @@ function VariantGrandOpening({
             fill
             priority
             crossOrigin="anonymous"
-            className="object-contain object-left"
+            className="object-contain object-center"
           />
 
           <div
@@ -334,15 +332,12 @@ function VariantGrandOpening({
         </div>
 
         <div className="absolute left-[calc(6*var(--ci))] right-[calc(6*var(--ci))] top-0 z-10">
-          {/* only show a kicker line if one was actually parsed - no more "New" placeholder */}
-          {parsed.kicker && (
-            <p
-              className="text-[calc(1.65*var(--ci))] uppercase tracking-[0.25em] mb-[calc(2*var(--ci))] opacity-45"
-              style={{ color: colors.secondary }}
-            >
-              {parsed.kicker}
-            </p>
-          )}
+          <p
+            className="text-[calc(1.65*var(--ci))] uppercase tracking-[0.25em] mb-[calc(2*var(--ci))] opacity-45"
+            style={{ color: colors.secondary }}
+          >
+            {parsed.kicker || "New"}
+          </p>
 
           <h1
             className="
@@ -400,7 +395,6 @@ function VariantGrandOpening({
                 />
               )}
 
-              {/* extra breathing room under the headline before subtext */}
               <EditableText
                 as="p"
                 fieldId="f-sub"
@@ -410,48 +404,39 @@ function VariantGrandOpening({
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
                 className="
-                  mt-[calc(2*var(--ci))]
+                  mt-[calc(1*var(--ci))]
                   text-[calc(2*var(--ci))]
                   leading-[1.35]
                   opacity-55
                 "
               />
 
-              {/* features / why-choose-us: scaled down + tighter top margin so they
-                  stay compact and don't crowd the subtext above them */}
-              <div
-                className="mt-[calc(1*var(--cb))]"
-                style={{ transform: "scale(0.82)", transformOrigin: "top left" }}
-              >
-                <FeatureList
-                  features={features}
-                  colors={colors}
-                  editable={editable}
-                  onUpdateFeature={onUpdateFeature}
-                  onAddFeature={onAddFeature}
-                  onRemoveFeature={onRemoveFeature}
-                  onFocusEl={onFocusEl}
-                  onBlurEl={onBlurEl}
-                  visible={featuresVisible}
-                  onRestoreSection={onRestoreFeatures}
-                />
-                <WhyChooseUsList
-                  items={whyChooseUs}
-                  colors={colors}
-                  editable={editable}
-                  onUpdate={onUpdateWhyChooseUs}
-                  onAdd={onAddWhyChooseUs}
-                  onRemove={onRemoveWhyChooseUs}
-                  onFocusEl={onFocusEl}
-                  onBlurEl={onBlurEl}
-                  visible={whyChooseUsVisible}
-                  onRestoreSection={onRestoreWhyChooseUs}
-                />
-              </div>
+              <FeatureList
+                features={features}
+                colors={colors}
+                editable={editable}
+                onUpdateFeature={onUpdateFeature}
+                onAddFeature={onAddFeature}
+                onRemoveFeature={onRemoveFeature}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                visible={featuresVisible}
+                onRestoreSection={onRestoreFeatures}
+              />
+              <WhyChooseUsList
+                items={whyChooseUs}
+                colors={colors}
+                editable={editable}
+                onUpdate={onUpdateWhyChooseUs}
+                onAdd={onAddWhyChooseUs}
+                onRemove={onRemoveWhyChooseUs}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                visible={whyChooseUsVisible}
+                onRestoreSection={onRestoreWhyChooseUs}
+              />
             </div>
 
-            {/* smaller CTA, bottom-aligned so it naturally sits lower now that the
-                features block above it is shorter */}
             <SmartCTA
               value={ctaText}
               editable={editable}
@@ -459,12 +444,10 @@ function VariantGrandOpening({
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               colors={colors}
-              compact
             />
           </div>
 
-          {/* contact row pushed further down, single line, evenly spaced (see ContactBar fix) */}
-          <div className="mt-[calc(4.5*var(--ci))]">
+          <div className="mt-[calc(3*var(--ci))]">
             <ContactBar
               phone={phone}
               website={website}
@@ -493,6 +476,7 @@ function VariantGrandOpening({
     </div>
   );
 }
+
 function VariantDigitalAgency({
   headline,
   subtext,
@@ -1488,3 +1472,4 @@ function VariantOrganicDeal({
     </div>
   );
 }
+
