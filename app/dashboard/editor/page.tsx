@@ -1119,68 +1119,6 @@ async function saveOrShareFile(blob: Blob, filename: string, mimeType: string) {
 }
 
 
-async function resizeExportImage(
-  dataUrl: string,
-  width: number,
-  height: number,
-  mimeType: "image/png" | "image/jpeg",
-  quality?: number
-): Promise<Blob> {
-  const image = new Image();
-
-  image.src = dataUrl;
-
-  await new Promise<void>((resolve, reject) => {
-    image.onload = () => resolve();
-    image.onerror = () =>
-      reject(new Error("Failed to prepare flyer image."));
-  });
-
-  const canvas = document.createElement("canvas");
-
-  canvas.width = width;
-  canvas.height = height;
-
-  const context = canvas.getContext("2d");
-
-  if (!context) {
-    throw new Error("Could not create export canvas.");
-  }
-
-  /*
-   * High-quality bitmap scaling.
-   *
-   * This scales the completed flyer rather than
-   * recalculating its layout.
-   */
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = "high";
-
-  context.drawImage(
-    image,
-    0,
-    0,
-    width,
-    height
-  );
-
-  return await new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          reject(
-            new Error("Failed to create export image.")
-          );
-          return;
-        }
-
-        resolve(blob);
-      },
-      mimeType,
-      quality
-    );
-  });
-}
 
 async function uploadAsset(file: File): Promise<string> {
   const form = new FormData();
