@@ -16,19 +16,6 @@ import { EditableText } from "@/components/EditableText";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 import { WhyChooseUsList, ContactBar } from "./FlyerContentBlocks";
 
-/* ============================================================================
-   SALE PROMOTION — MODERN EDITORIAL / CANVA STYLE
-   ----------------------------------------------------------------------------
-   Design direction:
-   - Editorial product photography
-   - Floating offer card
-   - Strong typographic hierarchy
-   - Rounded modern UI details
-   - Controlled accent color
-   - No repetitive "split-screen flyer" composition
-   - Fully editable text
-============================================================================ */
-
 export interface SalePromotionProps {
   name?: string;
 
@@ -88,10 +75,6 @@ export interface SalePromotionProps {
   onBlurEl?: () => void;
 }
 
-/* ============================================================================
-   MAIN TEMPLATE
-============================================================================ */
-
 export function SalePromotionTemplate(props: SalePromotionProps) {
   if (
     !props.headline ||
@@ -108,9 +91,6 @@ export function SalePromotionTemplate(props: SalePromotionProps) {
   return <ModernSalesPromotion {...props} />;
 }
 
-/* ============================================================================
-   MAIN DESIGN
-============================================================================ */
 function ModernSalesPromotion({
   headline,
   subtext,
@@ -175,10 +155,6 @@ function ModernSalesPromotion({
         color: colors.secondary,
       }}
     >
-      {/* ====================================================================
-         BACKGROUND
-      ==================================================================== */}
-
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -193,8 +169,6 @@ function ModernSalesPromotion({
         }}
       />
 
-      {/* subtle editorial grid */}
-
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.035]"
         style={{
@@ -202,23 +176,17 @@ function ModernSalesPromotion({
             linear-gradient(${colors.secondary} 1px, transparent 1px),
             linear-gradient(90deg, ${colors.secondary} 1px, transparent 1px)
           `,
-          backgroundSize: "8cqi 8cqi",
+          backgroundSize: "calc(8*var(--ci)) calc(8*var(--ci))",
         }}
       />
 
-      {/* Accent vertical line */}
-
       <div
-        className="absolute right-[7cqi] top-0 bottom-0 w-[0.15cqi] pointer-events-none"
+        className="absolute right-[calc(7*var(--ci))] top-0 bottom-0 w-[calc(0.15*var(--ci))] pointer-events-none"
         style={{
           backgroundColor: colors.accent,
           opacity: 0.25,
         }}
       />
-
-      {/* ====================================================================
-         TOP NAV / BRAND
-      ==================================================================== */}
 
       <header
         className="
@@ -227,22 +195,20 @@ function ModernSalesPromotion({
           flex
           items-center
           justify-between
-          px-[5cqi]
-          pt-[4cqi]
-          pb-[2cqi]
+          px-[calc(5*var(--ci))]
+          pt-[calc(4*var(--ci))]
+          pb-[calc(2*var(--ci))]
         "
       >
-        <div className="flex items-center gap-[2cqi]">
-          {/* Brand mark */}
-
+        <div className="flex items-center gap-[calc(2*var(--ci))]">
           <div
             className="
               flex
               items-center
               justify-center
-              w-[6cqi]
-              h-[6cqi]
-              rounded-[1.5cqi]
+              w-[calc(6*var(--ci))]
+              h-[calc(6*var(--ci))]
+              rounded-[calc(1.5*var(--ci))]
               shrink-0
             "
             style={{
@@ -265,7 +231,7 @@ function ModernSalesPromotion({
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             className="
-              text-[2.4cqi]
+              text-[calc(2.4*var(--ci))]
               font-bold
               tracking-[-0.03em]
             "
@@ -281,7 +247,7 @@ function ModernSalesPromotion({
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
           className="
-            text-[1.8cqi]
+            text-[calc(1.8*var(--ci))]
             tracking-[0.08em]
             uppercase
             opacity-45
@@ -289,26 +255,18 @@ function ModernSalesPromotion({
         />
       </header>
 
-      {/* ====================================================================
-         MAIN CANVAS
-      ==================================================================== */}
-
-      <main className="relative z-10 h-[calc(100%-11cqi)] px-[5cqi] pb-[4cqi]">
+      <main className="relative z-10 h-[calc(100%-calc(11*var(--ci)))] px-[calc(5*var(--ci))] pb-[calc(4*var(--ci))]">
         <div className="relative h-full">
-
-          {/* ================================================================
-             PRODUCT PHOTOGRAPHY
-          ================================================================ */}
 
           <div
             className="
               absolute
               right-0
-              top-[4cqi]
-              bottom-[9cqi]
+              top-[calc(4*var(--ci))]
+              bottom-[calc(9*var(--ci))]
               w-[58%]
               overflow-hidden
-              rounded-[4cqi]
+              rounded-[calc(4*var(--ci))]
             "
             style={{
               backgroundColor: `${colors.secondary}08`,
@@ -326,8 +284,6 @@ function ModernSalesPromotion({
               "
             />
 
-            {/* Image treatment */}
-
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
@@ -342,8 +298,6 @@ function ModernSalesPromotion({
               }}
             />
 
-            {/* Image bottom fade */}
-
             <div
               className="absolute inset-x-0 bottom-0 h-[28%]"
               style={{
@@ -357,22 +311,18 @@ function ModernSalesPromotion({
               }}
             />
 
-            {/* ============================================================
-               FLOATING SALE TAG
-            ============================================================ */}
-
             {badgeText && (
               <div
                 className="
                   absolute
-                  top-[4cqi]
-                  right-[4cqi]
-                  px-[3cqi]
-                  py-[1.7cqi]
+                  top-[calc(4*var(--ci))]
+                  right-[calc(4*var(--ci))]
+                  px-[calc(3*var(--ci))]
+                  py-[calc(1.7*var(--ci))]
                   rounded-full
                   flex
                   items-center
-                  gap-[1.2cqi]
+                  gap-[calc(1.2*var(--ci))]
                   shadow-xl
                 "
                 style={{
@@ -394,7 +344,7 @@ function ModernSalesPromotion({
                   onFocusEl={onFocusEl}
                   onBlurEl={onBlurEl}
                   className="
-                    text-[2cqi]
+                    text-[calc(2*var(--ci))]
                     font-black
                     uppercase
                     tracking-[0.08em]
@@ -404,15 +354,11 @@ function ModernSalesPromotion({
             )}
           </div>
 
-          {/* ================================================================
-             LEFT EDITORIAL CONTENT
-          ================================================================ */}
-
           <section
             className="
               absolute
               left-0
-              top-[3cqi]
+              top-[calc(3*var(--ci))]
               z-20
               w-[57%]
               flex
@@ -420,18 +366,16 @@ function ModernSalesPromotion({
             "
           >
 
-            {/* eyebrow */}
-
             <div
               className="
                 flex
                 items-center
-                gap-[1.8cqi]
-                mb-[3cqi]
+                gap-[calc(1.8*var(--ci))]
+                mb-[calc(3*var(--ci))]
               "
             >
               <div
-                className="w-[5cqi] h-[0.3cqi]"
+                className="w-[calc(5*var(--ci))] h-[calc(0.3*var(--ci))]"
                 style={{
                   backgroundColor: colors.accent,
                 }}
@@ -439,7 +383,7 @@ function ModernSalesPromotion({
 
               <span
                 className="
-                  text-[1.8cqi]
+                  text-[calc(1.8*var(--ci))]
                   uppercase
                   tracking-[0.22em]
                   font-bold
@@ -450,18 +394,14 @@ function ModernSalesPromotion({
               </span>
             </div>
 
-            {/* ============================================================
-               HEADLINE
-            ============================================================ */}
-
             <h1
               className="
                 font-black
                 uppercase
                 tracking-[-0.055em]
                 leading-[0.84]
-                text-[10.5cqi]
-                max-w-[55cqi]
+                text-[calc(10.5*var(--ci))]
+                max-w-[calc(55*var(--ci))]
               "
             >
               <EditableHeadlineLines
@@ -487,10 +427,6 @@ function ModernSalesPromotion({
               />
             </h1>
 
-            {/* ============================================================
-               DESCRIPTION
-            ============================================================ */}
-
             <EditableText
               as="p"
               fieldId="sale-subtext"
@@ -500,27 +436,23 @@ function ModernSalesPromotion({
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               className="
-                mt-[3cqi]
-                text-[2.35cqi]
+                mt-[calc(3*var(--ci))]
+                text-[calc(2.35*var(--ci))]
                 leading-[1.45]
                 opacity-55
-                max-w-[40cqi]
+                max-w-[calc(40*var(--ci))]
               "
             />
 
-            {/* ============================================================
-               FEATURE LIST
-            ============================================================ */}
-
             {safeFeatures.length > 0 && (
-              <div className="mt-[3.5cqi] flex flex-col gap-[1.3cqi]">
+              <div className="mt-[calc(3.5*var(--ci))] flex flex-col gap-[calc(1.3*var(--ci))]">
                 {safeFeatures.map((feature, index) => (
                   <div
                     key={index}
                     className="
                       flex
                       items-center
-                      gap-[1.5cqi]
+                      gap-[calc(1.5*var(--ci))]
                     "
                   >
                     <span
@@ -530,8 +462,8 @@ function ModernSalesPromotion({
                         justify-center
                         shrink-0
                         rounded-full
-                        w-[3.5cqi]
-                        h-[3.5cqi]
+                        w-[calc(3.5*var(--ci))]
+                        h-[calc(3.5*var(--ci))]
                       "
                       style={{
                         backgroundColor: `${colors.accent}20`,
@@ -552,9 +484,7 @@ function ModernSalesPromotion({
                       editable={editable}
                       value={feature}
                       onChange={(v) => {
-                        // Update the feature at this index
                         onUpdateFeature?.(index, v);
-                        // Also update the full features string in the parent state
                         const updated = [...safeFeatures];
                         updated[index] = v;
                         update("features", updated.join("\n"));
@@ -562,7 +492,7 @@ function ModernSalesPromotion({
                       onFocusEl={onFocusEl}
                       onBlurEl={onBlurEl}
                       className="
-                        text-[2cqi]
+                        text-[calc(2*var(--ci))]
                         font-medium
                         opacity-75
                       "
@@ -585,16 +515,12 @@ function ModernSalesPromotion({
               onRestoreSection={onRestoreWhyChooseUs}
             />
 
-            {/* ============================================================
-               OFFER CARD
-            ============================================================ */}
-
             <div
               className="
-                mt-[4cqi]
-                w-[48cqi]
-                rounded-[3cqi]
-                p-[3cqi]
+                mt-[calc(4*var(--ci))]
+                w-[calc(48*var(--ci))]
+                rounded-[calc(3*var(--ci))]
+                p-[calc(3*var(--ci))]
                 flex
                 items-end
                 justify-between
@@ -610,17 +536,17 @@ function ModernSalesPromotion({
 
                 <div
                   className="
-                    text-[1.5cqi]
+                    text-[calc(1.5*var(--ci))]
                     uppercase
                     tracking-[0.18em]
                     opacity-45
-                    mb-[1cqi]
+                    mb-[calc(1*var(--ci))]
                   "
                 >
                   Special price
                 </div>
 
-                <div className="flex items-end gap-[2cqi]">
+                <div className="flex items-end gap-[calc(2*var(--ci))]">
 
                   {price !== undefined &&
                     price !== "" && (
@@ -635,7 +561,7 @@ function ModernSalesPromotion({
                         onFocusEl={onFocusEl}
                         onBlurEl={onBlurEl}
                         className="
-                          text-[7cqi]
+                          text-[calc(7*var(--ci))]
                           font-black
                           leading-none
                           tracking-[-0.05em]
@@ -656,26 +582,24 @@ function ModernSalesPromotion({
                         onFocusEl={onFocusEl}
                         onBlurEl={onBlurEl}
                         className="
-                          text-[2.3cqi]
+                          text-[calc(2.3*var(--ci))]
                           line-through
                           opacity-35
-                          pb-[0.7cqi]
+                          pb-[calc(0.7*var(--ci))]
                         "
                       />
                     )}
                 </div>
               </div>
 
-              {/* CTA */}
-
               <div
                 className="
                   flex
                   items-center
                   justify-center
-                  w-[8cqi]
-                  h-[8cqi]
-                  rounded-[2cqi]
+                  w-[calc(8*var(--ci))]
+                  h-[calc(8*var(--ci))]
+                  rounded-[calc(2*var(--ci))]
                   shrink-0
                 "
                 style={{
@@ -691,10 +615,6 @@ function ModernSalesPromotion({
             </div>
           </section>
 
-          {/* ================================================================
-             BOTTOM CTA
-          ================================================================ */}
-
           <div
             className="
               absolute
@@ -703,21 +623,21 @@ function ModernSalesPromotion({
               z-30
               flex
               items-center
-              gap-[2cqi]
+              gap-[calc(2*var(--ci))]
             "
           >
             <div
               className="
                 inline-flex
                 items-center
-                gap-[2cqi]
-                px-[4cqi]
-                py-[2.2cqi]
+                gap-[calc(2*var(--ci))]
+                px-[calc(4*var(--ci))]
+                py-[calc(2.2*var(--ci))]
                 rounded-full
                 font-black
                 uppercase
                 tracking-[0.12em]
-                text-[2.1cqi]
+                text-[calc(2.1*var(--ci))]
               "
               style={{
                 backgroundColor: colors.accent,
@@ -754,17 +674,13 @@ function ModernSalesPromotion({
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
                 className="
-                  text-[1.7cqi]
+                  text-[calc(1.7*var(--ci))]
                   opacity-40
-                  max-w-[20cqi]
+                  max-w-[calc(20*var(--ci))]
                 "
               />
             )}
           </div>
-
-          {/* ================================================================
-             CONTACT INFORMATION
-          ================================================================ */}
 
           <div
             className="
@@ -803,7 +719,6 @@ function ModernSalesPromotion({
   );
 }
 
-// Helper component (unchanged)
 function ContactMini({
   icon,
   value,
@@ -828,15 +743,15 @@ function ContactMini({
   };
 }) {
   return (
-    <div className="flex items-center gap-[1cqi]">
+    <div className="flex items-center gap-[calc(1*var(--ci))]">
 
       <span
         className="
           flex
           items-center
           justify-center
-          w-[3.5cqi]
-          h-[3.5cqi]
+          w-[calc(3.5*var(--ci))]
+          h-[calc(3.5*var(--ci))]
           rounded-full
         "
         style={{
@@ -856,7 +771,7 @@ function ContactMini({
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
         className="
-          text-[1.45cqi]
+          text-[calc(1.45*var(--ci))]
           opacity-45
           whitespace-nowrap
         "

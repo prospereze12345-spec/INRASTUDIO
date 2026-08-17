@@ -225,12 +225,11 @@ type FlyerState = {
 
 type CanvasSize = { w: number; h: number };
 
-// --- Social format definitions --------------------------------------------
 const SOCIAL_FORMATS = [
-  { id: "ig",     label: "Instagram", icon: ImageIcon,    ratio: "4:5",  rw: 4,  rh: 5,  fps: 30, durationS: 12 },
-  { id: "square", label: "Square",    icon: Square,       ratio: "1:1",  rw: 1,  rh: 1,  fps: 30, durationS: 12 },
-  { id: "story",  label: "Story",     icon: Smartphone,   ratio: "9:16", rw: 9,  rh: 16, fps: 30, durationS: 15 },
-  { id: "tiktok", label: "TikTok",    icon: Film,         ratio: "9:16", rw: 9,  rh: 16, fps: 30, durationS: 12 },
+  { id: "ig",     label: "Instagram", icon: ImageIcon,    ratio: "4:5",  rw: 4,  rh: 5,  fps: 30, durationS: 12, exportW: 1080, exportH: 1350 },
+  { id: "square", label: "Square",    icon: Square,       ratio: "1:1",  rw: 1,  rh: 1,  fps: 30, durationS: 12, exportW: 1080, exportH: 1080 },
+  { id: "story",  label: "Story",     icon: Smartphone,   ratio: "9:16", rw: 9,  rh: 16, fps: 30, durationS: 15, exportW: 1080, exportH: 1920 },
+  { id: "tiktok", label: "TikTok",    icon: Film,         ratio: "9:16", rw: 9,  rh: 16, fps: 30, durationS: 12, exportW: 1080, exportH: 1920 },
 ] as const;
 type FormatId = typeof SOCIAL_FORMATS[number]["id"];
 
@@ -1287,19 +1286,41 @@ const removeFeature = useCallback((index: number) => {
   const [exportingFormat, setExportingFormat] = useState<"png" | "jpg" | "pdf" | null>(null);
 
   const handleExportFlyer = async (format: "png" | "jpg" | "pdf") => {
-    if (!flyerNodeRef.current) return;
-    if (pendingUploads > 0) {
-      return setExportError("Still uploading your image - please wait a moment and try again.");
-    }
+  if (!flyerNodeRef.current) return;
+  if (pendingUploads > 0) {
+    return setExportError("Still uploading your image - please wait a moment and try again.");
+  }
 
-    setExportingFormat(format);
-    setExportError(null);
-    setShowExportMenu(false);
+  setExportingFormat(format);
+  setExportError(null);
+  setShowExportMenu(false);
 
-    try {
-      const { toPng, toJpeg } = await import("html-to-image");
-      const snapshotOpts = { pixelRatio: 3, cacheBust: true };
+  const node = flyerNodeRef.current;
+  const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
+  const prevWidth = node.style.width;
+  const prevHeight = node.style.height;
+  const prevCi = node.style.getPropertyValue("--ci");
+  const prevCb = node.style.getPropertyValue("--cb");
 
+  try {
+    // Resize to the platform's real pixel dimensions just for the snapshot
+    node.style.width = `${fmt.exportW}px`;
+    node.style.height = `${fmt.exportH}px`;
+    node.style.setProperty("--ci", `${fmt.exportW / 100}px`);
+    node.style.setProperty("--cb", `${fmt.exportH / 100}px`);
+    await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+
+    const { toPng, toJpeg } = await import("html-to-image");
+    const snapshotOpts = {
+      pixelRatio: 1,
+      cacheBust: true,
+      width: fmt.exportW,
+      height: fmt.exportH,
+      filter: (node: HTMLElement) => {
+        if (node.getAttribute && node.getAttribute("data-flyer-control") === "true") return false;
+        return true;
+      },
+    };
         if (format === "png" || format === "jpg") {
   const dataUrl = format === "png"
     ? await toPng(flyerNodeRef.current, snapshotOpts)
@@ -1337,9 +1358,13 @@ pdf.addImage(dataUrl, "PNG", 0, 0, img.width, img.height);
           : "Export failed."
       );
     } finally {
-      setExportingFormat(null);
-    }
-  };
+    node.style.width = prevWidth;
+    node.style.height = prevHeight;
+    if (prevCi) node.style.setProperty("--ci", prevCi); else node.style.removeProperty("--ci");
+    if (prevCb) node.style.setProperty("--cb", prevCb); else node.style.removeProperty("--cb");
+    setExportingFormat(null);
+  }
+};
 useEffect(() => {
   let cancelled = false;
 
