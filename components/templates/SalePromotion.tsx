@@ -9,7 +9,6 @@ import {
   Mail,
   Globe,
   Tag,
-  Sparkles,
 } from "lucide-react";
 
 import { EditableText } from "@/components/EditableText";
@@ -201,27 +200,7 @@ function ModernSalesPromotion({
         "
       >
         <div className="flex items-center gap-[calc(2*var(--ci))]">
-          <div
-            className="
-              flex
-              items-center
-              justify-center
-              w-[calc(6*var(--ci))]
-              h-[calc(6*var(--ci))]
-              rounded-[calc(1.5*var(--ci))]
-              shrink-0
-            "
-            style={{
-              backgroundColor: colors.accent,
-              color: colors.primary,
-            }}
-          >
-            <Sparkles
-              size={18}
-              strokeWidth={2.5}
-            />
-          </div>
-
+         
           <EditableText
             as="p"
             fieldId="sale-brand"

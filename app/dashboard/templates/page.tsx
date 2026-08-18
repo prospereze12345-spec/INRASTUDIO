@@ -153,10 +153,9 @@ export default function TemplatesPage() {
                 <Sparkles className="w-5 h-5 text-cyan-400 shrink-0" />
                 <h2 className="text-lg sm:text-xl font-display font-semibold text-white tracking-tight">Most Used Templates</h2>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-2xl">
                 {[
                   { name: "Digital Agency", category: "Premium Brand", templateType: PremiumBrandTemplate, data: PREMIUM_BRAND_VARIATIONS.find(v => v.name === "Digital Agency")! },
-                  { name: "Combo Offer", category: "Sale Promotion", templateType: SalePromotionTemplate, data: SALE_PROMOTION_VARIATIONS.find(v => v.name === "Combo Offer")! },
                   { name: "Black Gold", category: "Luxury Product", templateType: LuxuryProductTemplate, data: LUXURY_VARIATIONS.find(v => v.name === "Black Gold")! }
                 ].map((item, i) => {
                   const TemplateComp = item.templateType as any;
@@ -190,7 +189,7 @@ export default function TemplatesPage() {
                     <p className="text-slate-400 text-sm break-words">{category.description}</p>
                   </div>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-3xl">
                     {category.templates.map((templateName, idx) => (
                       <div key={templateName} className="group relative rounded-2xl overflow-hidden bg-white/5 border border-white/5 aspect-[4/5] cursor-pointer hover:border-white/20 transition-colors">
                         {category.title === "Luxury Product" || category.title === "Sale Promotion" || category.title === "Minimal Product" || category.title === "Premium Brand" ? (
