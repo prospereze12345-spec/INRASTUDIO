@@ -260,24 +260,29 @@ function VariantDigitalAgency({
         onUpdate={onUpdate} onFocusEl={onFocusEl} onBlurEl={onBlurEl} colors={colors}
       />
 
-      {/* Body: flex-1 + min-h-0 fills exactly the space between header and
-          canvas edge, and cannot overflow it. */}
+      {/* Body fills exactly the space between header and canvas edge.
+          No overflow-y-auto anywhere below — a flyer never scrolls. Instead
+          Features/Why-Choose-Us cap how many items render (see slice calls
+          below), which is what guarantees this fits without a scrollbar. */}
       <div
         className="flex-1 relative min-h-0"
-        style={{ paddingLeft: cq(6), paddingRight: cq(6), paddingTop: cq(3), paddingBottom: cq(6) }}
+        style={{ paddingLeft: cq(6), paddingRight: cq(6), paddingTop: cq(2), paddingBottom: cq(5) }}
       >
         <div
-          className="absolute left-[58%] top-0 bottom-0 w-px"
+          className="absolute left-[55%] top-0 bottom-0 w-px"
           style={{ backgroundColor: hexToRgba(colors.secondary, 0.08) }}
         />
 
-        {/* Left column: flex column, full height of its slot, so its
-            children can never spill past the visible canvas. */}
+        {/* Left column: ONE flex column with a single `gap` token driving
+            every section's spacing. This replaces the old per-element
+            marginTop values — that's what was reading as a "wall" of text
+            with no consistent rhythm. Change cq(3) below to retune every
+            gap in the column at once. */}
         <section
-          className="absolute left-0 top-0 bottom-0 w-[52%] flex flex-col"
-          style={{ paddingRight: cq(5) }}
+          className="absolute left-0 top-0 bottom-0 w-[52%] flex flex-col justify-center"
+          style={{ paddingRight: cq(5), gap: cq(3) }}
         >
-          <div className="flex items-center shrink-0" style={{ gap: cq(1.5), marginTop: cq(1), marginBottom: cq(2.5) }}>
+          <div className="flex items-center shrink-0" style={{ gap: cq(1.5) }}>
             <span className="h-px" style={{ width: cq(3.5), backgroundColor: colors.accent }} />
             <span
               className="uppercase tracking-[0.25em] opacity-45"
@@ -293,7 +298,7 @@ function VariantDigitalAgency({
           <h1
             className="font-semibold uppercase tracking-[-0.055em] leading-[0.88] shrink-0"
             style={{
-              fontSize: "clamp(1.5rem, 9cqi, 96px)",
+              fontSize: "clamp(1.5rem, 8cqi, 88px)",
               wordBreak: "keep-all",
               overflowWrap: "normal",
             }}
@@ -314,16 +319,17 @@ function VariantDigitalAgency({
             as="p" fieldId="f-sub" editable={editable} value={subtext}
             onChange={(v) => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
             className="leading-[1.45] opacity-55 max-w-[85%] shrink-0"
-            style={{ marginTop: cq(2.5), fontSize: cq(2.15) }}
+            style={{ fontSize: cq(2.15) }}
           />
 
-          {/* Features + WhyChooseUs get their own scrollable region.
-              flex-1 + min-h-0: take remaining space, but if content is
-              genuinely too tall, scroll INSIDE this box instead of pushing
-              the price/CTA/ContactBar off canvas. */}
-          <div className="flex-1 min-h-0 overflow-y-auto" style={{ marginTop: cq(2.5) }}>
+          {/* Features + Why Choose Us: no wrapper height cap, no scroll.
+              Capped to 3 visible items each — a deliberate design ceiling,
+              same as Canva/real flyer tools use, so a flyer can never be
+              overloaded past what a fixed canvas can hold. Data itself is
+              untouched; slice() only affects what renders. */}
+          <div className="shrink-0 flex flex-col" style={{ gap: cq(2) }}>
             <FeatureList
-              features={parsed.features} colors={colors} editable={editable}
+              features={parsed.features.slice(0, 3)} colors={colors} editable={editable}
               onUpdateFeature={(index, value) => onUpdate?.("badgeText", parsed.updateFeature(index, value))}
               onAddFeature={() => onUpdate?.("badgeText", parsed.addFeature())}
               onRemoveFeature={(index) => onUpdate?.("badgeText", parsed.removeFeature(index))}
@@ -331,14 +337,14 @@ function VariantDigitalAgency({
               visible={featuresVisible} onRestoreSection={onRestoreFeatures}
             />
             <WhyChooseUsList
-              items={whyChooseUs} colors={colors} editable={editable}
+              items={whyChooseUs?.slice(0, 3)} colors={colors} editable={editable}
               onUpdate={onUpdateWhyChooseUs} onAdd={onAddWhyChooseUs} onRemove={onRemoveWhyChooseUs}
               onFocusEl={onFocusEl} onBlurEl={onBlurEl}
               visible={whyChooseUsVisible} onRestoreSection={onRestoreWhyChooseUs}
             />
           </div>
 
-          <div className="flex items-end shrink-0" style={{ marginTop: cq(3), gap: cq(3) }}>
+          <div className="flex items-end shrink-0" style={{ gap: cq(3) }}>
             {price && (
               <EditableText
                 as="p" fieldId="f-price" editable={editable} value={price}
@@ -350,22 +356,24 @@ function VariantDigitalAgency({
           </div>
         </section>
 
-        {/* Image column — unchanged, this part was already correct */}
-        <section className="absolute right-0 top-0 bottom-[12%] w-[38%]">
-          <div className="absolute overflow-hidden" style={{ inset: cq(2), borderRadius: cq(2) }}>
-            <Image
-              src={productImage}
-              alt=""
-              fill
-              priority
-              crossOrigin="anonymous"
-              draggable={false}
-              className="object-cover"
-            />
-          </div>
+        {/* Image column — now full-bleed: bottom-0 (was bottom-[12%]) so it
+            fills the entire right-half height, and the inset/rounded frame
+            is gone so the image runs edge-to-edge instead of floating in a
+            padded box. The accent circle moves to a corner overlay instead
+            of eating into the image's height. */}
+        <section className="absolute right-0 top-0 bottom-0 w-[42%] overflow-hidden">
+          <Image
+            src={productImage}
+            alt=""
+            fill
+            priority
+            crossOrigin="anonymous"
+            draggable={false}
+            className="object-cover"
+          />
           <div
             className="absolute rounded-full"
-            style={{ bottom: cq(-2), left: cq(-2), width: cq(10), height: cq(10), backgroundColor: colors.accent, opacity: 0.9 }}
+            style={{ bottom: cq(3), left: cq(3), width: cq(9), height: cq(9), backgroundColor: colors.accent, opacity: 0.92 }}
           />
         </section>
       </div>

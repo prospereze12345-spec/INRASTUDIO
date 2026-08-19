@@ -508,7 +508,8 @@ function DiscountBadgeSticker({
   onFocus?: (el: HTMLElement) => void;
   onBlur?: () => void;
 }) {
-  const SIZE = 116;
+  const SIZE = "calc(var(--ci) * 22)";
+
   return (
     <div style={{ width: SIZE, height: SIZE, position: "relative" }}>
       <div style={{
@@ -532,7 +533,7 @@ function DiscountBadgeSticker({
           onBlur={onBlur}
           className="text-center"
           style={{
-            fontWeight: 900, fontSize: 24, lineHeight: 1, letterSpacing: "-0.03em",
+            fontWeight: 900, fontSize: "calc(var(--ci) * 5)", lineHeight: 1, letterSpacing: "-0.03em",
             color: badge.textColor, textShadow: "0 1px 2px rgba(0,0,0,.12)",
             minWidth: 10,
           }}
@@ -545,7 +546,7 @@ function DiscountBadgeSticker({
           onBlur={onBlur}
           className="text-center"
           style={{
-            fontWeight: 800, fontSize: 12, letterSpacing: "0.12em",
+            fontWeight: 800, fontSize: "calc(var(--ci) * 2.4)", letterSpacing: "0.12em",
             color: badge.textColor, opacity: 0.85, minWidth: 10,
           }}
         />
@@ -1530,7 +1531,8 @@ if (result) {
   const recalc = () => {
     if (!canvasWrapRef.current) return;
     const { width, height } = canvasWrapRef.current.getBoundingClientRect();
-    const pad = 48;
+    const pad = 16;
+
     setCanvasSize(calcCanvasSize(activeFormat, width - pad, height - pad));
   };
   recalc();
@@ -1765,11 +1767,15 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
                   onDelete={() => setLogoOverlay(prev => ({ ...prev, image: null }))}
                 >
                   <img
-                    src={logoOverlay.image}
-                    alt="Logo"
-                    style={{ width: 80, height: 80, objectFit: "contain" }}
-                    draggable={false}
-                  />
+  src={logoOverlay.image}
+  alt="Logo"
+  style={{
+    width: "calc(var(--ci) * 20)",
+    height: "calc(var(--ci) * 20)",
+    objectFit: "contain"
+  }}
+  draggable={false}
+/>
                 </Movable>
               )}
 
@@ -1854,7 +1860,7 @@ const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
                         prev.map(item => (item.id === ft.id ? { ...item, text: v } : item))
                       )
                     }
-                    className="text-white font-semibold text-base min-w-[40px]"
+                    className="text-white font-semibold min-w-[40px]"
                     style={{ color: ft.color }}
                     onFocus={() => setSelectedOverlayId(ft.id)}
                     onBlur={() => {}}
