@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import Image from "next/image";
+import { ShoppingBag } from "lucide-react";
 import {
   FeatureList,
   ContactBar,
@@ -128,57 +129,12 @@ export function PremiumBrandTemplate(props: PremiumBrandProps) {
 }
 
 /* ============================================================================
-   SHARED HEADER
-============================================================================ */
-
-function BrandHeader({
-  brandName,
-  website,
-  editable,
-  onUpdate,
-  onFocusEl,
-  onBlurEl,
-  colors,
-}: Pick<
-  PremiumBrandProps,
-  "brandName" | "website" | "editable" | "onUpdate" | "onFocusEl" | "onBlurEl" | "colors"
->) {
-  return (
-    <header
-      className="flex items-center justify-between relative z-20"
-      style={{ paddingLeft: cq(6), paddingRight: cq(6), paddingTop: cq(4), paddingBottom: cq(2) }}
-    >
-      <EditableText
-        as="p"
-        fieldId="f-brand"
-        editable={editable}
-        value={brandName ?? ""}
-        onChange={(v) => onUpdate?.("brandName", v)}
-        onFocusEl={onFocusEl}
-        onBlurEl={onBlurEl}
-        className="font-semibold tracking-[0.18em] uppercase leading-none"
-        style={{ color: colors.secondary, fontSize: cq(2.25) }}
-      />
-
-      {website && (
-        <EditableText
-          as="p"
-          fieldId="f-web"
-          editable={editable}
-          value={website}
-          onChange={(v) => onUpdate?.("website", v)}
-          onFocusEl={onFocusEl}
-          onBlurEl={onBlurEl}
-          className="tracking-[0.08em] leading-none opacity-50"
-          style={{ color: colors.secondary, fontSize: cq(1.65) }}
-        />
-      )}
-    </header>
-  );
-}
-
-/* ============================================================================
    CTA
+   Leading icon circle (bag) + label + trailing arrow — a two-tone pill
+   instead of a flat text button, so it reads as a tappable action rather
+   than a label. rounded-2xl (not rounded-full) is deliberate: CTA copy is
+   user-editable and can run long ("DM TO ORDER NOW — WE DELIVER TODAY"),
+   and a fixed pill radius on wrapped text draws a blob instead of a button.
 ============================================================================ */
 
 function SmartCTA({
@@ -189,6 +145,7 @@ function SmartCTA({
   onBlurEl,
   colors,
   rounded = true,
+  leadingIcon = false,
 }: {
   value: string;
   editable?: boolean;
@@ -197,19 +154,18 @@ function SmartCTA({
   onBlurEl?: () => void;
   colors: PremiumBrandProps["colors"];
   rounded?: boolean;
+  leadingIcon?: boolean;
 }) {
   return (
     <div
-      // rounded-full only reads as a "pill" on single-line text. CTA copy
-      // is user-editable and can run long ("DM TO ORDER NOW — WE DELIVER
-      // TODAY"), so a fixed pill radius on wrapped text draws a circle/
-      // blob instead of a button. rounded-2xl stays a clean shape at any
-      // line count.
       className={`inline-flex items-center font-semibold tracking-[0.08em] uppercase ${rounded ? "rounded-2xl" : ""}`}
       style={{
         ...touchTarget,
-        paddingLeft: cq(4.5), paddingRight: cq(4.5),
-        paddingTop: cq(2.2), paddingBottom: cq(2.2),
+        paddingLeft: leadingIcon ? cq(1.4) : cq(4.5),
+        paddingRight: cq(4.5),
+        paddingTop: cq(1.4),
+        paddingBottom: cq(1.4),
+        gap: cq(2),
         fontSize: cq(1.9),
         lineHeight: 1.3,
         maxWidth: "min(90cqi, 100%)",
@@ -217,6 +173,20 @@ function SmartCTA({
         color: colors.primary,
       }}
     >
+      {leadingIcon && (
+        <span
+          className="flex shrink-0 items-center justify-center rounded-full"
+          style={{
+            width: cq(4.4),
+            height: cq(4.4),
+            backgroundColor: colors.primary,
+            color: colors.accent,
+          }}
+        >
+          <ShoppingBag style={{ width: cq(2), height: cq(2) }} />
+        </span>
+      )}
+
       <EditableText
         as="span"
         fieldId="f-cta"
@@ -226,7 +196,7 @@ function SmartCTA({
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
       />
-      <span className="opacity-60 shrink-0" style={{ marginLeft: cq(2) }}>→</span>
+      <span className="opacity-60 shrink-0">→</span>
     </div>
   );
 }
@@ -255,32 +225,30 @@ function VariantDigitalAgency({
       className="@container w-full h-full relative overflow-hidden font-sans flex flex-col"
       style={{ backgroundColor: colors.primary, color: colors.secondary }}
     >
-      <BrandHeader
-        brandName={brandName} website={website} editable={editable}
-        onUpdate={onUpdate} onFocusEl={onFocusEl} onBlurEl={onBlurEl} colors={colors}
-      />
+      {/* The old header — "PREMIUM BRAND" / "SERVICES" — is intentionally
+          gone. It duplicated brandName/website with no visual purpose and
+          ate the top ~10% of the canvas before the headline even started.
+          Website is still fully present, just where it belongs: the
+          ContactBar footer, next to phone and email. The body section
+          below now owns the full canvas height and centers vertically,
+          so removing the header doesn't leave a visible gap. */}
 
-      {/* Body fills exactly the space between header and canvas edge.
-          No overflow-y-auto anywhere below — a flyer never scrolls. Instead
-          Features/Why-Choose-Us cap how many items render (see slice calls
-          below), which is what guarantees this fits without a scrollbar. */}
+      {/* Body fills the entire canvas top-to-bottom. No overflow-y-auto
+          anywhere below — a flyer never scrolls. Instead Features/
+          Why-Choose-Us cap how many items render (see slice calls below),
+          which is what guarantees this fits without a scrollbar. */}
       <div
         className="flex-1 relative min-h-0"
-        style={{ paddingLeft: cq(6), paddingRight: cq(6), paddingTop: cq(2), paddingBottom: cq(5) }}
+        style={{ paddingLeft: cq(6), paddingRight: cq(6), paddingTop: cq(5), paddingBottom: cq(5) }}
       >
-        <div
-          className="absolute left-[55%] top-0 bottom-0 w-px"
-          style={{ backgroundColor: hexToRgba(colors.secondary, 0.08) }}
-        />
-
         {/* Left column: ONE flex column with a single `gap` token driving
             every section's spacing. This replaces the old per-element
             marginTop values — that's what was reading as a "wall" of text
-            with no consistent rhythm. Change cq(3) below to retune every
+            with no consistent rhythm. Change cq(3.2) below to retune every
             gap in the column at once. */}
         <section
           className="absolute left-0 top-0 bottom-0 w-[52%] flex flex-col justify-center"
-          style={{ paddingRight: cq(5), gap: cq(3) }}
+          style={{ paddingRight: cq(5), gap: cq(3.2) }}
         >
           <div className="flex items-center shrink-0" style={{ gap: cq(1.5) }}>
             <span className="h-px" style={{ width: cq(3.5), backgroundColor: colors.accent }} />
@@ -288,7 +256,7 @@ function VariantDigitalAgency({
               className="uppercase tracking-[0.25em] opacity-45"
               style={{ color: colors.secondary, fontSize: cq(1.65) }}
             >
-              {parsed.kicker || "Services"}
+              {parsed.kicker || brandName || "Services"}
             </span>
           </div>
 
@@ -327,7 +295,7 @@ function VariantDigitalAgency({
               same as Canva/real flyer tools use, so a flyer can never be
               overloaded past what a fixed canvas can hold. Data itself is
               untouched; slice() only affects what renders. */}
-          <div className="shrink-0 flex flex-col" style={{ gap: cq(2) }}>
+          <div className="shrink-0 flex flex-col" style={{ gap: cq(2.4) }}>
             <FeatureList
               features={parsed.features.slice(0, 3)} colors={colors} editable={editable}
               onUpdateFeature={(index, value) => onUpdate?.("badgeText", parsed.updateFeature(index, value))}
@@ -352,16 +320,19 @@ function VariantDigitalAgency({
                 className="font-semibold tracking-tight" style={{ color: colors.accent, fontSize: cq(5) }}
               />
             )}
-            <SmartCTA value={ctaText} editable={editable} onUpdate={onUpdate} onFocusEl={onFocusEl} onBlurEl={onBlurEl} colors={colors} />
+            <SmartCTA
+              value={ctaText} editable={editable} onUpdate={onUpdate}
+              onFocusEl={onFocusEl} onBlurEl={onBlurEl} colors={colors}
+              leadingIcon
+            />
           </div>
         </section>
 
-        {/* Image column — now full-bleed: bottom-0 (was bottom-[12%]) so it
-            fills the entire right-half height, and the inset/rounded frame
-            is gone so the image runs edge-to-edge instead of floating in a
-            padded box. The accent circle moves to a corner overlay instead
-            of eating into the image's height. */}
-        <section className="absolute right-0 top-0 bottom-0 w-[42%] overflow-hidden">
+        {/* Image column — full-bleed, edge-to-edge, no inset frame. The
+            accent circle sits as a corner overlay rather than eating into
+            the image's height. website has moved off the old header and
+            onto the badge here instead — small, unobtrusive, still legible. */}
+        <section className="absolute right-0 top-0 bottom-0 w-[42%] overflow-hidden rounded-[calc(2.5*var(--ci,1cqi))]">
           <Image
             src={productImage}
             alt=""
@@ -371,6 +342,29 @@ function VariantDigitalAgency({
             draggable={false}
             className="object-cover"
           />
+
+          {website && (
+            <div
+              className="absolute top-0 right-0 font-medium tracking-[0.05em]"
+              style={{
+                padding: `${cq(1.6)} ${cq(2.4)}`,
+                fontSize: cq(1.5),
+                color: colors.secondary,
+                opacity: 0.85,
+              }}
+            >
+              <EditableText
+                as="span"
+                fieldId="f-web"
+                editable={editable}
+                value={website}
+                onChange={(v) => onUpdate?.("website", v)}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+              />
+            </div>
+          )}
+
           <div
             className="absolute rounded-full"
             style={{ bottom: cq(3), left: cq(3), width: cq(9), height: cq(9), backgroundColor: colors.accent, opacity: 0.92 }}

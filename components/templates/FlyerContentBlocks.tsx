@@ -141,11 +141,14 @@ function cleanStringArray(values: unknown): string[] {
  * it fits inline in a dense list row, but the tappable hit-area is
  * padded out via negative margin so fingers don't need pixel precision.
  *
- * Previously this was `opacity-0` + `group-hover:opacity-100` — on
- * touchscreens there is no hover state, so on every mobile device this
- * button was invisible and untappable. Now it's always visible at
- * reduced opacity and goes full-opacity on hover (desktop) or
- * focus/active (any device, including touch).
+ * IMPORTANT — export/download correctness: this button (and every other
+ * add/remove/restore control in this file) is only ever rendered inside
+ * an `{editable && (...)}` guard. If "+ Add feature" / "+ Add reason" is
+ * showing up in an exported flyer, the render pass that produces the
+ * export is passing `editable={true}` (or leaving it undefined, which
+ * defaults truthy checks incorrectly upstream) — fix that at the export
+ * call site, not here. This file has no code path that shows these
+ * controls when `editable` is false.
  */
 function RemoveButton({
   onClick,
@@ -256,6 +259,29 @@ function RestoreChip({
   );
 }
 
+/**
+ * Trailing "confirmed" badge shown only in read-only (export) mode, on
+ * Why-Choose-Us rows. In edit mode this slot is the RemoveButton (X)
+ * instead — the two are mutually exclusive so the row never shows both
+ * an edit control and a decorative badge at once.
+ */
+function ConfirmBadge({ accentColor }: { accentColor: string }) {
+  return (
+    <span
+      className="flex shrink-0 items-center justify-center rounded-full"
+      style={{
+        width: cq(2.2),
+        height: cq(2.2),
+        backgroundColor: `${accentColor}18`,
+      }}
+    >
+      <CheckCircle2
+        style={{ color: accentColor, width: cq(1.3), height: cq(1.3) }}
+      />
+    </span>
+  );
+}
+
 // ============================================================================
 // Feature List
 // ============================================================================
@@ -296,7 +322,7 @@ export function FeatureList({
     <section
       data-flyer-block="features"
       className="flex max-w-[85%] flex-col"
-      style={{ marginTop: cq(2.5), gap: cq(1.3) }}
+      style={{ marginTop: cq(2.5), gap: cq(1.4) }}
     >
       <EditableText
         as="h3"
@@ -314,7 +340,7 @@ export function FeatureList({
         <div
           key={`feature-${index}`}
           className="group flex items-center"
-          style={{ gap: cq(1) }}
+          style={{ gap: cq(1.2) }}
         >
           <span
             className="flex shrink-0 items-center justify-center rounded-full"
@@ -406,7 +432,7 @@ export function WhyChooseUsList({
     <section
       data-flyer-block="why-choose-us"
       className="flex max-w-[85%] flex-col"
-      style={{ marginTop: cq(2.5), gap: cq(1.3) }}
+      style={{ marginTop: cq(2.5), gap: cq(1.4) }}
     >
       <EditableText
         as="h3"
@@ -423,39 +449,47 @@ export function WhyChooseUsList({
       {cleanItems.map((item, index) => (
         <div
           key={`why-${index}`}
-          className="group flex items-center"
-          style={{ gap: cq(1) }}
+          className="group flex items-center justify-between"
+          style={{ gap: cq(1.2) }}
         >
-          <span
-            className="flex shrink-0 items-center justify-center rounded-full"
-            style={{
-              width: cq(2.4),
-              height: cq(2.4),
-              backgroundColor: `${colors.accent}22`,
-            }}
-          >
-            <CheckCircle2
-              style={{ color: colors.accent, width: cq(1.5), height: cq(1.5) }}
+          <div className="flex min-w-0 flex-1 items-center" style={{ gap: cq(1.2) }}>
+            <span
+              className="flex shrink-0 items-center justify-center rounded-full"
+              style={{
+                width: cq(2.4),
+                height: cq(2.4),
+                backgroundColor: `${colors.accent}22`,
+              }}
+            >
+              <CheckCircle2
+                style={{ color: colors.accent, width: cq(1.5), height: cq(1.5) }}
+              />
+            </span>
+
+            <EditableText
+              as="span"
+              fieldId={`f-why-${index}`}
+              editable={editable}
+              value={item}
+              onChange={(value) => onUpdate?.(index, value)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              className="min-w-0 flex-1"
+              style={{ fontSize: cq(1.85) }}
             />
-          </span>
+          </div>
 
-          <EditableText
-            as="span"
-            fieldId={`f-why-${index}`}
-            editable={editable}
-            value={item}
-            onChange={(value) => onUpdate?.(index, value)}
-            onFocusEl={onFocusEl}
-            onBlurEl={onBlurEl}
-            className="min-w-0 flex-1"
-            style={{ fontSize: cq(1.85) }}
-          />
-
-          {editable && (
+          {/* Edit mode: X to remove. Read-only/export mode: decorative
+              confirm badge, matching the reference layout where every
+              reason gets a trailing checkmark. The two never render
+              together. */}
+          {editable ? (
             <RemoveButton
               label={`Remove reason ${index + 1}`}
               onClick={() => onRemove?.(index)}
             />
+          ) : (
+            <ConfirmBadge accentColor={colors.accent} />
           )}
         </div>
       ))}
