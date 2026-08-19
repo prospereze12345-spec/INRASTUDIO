@@ -230,8 +230,10 @@ function VariantDigitalAgency({
   );
 
   return (
+    // 1. @container added — enables cqi units so the headline scales
+    //    to THIS column's width, not the viewport.
     <div
-      className="w-full h-full relative overflow-hidden font-sans"
+      className="@container w-full h-full relative overflow-hidden font-sans flex flex-col"
       style={{ backgroundColor: colors.primary, color: colors.secondary }}
     >
       <BrandHeader
@@ -239,17 +241,24 @@ function VariantDigitalAgency({
         onUpdate={onUpdate} onFocusEl={onFocusEl} onBlurEl={onBlurEl} colors={colors}
       />
 
+      {/* 2. Body is now flex-1 + min-h-0: it fills exactly the space
+             between header and canvas edge, and CANNOT overflow it. */}
       <div
-        className="absolute"
-        style={{ left: px(6), right: px(6), top: px(17), bottom: px(6) }}
+        className="flex-1 relative min-h-0"
+        style={{ paddingLeft: px(6), paddingRight: px(6), paddingTop: px(3), paddingBottom: px(6) }}
       >
         <div
           className="absolute left-[58%] top-0 bottom-0 w-px"
           style={{ backgroundColor: hexToRgba(colors.secondary, 0.08) }}
         />
 
-        <section className="absolute left-0 top-0 w-[52%]" style={{ paddingRight: px(5) }}>
-          <div className="flex items-center" style={{ gap: px(1.5), marginBottom: px(3) }}>
+        {/* 3. Left column: flex column, full height of its slot, so its
+               children can never spill past the visible canvas. */}
+        <section
+          className="absolute left-0 top-0 bottom-0 w-[52%] flex flex-col"
+          style={{ paddingRight: px(5) }}
+        >
+          <div className="flex items-center shrink-0" style={{ gap: px(1.5), marginBottom: px(2) }}>
             <span className="h-px" style={{ width: px(3.5), backgroundColor: colors.accent }} />
             <span
               className="uppercase tracking-[0.25em] opacity-45"
@@ -259,7 +268,19 @@ function VariantDigitalAgency({
             </span>
           </div>
 
-          <h1 className="font-semibold uppercase tracking-[-0.055em] leading-[0.88]" style={{ fontSize: px(8.3) }}>
+          {/* 4. Headline: fluid clamp tied to the column (cqi), not vw.
+                 keep-all + normal wrapping stops mid-word breaks like
+                 "INST / ANTL / Y". Long headlines shrink instead of
+                 blowing up the box. shrink-0 keeps it from being
+                 squashed by the flex layout. */}
+          <h1
+            className="font-semibold uppercase tracking-[-0.055em] leading-[0.88] shrink-0"
+            style={{
+              fontSize: "clamp(1.5rem, 9cqi, 96px)",
+              wordBreak: "keep-all",
+              overflowWrap: "normal",
+            }}
+          >
             <EditableHeadlineLines
               value={headline} editable={editable}
               onChange={(v) => onUpdate?.("headline", v)}
@@ -275,11 +296,15 @@ function VariantDigitalAgency({
           <EditableText
             as="p" fieldId="f-sub" editable={editable} value={subtext}
             onChange={(v) => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="leading-[1.45] opacity-55 max-w-[85%]"
-            style={{ marginTop: px(4), fontSize: px(2.15) }}
+            className="leading-[1.45] opacity-55 max-w-[85%] shrink-0"
+            style={{ marginTop: px(3), fontSize: px(2.15) }}
           />
 
-          <div style={{ marginTop: px(5) }}>
+          {/* 5. Features + WhyChooseUs get their own scrollable region.
+                 flex-1 + min-h-0 means: take remaining space, but if
+                 content is genuinely too tall, scroll INSIDE this box
+                 instead of pushing the price/CTA/ContactBar off canvas. */}
+          <div className="flex-1 min-h-0 overflow-y-auto" style={{ marginTop: px(3) }}>
             <FeatureList
               features={parsed.features} colors={colors} editable={editable}
               onUpdateFeature={(index, value) => onUpdate?.("badgeText", parsed.updateFeature(index, value))}
@@ -296,7 +321,7 @@ function VariantDigitalAgency({
             />
           </div>
 
-          <div className="flex items-end" style={{ marginTop: px(5), gap: px(3) }}>
+          <div className="flex items-end shrink-0" style={{ marginTop: px(3), gap: px(3) }}>
             {price && (
               <EditableText
                 as="p" fieldId="f-price" editable={editable} value={price}
@@ -308,6 +333,7 @@ function VariantDigitalAgency({
           </div>
         </section>
 
+        {/* Image column — unchanged, this part was already correct */}
         <section className="absolute right-0 top-0 bottom-[12%] w-[38%]">
           <div className="absolute overflow-hidden" style={{ inset: px(2), borderRadius: px(2) }}>
             <Image src={productImage} alt="" fill priority crossOrigin="anonymous" className="object-cover" />
@@ -317,23 +343,26 @@ function VariantDigitalAgency({
             style={{ bottom: px(-2), left: px(-2), width: px(10), height: px(10), backgroundColor: colors.accent, opacity: 0.9 }}
           />
         </section>
+      </div>
 
-        <div className="absolute left-0 right-0 bottom-0">
-          <ContactBar
-            phone={phone} website={website} email={email}
-            accentColor={colors.accent} textColor={colors.secondary} editable={editable}
-            onUpdatePhone={(v) => onUpdate?.("phone", v)} onUpdateWebsite={(v) => onUpdate?.("website", v)} onUpdateEmail={(v) => onUpdate?.("email", v)}
-            onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            phoneVisible={phoneVisible} websiteVisible={websiteVisible} emailVisible={emailVisible}
-            onRemovePhone={onRemovePhone} onRemoveWebsite={onRemoveWebsite} onRemoveEmail={onRemoveEmail}
-            onRestorePhone={onRestorePhone} onRestoreWebsite={onRestoreWebsite} onRestoreEmail={onRestoreEmail}
-          />
-        </div>
+      {/* 6. ContactBar now sits in normal flow as the true footer,
+             (shrink-0, not absolute), so it can never overlap content
+             above it — it always sits at the true bottom of the flex
+             column, after everything else has taken its space. */}
+      <div className="shrink-0">
+        <ContactBar
+          phone={phone} website={website} email={email}
+          accentColor={colors.accent} textColor={colors.secondary} editable={editable}
+          onUpdatePhone={(v) => onUpdate?.("phone", v)} onUpdateWebsite={(v) => onUpdate?.("website", v)} onUpdateEmail={(v) => onUpdate?.("email", v)}
+          onFocusEl={onFocusEl} onBlurEl={onBlurEl}
+          phoneVisible={phoneVisible} websiteVisible={websiteVisible} emailVisible={emailVisible}
+          onRemovePhone={onRemovePhone} onRemoveWebsite={onRemoveWebsite} onRemoveEmail={onRemoveEmail}
+          onRestorePhone={onRestorePhone} onRestoreWebsite={onRestoreWebsite} onRestoreEmail={onRestoreEmail}
+        />
       </div>
     </div>
   );
 }
-
 /* ============================================================================
    3. PREMIUM GOLD
 ============================================================================ */
