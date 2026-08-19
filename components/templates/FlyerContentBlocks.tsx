@@ -11,7 +11,17 @@ import {
 } from "lucide-react";
 
 import { EditableText } from "@/components/EditableText";
-import { px } from "@/lib/responsive";
+
+// ============================================================================
+// Canvas-relative scale
+// ----------------------------------------------------------------------------
+// Sized against the @container this element renders inside (cqi), NOT the
+// browser viewport (vw). This is what keeps spacing/type consistent whether
+// the flyer is shown full-size in the editor canvas or shrunk into a small
+// preview thumbnail — vw has no idea the preview is scaled down, cqi does.
+// ============================================================================
+
+const cq = (n: number) => `clamp(${n * 0.7}px, ${n}cqi, ${n * 2.2}px)`;
 
 // ============================================================================
 // Types
@@ -194,13 +204,13 @@ function RestoreSectionButton({
         hover:text-white/80
       "
       style={{
-        paddingTop: px(1.2),
-        paddingBottom: px(1.2),
-        fontSize: px(1.8),
+        paddingTop: cq(1.2),
+        paddingBottom: cq(1.2),
+        fontSize: cq(1.8),
         minHeight: "44px",
       }}
     >
-      <Plus style={{ width: px(1.6), height: px(1.6) }} />
+      <Plus style={{ width: cq(1.6), height: cq(1.6) }} />
       {label}
     </button>
   );
@@ -236,11 +246,11 @@ function RestoreChip({
         hover:text-white/80
       "
       style={{
-        fontSize: px(1.3),
+        fontSize: cq(1.3),
         minHeight: "36px",
       }}
     >
-      <Plus style={{ width: px(1.4), height: px(1.4) }} />
+      <Plus style={{ width: cq(1.4), height: cq(1.4) }} />
       <span className="truncate">{label}</span>
     </button>
   );
@@ -286,7 +296,7 @@ export function FeatureList({
     <section
       data-flyer-block="features"
       className="flex max-w-[85%] flex-col"
-      style={{ marginTop: px(3), gap: px(1.5) }}
+      style={{ marginTop: cq(2.5), gap: cq(1.3) }}
     >
       <EditableText
         as="h3"
@@ -297,25 +307,25 @@ export function FeatureList({
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
         className="font-black tracking-widest"
-        style={{ color: colors.accent, fontSize: px(2.5) }}
+        style={{ color: colors.accent, fontSize: cq(2.3) }}
       />
 
       {cleanFeatures.map((feature, index) => (
         <div
           key={`feature-${index}`}
           className="group flex items-center"
-          style={{ gap: px(1) }}
+          style={{ gap: cq(1) }}
         >
           <span
             className="flex shrink-0 items-center justify-center rounded-full"
             style={{
-              width: px(2.6),
-              height: px(2.6),
+              width: cq(2.4),
+              height: cq(2.4),
               backgroundColor: `${colors.accent}22`,
             }}
           >
             <CheckCircle2
-              style={{ color: colors.accent, width: px(1.6), height: px(1.6) }}
+              style={{ color: colors.accent, width: cq(1.5), height: cq(1.5) }}
             />
           </span>
 
@@ -328,7 +338,7 @@ export function FeatureList({
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             className="min-w-0 flex-1"
-            style={{ fontSize: px(2) }}
+            style={{ fontSize: cq(1.85) }}
           />
 
           {editable && (
@@ -346,9 +356,9 @@ export function FeatureList({
           data-flyer-control="true"
           onClick={onAddFeature}
           className="inline-flex w-fit items-center gap-1 rounded-md px-1 py-1.5 transition hover:bg-black/5"
-          style={{ color: colors.accent, fontSize: px(1.8), minHeight: "36px" }}
+          style={{ color: colors.accent, fontSize: cq(1.7), minHeight: "36px" }}
         >
-          <Plus style={{ width: px(1.8), height: px(1.8) }} />
+          <Plus style={{ width: cq(1.8), height: cq(1.8) }} />
           Add feature
         </button>
       )}
@@ -396,7 +406,7 @@ export function WhyChooseUsList({
     <section
       data-flyer-block="why-choose-us"
       className="flex max-w-[85%] flex-col"
-      style={{ marginTop: px(3.5), gap: px(1.5) }}
+      style={{ marginTop: cq(2.5), gap: cq(1.3) }}
     >
       <EditableText
         as="h3"
@@ -407,25 +417,25 @@ export function WhyChooseUsList({
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
         className="font-black tracking-widest"
-        style={{ color: colors.accent, fontSize: px(2.5) }}
+        style={{ color: colors.accent, fontSize: cq(2.3) }}
       />
 
       {cleanItems.map((item, index) => (
         <div
           key={`why-${index}`}
           className="group flex items-center"
-          style={{ gap: px(1) }}
+          style={{ gap: cq(1) }}
         >
           <span
             className="flex shrink-0 items-center justify-center rounded-full"
             style={{
-              width: px(2.6),
-              height: px(2.6),
+              width: cq(2.4),
+              height: cq(2.4),
               backgroundColor: `${colors.accent}22`,
             }}
           >
             <CheckCircle2
-              style={{ color: colors.accent, width: px(1.6), height: px(1.6) }}
+              style={{ color: colors.accent, width: cq(1.5), height: cq(1.5) }}
             />
           </span>
 
@@ -438,7 +448,7 @@ export function WhyChooseUsList({
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             className="min-w-0 flex-1"
-            style={{ fontSize: px(2) }}
+            style={{ fontSize: cq(1.85) }}
           />
 
           {editable && (
@@ -456,9 +466,9 @@ export function WhyChooseUsList({
           data-flyer-control="true"
           onClick={onAdd}
           className="inline-flex w-fit items-center gap-1 rounded-md px-1 py-1.5 transition hover:bg-black/5"
-          style={{ color: colors.accent, fontSize: px(1.8), minHeight: "36px" }}
+          style={{ color: colors.accent, fontSize: cq(1.7), minHeight: "36px" }}
         >
-          <Plus style={{ width: px(1.8), height: px(1.8) }} />
+          <Plus style={{ width: cq(1.8), height: cq(1.8) }} />
           Add reason
         </button>
       )}
@@ -489,10 +499,10 @@ function ContactItem({
   }
 
   return (
-    <div className="group flex min-w-0 items-center" style={{ gap: px(0.8) }}>
+    <div className="group flex min-w-0 items-center" style={{ gap: cq(0.8) }}>
       <span
         className="flex shrink-0 items-center justify-center rounded-full"
-        style={{ width: px(2), height: px(2), backgroundColor: accentColor }}
+        style={{ width: cq(2), height: cq(2), backgroundColor: accentColor }}
       >
         {icon}
       </span>
@@ -507,12 +517,12 @@ function ContactItem({
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
           className="min-w-0 flex-1 truncate"
-          style={{ color: textColor, fontSize: px(1.5) }}
+          style={{ color: textColor, fontSize: cq(1.4) }}
         />
       ) : (
         <span
           className="min-w-0 flex-1 truncate"
-          style={{ color: textColor, fontSize: px(1.5) }}
+          style={{ color: textColor, fontSize: cq(1.4) }}
         >
           {value}
         </span>
@@ -567,7 +577,7 @@ export function ContactBar({
     <section
       data-flyer-block="contact"
       className="flex w-full flex-wrap items-center"
-      style={{ gap: px(2) }}
+      style={{ gap: cq(2) }}
     >
       <div className="min-w-0 flex-1">
         {phoneVisible ? (
