@@ -21,7 +21,7 @@ import { EditableText } from "@/components/EditableText";
 // preview thumbnail — vw has no idea the preview is scaled down, cqi does.
 // ============================================================================
 
-const cq = (n: number) => `clamp(${n * 0.7}px, ${n}cqi, ${n * 2.2}px)`;
+const cq = (n: number) => `clamp(${n * 1.5}px, ${n}cqi, ${n * 12}px)`;
 
 // ============================================================================
 // Types

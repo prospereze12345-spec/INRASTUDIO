@@ -23,7 +23,7 @@ import { touchTarget } from "@/lib/responsive";
 // vw-based px() from @/lib/responsive.
 // ============================================================================
 
-const cq = (n: number) => `clamp(${n * 0.7}px, ${n}cqi, ${n * 2.2}px)`;
+const cq = (n: number) => `clamp(${n * 1.5}px, ${n}cqi, ${n * 12}px)`;
 
 export interface PremiumBrandProps {
   name?: string;
