@@ -24,7 +24,7 @@ export interface PremiumBrandProps {
   headline: string;
   subtext: string;
   ctaText: string;
-  badgeText?: string;           // now just a string for discount badge
+  badgeText?: string;
   productImage: string;
   brandName?: string;
   website?: string;
@@ -41,7 +41,7 @@ export interface PremiumBrandProps {
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
 
-  // Direct data from backend
+  // Direct data from backend – no fallbacks, frontend does NOT generate content
   features?: string[];
   whyChooseUs?: string[];
 
@@ -62,9 +62,8 @@ export interface PremiumBrandProps {
   onRestoreEmail?: () => void;
   onRestoreWebsite?: () => void;
 
-  // These are kept for compatibility but we won't parse them
+  // Legacy props kept for compatibility (unused)
   extraText?: string;
-  // Also keep the original feature/why props if they were passed
   onUpdateFeature?: (index: number, value: string) => void;
   onAddFeature?: () => void;
   onRemoveFeature?: (index: number) => void;
@@ -179,7 +178,7 @@ function SmartCTA({
 }
 
 /* ============================================================================
-   DIGITAL AGENCY — uses direct props, no parsing
+   DIGITAL AGENCY — uses direct props, no fallbacks, no parsing
 ============================================================================ */
 
 function VariantDigitalAgency({
@@ -199,11 +198,11 @@ function VariantDigitalAgency({
   onBlurEl,
   features,
   whyChooseUs,
-  featuresVisible,
-  whyChooseUsVisible,
-  phoneVisible,
-  emailVisible,
-  websiteVisible,
+  featuresVisible = true,
+  whyChooseUsVisible = true,
+  phoneVisible = true,
+  emailVisible = true,
+  websiteVisible = true,
   onRestoreFeatures,
   onRestoreWhyChooseUs,
   onRemovePhone,
@@ -213,16 +212,9 @@ function VariantDigitalAgency({
   onRestoreEmail,
   onRestoreWebsite,
 }: PremiumBrandProps) {
-  // Use directly provided arrays, fallback to defaults if empty
-  const featureItems =
-    features && features.length > 0
-      ? features
-      : ["Fast delivery", "High quality", "Best support"];
-
-  const whyItems =
-    whyChooseUs && whyChooseUs.length > 0
-      ? whyChooseUs
-      : ["Fast delivery guaranteed", "High quality products", "Best customer service"];
+  // No fallback defaults – if backend doesn't send arrays, we render nothing
+  const hasFeatures = features && features.length > 0;
+  const hasWhy = whyChooseUs && whyChooseUs.length > 0;
 
   // Badge comes straight from badgeText
   const badge = badgeText || null;
@@ -272,7 +264,7 @@ function VariantDigitalAgency({
         {/* Left column: content */}
         <section
           className="absolute left-0 top-0 bottom-0 flex flex-col justify-center"
-          style={{ width: "55%", paddingRight: cq(5), gap: cq(2.5) }}
+          style={{ width: "55%", paddingRight: cq(2), gap: cq(2.5) }}
         >
           <h1
             className="font-semibold uppercase tracking-[-0.05em] leading-[0.88]"
@@ -310,36 +302,41 @@ function VariantDigitalAgency({
             style={{ fontSize: cq(2) }}
           />
 
+          {/* Only render if backend provides data */}
           <div className="flex flex-col" style={{ gap: cq(2) }}>
-            <FeatureList
-              features={featureItems.slice(0, 3)}
-              colors={colors}
-              editable={listEditable}
-              visible={featuresVisible}
-              title="FEATURES"
-              onUpdateTitle={() => {}}
-              onUpdateFeature={() => {}}
-              onAddFeature={() => {}}
-              onRemoveFeature={() => {}}
-              onRestoreSection={onRestoreFeatures}
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-            />
+            {hasFeatures && (
+              <FeatureList
+                features={features.slice(0, 3)}
+                colors={colors}
+                editable={listEditable}
+                visible={featuresVisible}
+                title="FEATURES"
+                onUpdateTitle={() => {}}
+                onUpdateFeature={() => {}}
+                onAddFeature={() => {}}
+                onRemoveFeature={() => {}}
+                onRestoreSection={onRestoreFeatures}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+              />
+            )}
 
-            <WhyChooseUsList
-              items={whyItems.slice(0, 3)}
-              colors={colors}
-              editable={listEditable}
-              visible={whyChooseUsVisible}
-              title="WHY CHOOSE US"
-              onUpdateTitle={() => {}}
-              onUpdate={() => {}}
-              onAdd={() => {}}
-              onRemove={() => {}}
-              onRestoreSection={onRestoreWhyChooseUs}
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-            />
+            {hasWhy && (
+              <WhyChooseUsList
+                items={whyChooseUs.slice(0, 3)}
+                colors={colors}
+                editable={listEditable}
+                visible={whyChooseUsVisible}
+                title="WHY CHOOSE US"
+                onUpdateTitle={() => {}}
+                onUpdate={() => {}}
+                onAdd={() => {}}
+                onRemove={() => {}}
+                onRestoreSection={onRestoreWhyChooseUs}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+              />
+            )}
           </div>
 
           <div className="flex items-center" style={{ gap: cq(2), marginTop: cq(0.5) }}>
@@ -448,7 +445,7 @@ function VariantDigitalAgency({
 }
 
 /* ============================================================================
-   PREMIUM GOLD — same direct‑props approach
+   PREMIUM GOLD — same approach (no fallbacks, no parsing)
 ============================================================================ */
 
 function VariantPremiumGold({
@@ -467,9 +464,9 @@ function VariantPremiumGold({
   onUpdate,
   onFocusEl,
   onBlurEl,
-  phoneVisible,
-  emailVisible,
-  websiteVisible,
+  phoneVisible = true,
+  emailVisible = true,
+  websiteVisible = true,
   onRemovePhone,
   onRemoveEmail,
   onRemoveWebsite,

@@ -1,15 +1,7 @@
 ﻿"use client";
 
 import React from "react";
-import {
-  CheckCircle2,
-  Globe,
-  Mail,
-  Phone,
-  Plus,
-  X,
-} from "lucide-react";
-
+import { Globe, Mail, Phone, Plus } from "lucide-react";
 import { EditableText } from "@/components/EditableText";
 
 const cq = (n: number) => `clamp(${n * 1.5}px, ${n}cqi, ${n * 12}px)`;
@@ -84,14 +76,8 @@ type ContactItemProps = {
   textColor: string;
   editable?: boolean;
   onChange?: (value: string) => void;
-  onRemove?: () => void;
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
-};
-
-type RemoveButtonProps = {
-  onClick?: () => void;
-  label?: string;
 };
 
 type RestoreButtonProps = {
@@ -108,34 +94,6 @@ function cleanStringArray(values: unknown): string[] {
   return values.filter(
     (value): value is string =>
       typeof value === "string" && value.trim().length > 0
-  );
-}
-
-function RemoveButton({ onClick, label = "Remove" }: RemoveButtonProps) {
-  if (!onClick) return null;
-  return (
-    <button
-      type="button"
-      data-flyer-control="true"
-      aria-label={label}
-      title={label}
-      onClick={onClick}
-      className="
-        ml-1 -m-1.5 p-1.5 shrink-0
-        inline-flex items-center justify-center
-        rounded-full
-        text-red-400
-        opacity-50
-        transition
-        hover:bg-red-500/20 hover:text-red-300 hover:opacity-100
-        focus:opacity-100
-        active:opacity-100
-      "
-    >
-      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500/10">
-        <X size={12} />
-      </span>
-    </button>
   );
 }
 
@@ -196,25 +154,8 @@ function RestoreChip({ label, onClick }: RestoreButtonProps) {
   );
 }
 
-function ConfirmBadge({ accentColor }: { accentColor: string }) {
-  return (
-    <span
-      className="flex shrink-0 items-center justify-center rounded-full"
-      style={{
-        width: cq(2.2),
-        height: cq(2.2),
-        backgroundColor: `${accentColor}18`,
-      }}
-    >
-      <CheckCircle2
-        style={{ color: accentColor, width: cq(1.3), height: cq(1.3) }}
-      />
-    </span>
-  );
-}
-
 // ============================================================================
-// Feature List — fixed marginTop
+// Feature List — uses simple dot, no icons, no remove buttons
 // ============================================================================
 
 export function FeatureList({
@@ -249,7 +190,7 @@ export function FeatureList({
     <section
       data-flyer-block="features"
       className="flex w-full flex-col"
-      style={{ marginTop: 0, gap: cq(1) }} // ← marginTop: 0, tighter gap
+      style={{ marginTop: 0, gap: cq(1) }}
     >
       <EditableText
         as="h3"
@@ -266,21 +207,18 @@ export function FeatureList({
       {cleanFeatures.map((feature, index) => (
         <div
           key={`feature-${index}`}
-          className="group flex items-center"
+          className="flex items-center"
           style={{ gap: cq(1.2) }}
         >
           <span
             className="flex shrink-0 items-center justify-center rounded-full"
             style={{
-              width: cq(2.4),
-              height: cq(2.4),
-              backgroundColor: `${colors.accent}22`,
+              width: cq(0.8),
+              height: cq(0.8),
+              backgroundColor: colors.accent,
+              opacity: 0.7,
             }}
-          >
-            <CheckCircle2
-              style={{ color: colors.accent, width: cq(1.5), height: cq(1.5) }}
-            />
-          </span>
+          />
 
           <EditableText
             as="span"
@@ -293,13 +231,6 @@ export function FeatureList({
             className="min-w-0 flex-1"
             style={{ fontSize: cq(1.85) }}
           />
-
-          {editable && (
-            <RemoveButton
-              label={`Remove feature ${index + 1}`}
-              onClick={() => onRemoveFeature?.(index)}
-            />
-          )}
         </div>
       ))}
 
@@ -320,7 +251,7 @@ export function FeatureList({
 }
 
 // ============================================================================
-// Why Choose Us — fixed marginTop
+// Why Choose Us — simple dot, no checkmark, no remove buttons
 // ============================================================================
 
 export function WhyChooseUsList({
@@ -355,7 +286,7 @@ export function WhyChooseUsList({
     <section
       data-flyer-block="why-choose-us"
       className="flex w-full flex-col"
-      style={{ marginTop: 0, gap: cq(1) }} // ← marginTop: 0, tighter gap
+      style={{ marginTop: 0, gap: cq(1) }}
     >
       <EditableText
         as="h3"
@@ -372,44 +303,30 @@ export function WhyChooseUsList({
       {cleanItems.map((item, index) => (
         <div
           key={`why-${index}`}
-          className="group flex items-center justify-between"
+          className="flex items-center"
           style={{ gap: cq(1.2) }}
         >
-          <div className="flex min-w-0 flex-1 items-center" style={{ gap: cq(1.2) }}>
-            <span
-              className="flex shrink-0 items-center justify-center rounded-full"
-              style={{
-                width: cq(2.4),
-                height: cq(2.4),
-                backgroundColor: `${colors.accent}22`,
-              }}
-            >
-              <CheckCircle2
-                style={{ color: colors.accent, width: cq(1.5), height: cq(1.5) }}
-              />
-            </span>
+          <span
+            className="flex shrink-0 items-center justify-center rounded-full"
+            style={{
+              width: cq(0.8),
+              height: cq(0.8),
+              backgroundColor: colors.accent,
+              opacity: 0.7,
+            }}
+          />
 
-            <EditableText
-              as="span"
-              fieldId={`f-why-${index}`}
-              editable={editable}
-              value={item}
-              onChange={(value) => onUpdate?.(index, value)}
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-              className="min-w-0 flex-1"
-              style={{ fontSize: cq(1.85) }}
-            />
-          </div>
-
-          {editable ? (
-            <RemoveButton
-              label={`Remove reason ${index + 1}`}
-              onClick={() => onRemove?.(index)}
-            />
-          ) : (
-            <ConfirmBadge accentColor={colors.accent} />
-          )}
+          <EditableText
+            as="span"
+            fieldId={`f-why-${index}`}
+            editable={editable}
+            value={item}
+            onChange={(value) => onUpdate?.(index, value)}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            className="min-w-0 flex-1"
+            style={{ fontSize: cq(1.85) }}
+          />
         </div>
       ))}
 
@@ -430,7 +347,7 @@ export function WhyChooseUsList({
 }
 
 // ============================================================================
-// ContactItem & ContactBar (unchanged)
+// Contact Item — no remove button
 // ============================================================================
 
 function ContactItem({
@@ -441,7 +358,6 @@ function ContactItem({
   textColor,
   editable = false,
   onChange,
-  onRemove,
   onFocusEl,
   onBlurEl,
 }: ContactItemProps) {
@@ -449,7 +365,7 @@ function ContactItem({
   if (!editable && !hasValue) return null;
 
   return (
-    <div className="group flex min-w-0 items-center" style={{ gap: cq(0.8) }}>
+    <div className="flex min-w-0 items-center" style={{ gap: cq(0.8) }}>
       <span
         className="flex shrink-0 items-center justify-center rounded-full"
         style={{ width: cq(2), height: cq(2), backgroundColor: accentColor }}
@@ -477,13 +393,13 @@ function ContactItem({
           {value}
         </span>
       )}
-
-      {editable && onRemove && hasValue && (
-        <RemoveButton label="Remove contact field" onClick={onRemove} />
-      )}
     </div>
   );
 }
+
+// ============================================================================
+// Contact Bar — no remove buttons, only update
+// ============================================================================
 
 export function ContactBar({
   phone = "",
@@ -531,7 +447,6 @@ export function ContactBar({
             value={phone}
             editable={editable}
             onChange={onUpdatePhone}
-            onRemove={onRemovePhone}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             accentColor={accentColor}
@@ -550,7 +465,6 @@ export function ContactBar({
             value={website}
             editable={editable}
             onChange={onUpdateWebsite}
-            onRemove={onRemoveWebsite}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             accentColor={accentColor}
@@ -569,7 +483,6 @@ export function ContactBar({
             value={email}
             editable={editable}
             onChange={onUpdateEmail}
-            onRemove={onRemoveEmail}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             accentColor={accentColor}
@@ -581,115 +494,4 @@ export function ContactBar({
       </div>
     </section>
   );
-}
-
-// ============================================================================
-// Flyer Content Parser (unchanged)
-// ============================================================================
-
-export interface ParsedFlyerContent {
-  features: string[];
-  kicker?: string;
-  badge?: string;
-  phone?: string;
-  email?: string;
-  website?: string;
-  updateFeature: (index: number, value: string) => string;
-  addFeature: () => string;
-  removeFeature: (index: number) => string;
-}
-
-const MAX_FEATURES = 6;
-const BULLET_PREFIX = /^[-•●✓✔▪◦]\s*/;
-const PHONE_PATTERN = /(?:\+?\d[\d\s().-]{7,}\d)/i;
-const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
-const WEBSITE_PATTERN = /(?:https?:\/\/|www\.)[^\s]+/i;
-const DISCOUNT_PATTERN = /\b\d{1,3}\s*%\s*(off|discount)?\b|\bsale\b/i;
-
-function normalizeLine(value: string): string {
-  return value.replace(BULLET_PREFIX, "").replace(/\s+/g, " ").trim();
-}
-
-function isHeading(value: string): boolean {
-  return (
-    /^our services$/i.test(value) ||
-    /^services$/i.test(value) ||
-    /^features$/i.test(value) ||
-    /^feature highlights$/i.test(value) ||
-    /^why choose us$/i.test(value) ||
-    /^why us$/i.test(value)
-  );
-}
-
-function isContactLine(value: string): boolean {
-  return (
-    PHONE_PATTERN.test(value) ||
-    EMAIL_PATTERN.test(value) ||
-    WEBSITE_PATTERN.test(value)
-  );
-}
-
-export function parseFlyerContent(
-  badgeText?: string,
-  extraText?: string
-): ParsedFlyerContent {
-  const badgeInput = badgeText?.trim() ?? "";
-  const extraInput = extraText?.trim() ?? "";
-  const source = `${badgeInput}\n${extraInput}`;
-
-  const rawLines = source.split(/\r?\n/).map(normalizeLine).filter(Boolean);
-  const features: string[] = [];
-  let kicker: string | undefined;
-  let badge: string | undefined;
-
-  for (const line of rawLines) {
-    if (isHeading(line)) {
-      if (!kicker) kicker = line;
-      continue;
-    }
-    if (isContactLine(line)) continue;
-    if (!badge && DISCOUNT_PATTERN.test(line)) {
-      badge = line;
-      continue;
-    }
-    const alreadyExists = features.some(
-      (feature) => feature.toLowerCase() === line.toLowerCase()
-    );
-    if (!alreadyExists) features.push(line);
-  }
-
-  const cleanFeatures = features.slice(0, MAX_FEATURES);
-
-  const phone = source.match(PHONE_PATTERN)?.[0]?.trim();
-  const email = source.match(EMAIL_PATTERN)?.[0]?.trim();
-  const website = source.match(WEBSITE_PATTERN)?.[0]?.trim();
-
-  const updateFeature = (index: number, value: string): string => {
-    if (index < 0 || index >= cleanFeatures.length) return cleanFeatures.join("\n");
-    const updated = [...cleanFeatures];
-    updated[index] = value.trim();
-    return updated.filter(Boolean).join("\n");
-  };
-
-  const addFeature = (): string => {
-    if (cleanFeatures.length >= MAX_FEATURES) return cleanFeatures.join("\n");
-    return [...cleanFeatures, "New feature"].join("\n");
-  };
-
-  const removeFeature = (index: number): string => {
-    if (index < 0 || index >= cleanFeatures.length) return cleanFeatures.join("\n");
-    return cleanFeatures.filter((_, itemIndex) => itemIndex !== index).join("\n");
-  };
-
-  return {
-    features: cleanFeatures,
-    kicker,
-    badge,
-    phone,
-    email,
-    website,
-    updateFeature,
-    addFeature,
-    removeFeature,
-  };
 }
