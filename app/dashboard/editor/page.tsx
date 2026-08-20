@@ -17,6 +17,9 @@ import { loadJobResult, fetchJobById, ApiError } from "@/lib/campaign-api";
 import type { PlayerRef } from "@remotion/player";
 import { Logo } from "@/components/Logo";
 
+// ============================================================================
+// DYNAMIC IMPORTS
+// ============================================================================
 const Player = dynamic(
   () => import("@remotion/player").then(m => m.Player),
   {
@@ -34,11 +37,49 @@ const PromoVideo = dynamic<PromoVideoProps>(
   { ssr: false },
 );
 
+// ============================================================================
+// TEMPLATE IMPORTS
+// ============================================================================
 import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
-
+import {SalePromotionTemplate} from "@/components/templates/SalePromotion";    // default export
 import { SleekFlyerTemplate as MinimalProductTemplate } from "@/components/templates/MinimalProduct";
 import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
 
+// ============================================================================
+// LOCAL TYPE: JobResult (matches API response, includes ctaVisible)
+// ============================================================================
+interface JobResult {
+  job_id?: string;
+  flyer?: {
+    headline?: string;
+    subheadline?: string;
+    subtext?: string;
+    cta?: string;
+    ctaText?: string;
+    ctaVisible?: boolean;          // ✅ added
+    badgeText?: string;
+    brand_name?: string;
+    brandName?: string;
+    price_text?: string;
+    colors?: any;
+    phone?: string;
+    email?: string;
+    website?: string;
+    address?: string;
+    features?: string[];
+    feature_highlights?: string[];
+    why_choose_us?: string[];
+    whyChooseUs?: string[];
+    name?: string;
+  };
+  template_category?: string;
+  png_url?: string;
+  captions?: Array<{ platform: string; text: string }>;
+}
+
+// ============================================================================
+// TEMPLATE RENDERER
+// ============================================================================
 const TemplateRenderer = memo(function TemplateRenderer({
   data,
   onUpdate,
@@ -64,7 +105,9 @@ const TemplateRenderer = memo(function TemplateRenderer({
 }) {
   const shared = {
     headline: data.headline,
+    subtext: data.subtext,
     ctaText: data.ctaText,
+    ctaVisible: data.ctaVisible,                 // ✅ pass to all templates
     productImage: data.productImage,
     brandName: data.brandName,
     phone: data.phone,
@@ -76,7 +119,6 @@ const TemplateRenderer = memo(function TemplateRenderer({
     whyChooseUs: data.whyChooseUs,
     featuresVisible: data.featuresVisible,
     whyChooseUsVisible: data.whyChooseUsVisible,
-    ctaVisible: data.ctaVisible,
     phoneVisible: data.phoneVisible,
     emailVisible: data.emailVisible,
     websiteVisible: data.websiteVisible,
@@ -97,17 +139,21 @@ const TemplateRenderer = memo(function TemplateRenderer({
 
   switch (data.templateCategory) {
     case "Luxury Product":
-      return <LuxuryProductTemplate {...shared} subtext={data.subtext} />;
-    
+      return <LuxuryProductTemplate {...shared} />;
+    case "Sale Promotion":
+      return <SalePromotionTemplate {...shared} />;
     case "Minimal Product":
       return <MinimalProductTemplate {...shared} />;
     case "Premium Brand":
-      return <PremiumBrandTemplate {...shared} subtext={data.subtext} />;
+      return <PremiumBrandTemplate {...shared} />;
     default:
-      return <LuxuryProductTemplate {...shared} subtext={data.subtext} />;
+      return <LuxuryProductTemplate {...shared} />;
   }
 });
 
+// ============================================================================
+// TYPES
+// ============================================================================
 type Tool = "select" | "text";
 type ColorLayer = "bg" | "accent" | "text";
 type RsbTab = "design" | "content" | "video" | "captions";
@@ -131,7 +177,7 @@ type FlyerState = {
   headline: string;
   subtext: string;
   ctaText: string;
-  ctaVisible: boolean;
+  ctaVisible: boolean;                 // ✅ present
   badgeText: string;
   price: string;
   brandName: string;
@@ -164,6 +210,9 @@ type FlyerState = {
 
 type CanvasSize = { w: number; h: number };
 
+// ============================================================================
+// CONSTANTS & HELPERS
+// ============================================================================
 const SOCIAL_FORMATS = [
   { id: "ig", label: "Instagram", icon: ImageIcon, ratio: "4:5", rw: 4, rh: 5, fps: 30, durationS: 12, exportW: 1080, exportH: 1350 },
   { id: "square", label: "Square", icon: Square, ratio: "1:1", rw: 1, rh: 1, fps: 30, durationS: 12, exportW: 1080, exportH: 1080 },
@@ -224,6 +273,9 @@ const COLOR_SWATCHES = [
   "#e07a5f", "#c9a84c", "#4a5d43", "#a78bfa", "#fca5a5",
 ];
 
+// ============================================================================
+// EDITABLE COMPONENT
+// ============================================================================
 type EditableProps = {
   id: string;
   value: string;
@@ -267,6 +319,9 @@ function Editable({
   );
 }
 
+// ============================================================================
+// MOVABLE / OVERLAY
+// ============================================================================
 type Transform = { x: number; y: number; scale: number };
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
@@ -396,6 +451,9 @@ function Movable({
   );
 }
 
+// ============================================================================
+// DISCOUNT BADGE
+// ============================================================================
 type DiscountBadge = {
   visible: boolean;
   text: string;
@@ -475,6 +533,9 @@ function DiscountBadgeSticker({
   );
 }
 
+// ============================================================================
+// FLOATING TOOLBAR
+// ============================================================================
 const MARKETING_FONTS_EXT = [
   { label: "Inter", value: "var(--font-inter), sans-serif" },
   { label: "Bebas Neue", value: "var(--font-bebas), sans-serif" },
@@ -595,6 +656,28 @@ function FtbBtn({ children, active, onClick }: { children: React.ReactNode; acti
   );
 }
 function FtbSepV() { return <div className="h-px w-5 bg-zinc-700 my-0.5" />; }
+
+// ============================================================================
+// PANELS
+// ============================================================================
+function Label({ children }: { children: React.ReactNode }) {
+  return <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">{children}</p>;
+}
+function Divider() { return <div className="h-px bg-zinc-800" />; }
+function ToolBtn({ children, active, label, onClick }: {
+  children: React.ReactNode; active?: boolean; label: string;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+}) {
+  return (
+    <button onClick={onClick} title={label} aria-label={label}
+      className={`w-11 h-11 md:w-9 md:h-9 rounded-lg flex items-center justify-center transition-colors touch-manipulation
+        ${active
+          ? "bg-cyan-400 text-black"
+          : "text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200"}`}>
+      {children}
+    </button>
+  );
+}
 
 const DesignPanel = memo(function DesignPanel({ data, onUpdate, onLogoUpload, badge, onBadgeChange }: {
   data: FlyerState;
@@ -957,25 +1040,9 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
   );
 });
 
-function Label({ children }: { children: React.ReactNode }) {
-  return <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">{children}</p>;
-}
-function Divider() { return <div className="h-px bg-zinc-800" />; }
-function ToolBtn({ children, active, label, onClick }: {
-  children: React.ReactNode; active?: boolean; label: string;
-  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
-}) {
-  return (
-    <button onClick={onClick} title={label} aria-label={label}
-      className={`w-11 h-11 md:w-9 md:h-9 rounded-lg flex items-center justify-center transition-colors touch-manipulation
-        ${active
-          ? "bg-cyan-400 text-black"
-          : "text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200"}`}>
-      {children}
-    </button>
-  );
-}
-
+// ============================================================================
+// MAIN EDITOR COMPONENT
+// ============================================================================
 const EMPTY_FLYER_STATE: FlyerState = {
   headline: "",
   subtext: "",
@@ -1196,7 +1263,6 @@ function EditorContent() {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [exportingFormat, setExportingFormat] = useState<"png" | "jpg" | "pdf" | null>(null);
 
-  // -------- EXPORT: always uses IG format (4:5) and captures exactly what's on canvas --------
   const handleExportFlyer = async (format: "png" | "jpg" | "pdf") => {
     if (!flyerNodeRef.current) return;
     if (pendingUploads > 0) {
@@ -1208,7 +1274,6 @@ function EditorContent() {
     setShowExportMenu(false);
 
     const node = flyerNodeRef.current;
-    // Always use IG format for export, regardless of activeFormat
     const fmt = SOCIAL_FORMATS.find(f => f.id === "ig")!;
     const prevWidth = node.style.width;
     const prevHeight = node.style.height;
@@ -1216,7 +1281,6 @@ function EditorContent() {
     const prevCb = node.style.getPropertyValue("--cb");
 
     try {
-      // Set canvas to IG format export dimensions for the snapshot
       node.style.width = `${fmt.exportW}px`;
       node.style.height = `${fmt.exportH}px`;
       node.style.setProperty("--ci", `${fmt.exportW / 100}px`);
@@ -1244,7 +1308,6 @@ function EditorContent() {
         return;
       }
 
-      // PDF export
       const [{ default: jsPDF }, dataUrl] = await Promise.all([
         import("jspdf"),
         toPng(flyerNodeRef.current, snapshotOpts),
@@ -1271,7 +1334,6 @@ function EditorContent() {
           : "Export failed."
       );
     } finally {
-      // Restore previous canvas dimensions
       node.style.width = prevWidth;
       node.style.height = prevHeight;
       if (prevCi) node.style.setProperty("--ci", prevCi); else node.style.removeProperty("--ci");
@@ -1280,6 +1342,7 @@ function EditorContent() {
     }
   };
 
+  // -------- LOAD DATA --------
   useEffect(() => {
     let cancelled = false;
 
@@ -1291,14 +1354,14 @@ function EditorContent() {
         ? (rawCategory as FlyerState["templateCategory"])
         : null;
 
-      let result = loadJobResult(urlJobId);
+      let result: JobResult | null = loadJobResult(urlJobId) as JobResult | null;
 
       if (!result && urlJobId) {
         try {
-          result = await fetchJobById(urlJobId);
+          const fetched = await fetchJobById(urlJobId);
+          result = fetched as JobResult;
         } catch (err) {
           if (cancelled) return;
-
           if (err instanceof ApiError && err.status === 401) {
             const redirect = encodeURIComponent(
               `${window.location.pathname}${window.location.search}`
@@ -1306,7 +1369,6 @@ function EditorContent() {
             router.push(`/login?redirect=${redirect}`);
             return;
           }
-
           console.error("Failed to load job", urlJobId, err);
           setLoading(false);
           setExportError(
@@ -1383,6 +1445,7 @@ function EditorContent() {
     return () => { cancelled = true; };
   }, [router, searchParams]);
 
+  // -------- CANVAS SIZE --------
   useEffect(() => {
     const recalc = () => {
       if (!canvasWrapRef.current) return;
@@ -1445,10 +1508,11 @@ function EditorContent() {
     );
   }
 
+  // -------- RENDER --------
   return (
     <div className="h-[100dvh] w-screen bg-zinc-950 text-zinc-50 font-sans flex flex-col overflow-hidden overscroll-none">
 
-      {/* Header */}
+      {/* HEADER */}
       <header className="h-[52px] shrink-0 flex items-center justify-between gap-2 px-2 md:px-4
                          bg-[#111113] border-b border-zinc-800 z-40"
         style={{ paddingTop: "env(safe-area-inset-top)" }}>
@@ -1547,7 +1611,7 @@ function EditorContent() {
         </div>
       )}
 
-      {/* Main area */}
+      {/* MAIN AREA */}
       <div className="flex flex-1 overflow-hidden relative">
 
         <aside className="hidden md:flex w-[52px] shrink-0 bg-[#111113] border-r border-zinc-800
