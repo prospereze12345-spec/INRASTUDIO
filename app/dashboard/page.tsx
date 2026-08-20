@@ -12,7 +12,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
-import { SalePromotionTemplate } from "@/components/templates/SalePromotion";
+
 import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
 import {
   LUXURY_VARIATIONS,
@@ -693,7 +693,6 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {[
                   { name: "Digital Agency",  category: "Premium Brand",  Comp: PremiumBrandTemplate,  data: PREMIUM_BRAND_VARIATIONS.find((v) => v.name === "Digital Agency")! },
-                  { name: "Combo Offer",     category: "Sale Promotion", Comp: SalePromotionTemplate, data: SALE_PROMOTION_VARIATIONS.find((v) => v.name === "Combo Offer")! },
                   { name: "Black Gold",      category: "Luxury Product", Comp: LuxuryProductTemplate, data: LUXURY_VARIATIONS.find((v) => v.name === "Black Gold")! },
                 ].map(({ name, category, Comp, data }) => (
                   <div
