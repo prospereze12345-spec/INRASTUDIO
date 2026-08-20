@@ -18,7 +18,6 @@ import { motion, AnimatePresence } from "motion/react";
 import { Logo } from "@/components/Logo";
 import Image from "next/image";
 import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
-import { SalePromotionTemplate } from "@/components/templates/SalePromotion";
 import { SleekFlyerTemplate as MinimalProductTemplate } from "@/components/templates/MinimalProduct";
 import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
 import { LUXURY_VARIATIONS, SALE_PROMOTION_VARIATIONS, MINIMAL_PRODUCT_VARIATIONS, PREMIUM_BRAND_VARIATIONS } from "@/lib/template-data";
@@ -196,8 +195,7 @@ export default function TemplatesPage() {
                           <div className="w-full h-full pointer-events-none select-none relative">
                             {category.title === "Luxury Product" ? (
                               <LuxuryProductTemplate {...LUXURY_VARIATIONS[idx]} productImage={campaignImage || LUXURY_VARIATIONS[idx].productImage} />
-                            ) : category.title === "Sale Promotion" ? (
-                              <SalePromotionTemplate {...SALE_PROMOTION_VARIATIONS[idx]} productImage={campaignImage || SALE_PROMOTION_VARIATIONS[idx].productImage} />
+                            
                             ) : category.title === "Minimal Product" ? (
                               <MinimalProductTemplate {...MINIMAL_PRODUCT_VARIATIONS[idx]} productImage={campaignImage || MINIMAL_PRODUCT_VARIATIONS[idx].productImage} />
                             ) : category.title === "Premium Brand" ? (
