@@ -31,6 +31,7 @@ export interface PremiumBrandProps {
   headline: string;
   subtext: string;
   ctaText: string;
+  ctaVisible?: boolean; // <-- NEW: CTA visibility toggle
 
   badgeText?: string;
   productImage: string;
@@ -234,6 +235,7 @@ function VariantDigitalAgency({
   headline,
   subtext,
   ctaText,
+  ctaVisible = true, // <-- NEW: default to true
   badgeText,
   productImage,
   website,
@@ -415,10 +417,6 @@ function VariantDigitalAgency({
 
           {/* ============================================================ */}
           {/* FIXED BENEFITS AREA                                           */}
-          {/*                                                                 */}
-          {/* IMPORTANT: This container ALWAYS occupies the same amount     */}
-          {/* of space. Removing Features/Why Choose Us therefore does NOT  */}
-          {/* move the CTA upward.                                          */}
           {/* ============================================================ */}
 
           <div
@@ -512,47 +510,46 @@ function VariantDigitalAgency({
           </div>
 
           {/* ============================================================ */}
-          {/* CTA ROW                                                       */}
-          {/*                                                                 */}
-          {/* This is OUTSIDE the benefits components.                      */}
-          {/* Therefore deleting a benefit cannot affect CTA positioning.   */}
+          {/* CTA ROW - conditionally rendered based on ctaVisible        */}
           {/* ============================================================ */}
 
-          <div
-            className="flex shrink-0 items-center"
-            style={{
-              gap: cq(2),
-              minHeight: cq(6),
-            }}
-          >
-            {price && (
-              <EditableText
-                as="p"
-                fieldId="f-price"
+          {ctaVisible && (
+            <div
+              className="flex shrink-0 items-center"
+              style={{
+                gap: cq(2),
+                minHeight: cq(6),
+              }}
+            >
+              {price && (
+                <EditableText
+                  as="p"
+                  fieldId="f-price"
+                  editable={editable}
+                  value={price}
+                  onChange={(value) =>
+                    onUpdate?.("price", value)
+                  }
+                  onFocusEl={onFocusEl}
+                  onBlurEl={onBlurEl}
+                  className="shrink-0 font-bold tracking-tight"
+                  style={{
+                    color: colors.accent,
+                    fontSize: cq(4),
+                  }}
+                />
+              )}
+
+              <SmartCTA
+                value={ctaText}
                 editable={editable}
-                value={price}
-                onChange={(value) =>
-                  onUpdate?.("price", value)
-                }
+                onUpdate={onUpdate}
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
-                className="shrink-0 font-bold tracking-tight"
-                style={{
-                  color: colors.accent,
-                  fontSize: cq(4),
-                }}
+                colors={colors}
               />
-            )}
-
-            <SmartCTA
-              value={ctaText}
-              editable={editable}
-              onUpdate={onUpdate}
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-              colors={colors}
-            />
-          </div>
+            </div>
+          )}
         </section>
 
         {/* ================================================================ */}
@@ -678,6 +675,7 @@ function VariantPremiumGold({
   headline,
   subtext,
   ctaText,
+  ctaVisible = true, // <-- NEW: default to true
   website,
   productImage,
   price,
@@ -896,7 +894,7 @@ function VariantPremiumGold({
             }}
           />
 
-          {/* Price / Subtext / CTA */}
+          {/* Price / Subtext / CTA - conditionally rendered */}
 
           <div className="flex items-end justify-between gap-4">
             <div className="max-w-[55%] min-w-0">
@@ -937,14 +935,17 @@ function VariantPremiumGold({
               />
             </div>
 
-            <SmartCTA
-              value={ctaText}
-              editable={editable}
-              onUpdate={onUpdate}
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-              colors={colors}
-            />
+            {/* CTA - only rendered if ctaVisible is true */}
+            {ctaVisible && (
+              <SmartCTA
+                value={ctaText}
+                editable={editable}
+                onUpdate={onUpdate}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                colors={colors}
+              />
+            )}
           </div>
 
           {/* ================================================================= */}
