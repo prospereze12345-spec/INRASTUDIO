@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { ShoppingBag } from "lucide-react";
+
 import {
   FeatureList,
   ContactBar,
@@ -14,16 +15,23 @@ import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 import { touchTarget } from "@/lib/responsive";
 
 // ============================================================================
-// Canvas-relative scale
+// CANVAS SCALE
 // ============================================================================
 
-const cq = (n: number) => `clamp(${n * 1.5}px, ${n}cqi, ${n * 12}px)`;
+const cq = (n: number) =>
+  `clamp(${n * 1.5}px, ${n}cqi, ${n * 12}px)`;
+
+// ============================================================================
+// TYPES
+// ============================================================================
 
 export interface PremiumBrandProps {
   name?: string;
+
   headline: string;
   subtext: string;
   ctaText: string;
+
   badgeText?: string;
   productImage: string;
   brandName?: string;
@@ -31,67 +39,90 @@ export interface PremiumBrandProps {
   price?: string;
   phone?: string;
   email?: string;
+
   colors: {
     primary: string;
     secondary: string;
     accent: string;
   };
+
   editable?: boolean;
+
   onUpdate?: (field: string, value: string) => void;
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
 
-  // Direct data from backend – no fallbacks, frontend does NOT generate content
+  // Backend-provided content
   features?: string[];
   whyChooseUs?: string[];
 
-  // Visibility toggles
+  // Section visibility
   featuresVisible?: boolean;
   whyChooseUsVisible?: boolean;
+
   phoneVisible?: boolean;
   emailVisible?: boolean;
   websiteVisible?: boolean;
 
-  // Restore callbacks (if needed)
+  // Section restore
   onRestoreFeatures?: () => void;
   onRestoreWhyChooseUs?: () => void;
+
+  // Contact visibility
   onRemovePhone?: () => void;
   onRemoveEmail?: () => void;
   onRemoveWebsite?: () => void;
+
   onRestorePhone?: () => void;
   onRestoreEmail?: () => void;
   onRestoreWebsite?: () => void;
 
-  // Legacy props kept for compatibility (unused)
-  extraText?: string;
+  // Feature editing
   onUpdateFeature?: (index: number, value: string) => void;
   onAddFeature?: () => void;
   onRemoveFeature?: (index: number) => void;
+
+  // Why choose us editing
   onUpdateWhyChooseUs?: (index: number, value: string) => void;
   onAddWhyChooseUs?: () => void;
   onRemoveWhyChooseUs?: (index: number) => void;
+
+  // Legacy compatibility
+  extraText?: string;
 }
 
-/* ============================================================================
-   HELPERS
-============================================================================ */
+// ============================================================================
+// HELPERS
+// ============================================================================
 
 function hexToRgba(hex: string, alpha: number) {
-  if (!hex) return `rgba(0,0,0,${alpha})`;
+  if (!hex) {
+    return `rgba(0,0,0,${alpha})`;
+  }
+
   const value = hex.replace("#", "");
-  if (value.length !== 6) return hex;
+
+  if (value.length !== 6) {
+    return hex;
+  }
+
   const r = parseInt(value.slice(0, 2), 16);
   const g = parseInt(value.slice(2, 4), 16);
   const b = parseInt(value.slice(4, 6), 16);
+
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-/* ============================================================================
-   MAIN TEMPLATE
-============================================================================ */
+// ============================================================================
+// MAIN TEMPLATE
+// ============================================================================
 
 export function PremiumBrandTemplate(props: PremiumBrandProps) {
-  const { headline, productImage, colors } = props;
+  const {
+    headline,
+    productImage,
+    colors,
+  } = props;
 
   if (!headline || !productImage || !colors) {
     return (
@@ -101,21 +132,32 @@ export function PremiumBrandTemplate(props: PremiumBrandProps) {
     );
   }
 
-  const name = props.name || "Digital Agency";
+  const templateName = props.name || "Digital Agency";
 
-  switch (name) {
+  switch (templateName) {
     case "Digital Agency":
       return <VariantDigitalAgency {...props} />;
+
     case "Premium Gold":
       return <VariantPremiumGold {...props} />;
+
     default:
       return <VariantDigitalAgency {...props} />;
   }
 }
 
-/* ============================================================================
-   SMART CTA — clean, prominent
-============================================================================ */
+// ============================================================================
+// CTA
+// ============================================================================
+
+interface SmartCTAProps {
+  value: string;
+  editable?: boolean;
+  onUpdate?: (field: string, value: string) => void;
+  onFocusEl?: (el: HTMLElement) => void;
+  onBlurEl?: () => void;
+  colors: PremiumBrandProps["colors"];
+}
 
 function SmartCTA({
   value,
@@ -124,17 +166,10 @@ function SmartCTA({
   onFocusEl,
   onBlurEl,
   colors,
-}: {
-  value: string;
-  editable?: boolean;
-  onUpdate?: (field: string, value: string) => void;
-  onFocusEl?: (el: HTMLElement) => void;
-  onBlurEl?: () => void;
-  colors: PremiumBrandProps["colors"];
-}) {
+}: SmartCTAProps) {
   return (
     <div
-      className="inline-flex items-center font-semibold tracking-[0.06em] uppercase rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+      className="inline-flex shrink-0 items-center font-semibold tracking-[0.06em] uppercase rounded-2xl transition-transform hover:scale-[1.02] active:scale-[0.98]"
       style={{
         ...touchTarget,
         paddingLeft: cq(3),
@@ -144,10 +179,13 @@ function SmartCTA({
         gap: cq(1.5),
         fontSize: cq(1.7),
         lineHeight: 1.2,
-        maxWidth: "min(90cqi, 100%)",
+        maxWidth: "100%",
         backgroundColor: colors.accent,
         color: colors.primary,
-        boxShadow: `0 ${cq(0.6)} ${cq(2)} ${hexToRgba(colors.accent, 0.2)}`,
+        boxShadow: `0 ${cq(0.6)} ${cq(2)} ${hexToRgba(
+          colors.accent,
+          0.2
+        )}`,
       }}
     >
       <span
@@ -159,7 +197,12 @@ function SmartCTA({
           color: colors.accent,
         }}
       >
-        <ShoppingBag style={{ width: cq(1.8), height: cq(1.8) }} />
+        <ShoppingBag
+          style={{
+            width: cq(1.8),
+            height: cq(1.8),
+          }}
+        />
       </span>
 
       <EditableText
@@ -167,19 +210,25 @@ function SmartCTA({
         fieldId="f-cta"
         editable={editable}
         value={value}
-        onChange={(v) => onUpdate?.("ctaText", v)}
+        onChange={(value) => onUpdate?.("ctaText", value)}
         onFocusEl={onFocusEl}
         onBlurEl={onBlurEl}
         className="whitespace-nowrap"
       />
-      <span className="opacity-50 shrink-0" style={{ fontSize: cq(1.6) }}>→</span>
+
+      <span
+        className="opacity-50 shrink-0"
+        style={{ fontSize: cq(1.6) }}
+      >
+        →
+      </span>
     </div>
   );
 }
 
-/* ============================================================================
-   DIGITAL AGENCY — uses direct props, no fallbacks, no parsing
-============================================================================ */
+// ============================================================================
+// DIGITAL AGENCY
+// ============================================================================
 
 function VariantDigitalAgency({
   headline,
@@ -192,42 +241,60 @@ function VariantDigitalAgency({
   phone,
   email,
   colors,
-  editable,
+
+  editable = false,
+
   onUpdate,
   onFocusEl,
   onBlurEl,
+
   features,
   whyChooseUs,
+
   featuresVisible = true,
   whyChooseUsVisible = true,
+
   phoneVisible = true,
   emailVisible = true,
   websiteVisible = true,
+
   onRestoreFeatures,
   onRestoreWhyChooseUs,
+
   onRemovePhone,
   onRemoveEmail,
   onRemoveWebsite,
+
   onRestorePhone,
   onRestoreEmail,
   onRestoreWebsite,
+
+  onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
+
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
 }: PremiumBrandProps) {
-  // No fallback defaults – if backend doesn't send arrays, we render nothing
-  const hasFeatures = features && features.length > 0;
-  const hasWhy = whyChooseUs && whyChooseUs.length > 0;
+  const hasFeatures =
+    Array.isArray(features) && features.length > 0;
 
-  // Badge comes straight from badgeText
-  const badge = badgeText || null;
-
-  // Always hide add/remove controls in the lists
-  const listEditable = false;
+  const hasWhyChooseUs =
+    Array.isArray(whyChooseUs) && whyChooseUs.length > 0;
 
   return (
     <div
-      className="@container w-full h-full aspect-[4/5] relative overflow-hidden font-sans flex flex-col"
-      style={{ backgroundColor: colors.primary, color: colors.secondary }}
+      className="@container relative flex h-full w-full aspect-[4/5] flex-col overflow-hidden font-sans"
+      style={{
+        backgroundColor: colors.primary,
+        color: colors.secondary,
+      }}
     >
-      {/* Subtle grain texture */}
+      {/* ================================================================== */}
+      {/* BACKGROUND TEXTURE */}
+      {/* ================================================================== */}
+
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.02]"
         style={{
@@ -236,10 +303,17 @@ function VariantDigitalAgency({
         }}
       />
 
-      {/* Header – only website */}
+      {/* ================================================================== */}
+      {/* HEADER */}
+      {/* ================================================================== */}
+
       <header
-        className="shrink-0 flex items-start justify-end relative z-10"
-        style={{ paddingLeft: cq(7), paddingRight: cq(7), paddingTop: cq(3) }}
+        className="relative z-10 flex shrink-0 items-start justify-end"
+        style={{
+          paddingLeft: cq(7),
+          paddingRight: cq(7),
+          paddingTop: cq(3),
+        }}
       >
         {website && (
           <EditableText
@@ -247,25 +321,47 @@ function VariantDigitalAgency({
             fieldId="f-web-top"
             editable={editable}
             value={website}
-            onChange={(v) => onUpdate?.("website", v)}
+            onChange={(value) =>
+              onUpdate?.("website", value)
+            }
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             className="opacity-40 tracking-wide"
-            style={{ fontSize: cq(1.5) }}
+            style={{
+              fontSize: cq(1.5),
+            }}
           />
         )}
       </header>
 
-      {/* Main content */}
+      {/* ================================================================== */}
+      {/* MAIN CONTENT */}
+      {/* ================================================================== */}
+
       <div
-        className="flex-1 relative min-h-0"
-        style={{ paddingLeft: cq(7), paddingRight: cq(7), paddingTop: cq(1.5), paddingBottom: cq(4) }}
+        className="relative flex-1 min-h-0"
+        style={{
+          paddingLeft: cq(7),
+          paddingRight: cq(7),
+          paddingTop: cq(1.5),
+          paddingBottom: cq(4),
+        }}
       >
-        {/* Left column: content */}
+        {/* ================================================================ */}
+        {/* LEFT CONTENT */}
+        {/* ================================================================ */}
+
         <section
           className="absolute left-0 top-0 bottom-0 flex flex-col justify-center"
-          style={{ width: "55%", paddingRight: cq(2), gap: cq(2.5) }}
+          style={{
+            width: "55%",
+            paddingRight: cq(2),
+          }}
         >
+          {/* ============================================================ */}
+          {/* HEADLINE */}
+          {/* ============================================================ */}
+
           <h1
             className="font-semibold uppercase tracking-[-0.05em] leading-[0.88]"
             style={{
@@ -276,13 +372,19 @@ function VariantDigitalAgency({
             <EditableHeadlineLines
               value={headline}
               editable={editable}
-              onChange={(v) => onUpdate?.("headline", v)}
+              onChange={(value) =>
+                onUpdate?.("headline", value)
+              }
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               renderLine={(line, index, node) => (
                 <span
                   className="block"
-                  style={index === 1 ? { color: colors.accent } : undefined}
+                  style={
+                    index === 1
+                      ? { color: colors.accent }
+                      : undefined
+                  }
                 >
                   {node}
                 </span>
@@ -290,69 +392,158 @@ function VariantDigitalAgency({
             />
           </h1>
 
+          {/* ============================================================ */}
+          {/* SUBTEXT */}
+          {/* ============================================================ */}
+
           <EditableText
             as="p"
             fieldId="f-sub"
             editable={editable}
             value={subtext}
-            onChange={(v) => onUpdate?.("subtext", v)}
+            onChange={(value) =>
+              onUpdate?.("subtext", value)
+            }
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             className="leading-[1.5] opacity-50 max-w-[80%]"
-            style={{ fontSize: cq(2) }}
+            style={{
+              fontSize: cq(2),
+              marginTop: cq(2.5),
+            }}
           />
 
-          {/* Only render if backend provides data */}
-          <div className="flex flex-col" style={{ gap: cq(2) }}>
+          {/* ============================================================ */}
+          {/* FIXED BENEFITS AREA                                           */}
+          {/*                                                                 */}
+          {/* IMPORTANT: This container ALWAYS occupies the same amount     */}
+          {/* of space. Removing Features/Why Choose Us therefore does NOT  */}
+          {/* move the CTA upward.                                          */}
+          {/* ============================================================ */}
+
+          <div
+            className="shrink-0 flex flex-col"
+            style={{
+              height: cq(25),
+              marginTop: cq(2.5),
+              marginBottom: cq(1),
+              gap: cq(2),
+            }}
+          >
+            {/* ---------------------------------------------------------- */}
+            {/* FEATURES                                                   */}
+            {/* ---------------------------------------------------------- */}
+
             {hasFeatures && (
               <FeatureList
-                features={features.slice(0, 3)}
+                features={features!.slice(0, 3)}
                 colors={colors}
-                editable={listEditable}
+                editable={editable}
                 visible={featuresVisible}
                 title="FEATURES"
-                onUpdateTitle={() => {}}
-                onUpdateFeature={() => {}}
-                onAddFeature={() => {}}
-                onRemoveFeature={() => {}}
-                onRestoreSection={onRestoreFeatures}
+
+                onUpdateTitle={(value) =>
+                  onUpdate?.("featuresTitle", value)
+                }
+
+                onUpdateFeature={
+                  onUpdateFeature ??
+                  (() => undefined)
+                }
+
+                onAddFeature={
+                  onAddFeature ??
+                  (() => undefined)
+                }
+
+                onRemoveFeature={
+                  onRemoveFeature ??
+                  (() => undefined)
+                }
+
+                onRestoreSection={
+                  onRestoreFeatures
+                }
+
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
               />
             )}
 
-            {hasWhy && (
+            {/* ---------------------------------------------------------- */}
+            {/* WHY CHOOSE US                                              */}
+            {/* ---------------------------------------------------------- */}
+
+            {hasWhyChooseUs && (
               <WhyChooseUsList
-                items={whyChooseUs.slice(0, 3)}
+                items={whyChooseUs!.slice(0, 3)}
                 colors={colors}
-                editable={listEditable}
+                editable={editable}
                 visible={whyChooseUsVisible}
                 title="WHY CHOOSE US"
-                onUpdateTitle={() => {}}
-                onUpdate={() => {}}
-                onAdd={() => {}}
-                onRemove={() => {}}
-                onRestoreSection={onRestoreWhyChooseUs}
+
+                onUpdateTitle={(value) =>
+                  onUpdate?.("whyChooseUsTitle", value)
+                }
+
+                onUpdate={
+                  onUpdateWhyChooseUs ??
+                  (() => undefined)
+                }
+
+                onAdd={
+                  onAddWhyChooseUs ??
+                  (() => undefined)
+                }
+
+                onRemove={
+                  onRemoveWhyChooseUs ??
+                  (() => undefined)
+                }
+
+                onRestoreSection={
+                  onRestoreWhyChooseUs
+                }
+
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
               />
             )}
           </div>
 
-          <div className="flex items-center" style={{ gap: cq(2), marginTop: cq(0.5) }}>
+          {/* ============================================================ */}
+          {/* CTA ROW                                                       */}
+          {/*                                                                 */}
+          {/* This is OUTSIDE the benefits components.                      */}
+          {/* Therefore deleting a benefit cannot affect CTA positioning.   */}
+          {/* ============================================================ */}
+
+          <div
+            className="flex shrink-0 items-center"
+            style={{
+              gap: cq(2),
+              minHeight: cq(6),
+            }}
+          >
             {price && (
               <EditableText
                 as="p"
                 fieldId="f-price"
                 editable={editable}
                 value={price}
-                onChange={(v) => onUpdate?.("price", v)}
+                onChange={(value) =>
+                  onUpdate?.("price", value)
+                }
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
-                className="font-bold tracking-tight"
-                style={{ color: colors.accent, fontSize: cq(4) }}
+                className="shrink-0 font-bold tracking-tight"
+                style={{
+                  color: colors.accent,
+                  fontSize: cq(4),
+                }}
               />
             )}
+
             <SmartCTA
               value={ctaText}
               editable={editable}
@@ -364,13 +555,19 @@ function VariantDigitalAgency({
           </div>
         </section>
 
-        {/* Right column: Image */}
+        {/* ================================================================ */}
+        {/* RIGHT PRODUCT IMAGE                                              */}
+        {/* ================================================================ */}
+
         <section
           className="absolute right-0 top-1/2 -translate-y-1/2 overflow-hidden rounded-2xl"
           style={{
             width: "40%",
             height: "78%",
-            boxShadow: `0 ${cq(2)} ${cq(4)} ${hexToRgba(colors.secondary, 0.05)}`,
+            boxShadow: `0 ${cq(2)} ${cq(4)} ${hexToRgba(
+              colors.secondary,
+              0.05
+            )}`,
           }}
         >
           <Image
@@ -383,9 +580,9 @@ function VariantDigitalAgency({
             className="object-cover"
           />
 
-          {badge && (
+          {badgeText && (
             <div
-              className="absolute flex items-center justify-center text-center font-bold uppercase leading-tight rounded-full"
+              className="absolute flex items-center justify-center rounded-full text-center font-bold uppercase leading-tight"
               style={{
                 top: cq(2.5),
                 right: cq(2.5),
@@ -394,17 +591,30 @@ function VariantDigitalAgency({
                 backgroundColor: colors.accent,
                 color: colors.primary,
                 fontSize: cq(2.2),
-                boxShadow: `0 ${cq(0.5)} ${cq(1.5)} ${hexToRgba(colors.accent, 0.3)}`,
+                boxShadow: `0 ${cq(0.5)} ${cq(1.5)} ${hexToRgba(
+                  colors.accent,
+                  0.3
+                )}`,
               }}
             >
-              {badge}
+              {badgeText}
             </div>
           )}
         </section>
       </div>
 
-      {/* Footer – solid contact bar */}
-      <div className="shrink-0 relative z-10" style={{ paddingLeft: cq(7), paddingRight: cq(7), paddingBottom: cq(3.5) }}>
+      {/* ================================================================== */}
+      {/* FOOTER / CONTACT BAR                                               */}
+      {/* ================================================================== */}
+
+      <div
+        className="relative z-10 shrink-0"
+        style={{
+          paddingLeft: cq(7),
+          paddingRight: cq(7),
+          paddingBottom: cq(3.5),
+        }}
+      >
         <div
           style={{
             paddingTop: cq(1.5),
@@ -413,7 +623,10 @@ function VariantDigitalAgency({
             paddingRight: cq(2.5),
             borderRadius: cq(1.5),
             backgroundColor: colors.primary,
-            border: `1px solid ${hexToRgba(colors.secondary, 0.08)}`,
+            border: `1px solid ${hexToRgba(
+              colors.secondary,
+              0.08
+            )}`,
           }}
         >
           <ContactBar
@@ -423,17 +636,30 @@ function VariantDigitalAgency({
             accentColor={colors.accent}
             textColor={colors.secondary}
             editable={editable}
-            onUpdatePhone={(v) => onUpdate?.("phone", v)}
-            onUpdateWebsite={(v) => onUpdate?.("website", v)}
-            onUpdateEmail={(v) => onUpdate?.("email", v)}
+
+            onUpdatePhone={(value) =>
+              onUpdate?.("phone", value)
+            }
+
+            onUpdateWebsite={(value) =>
+              onUpdate?.("website", value)
+            }
+
+            onUpdateEmail={(value) =>
+              onUpdate?.("email", value)
+            }
+
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
+
             phoneVisible={phoneVisible}
             websiteVisible={websiteVisible}
             emailVisible={emailVisible}
+
             onRemovePhone={onRemovePhone}
             onRemoveWebsite={onRemoveWebsite}
             onRemoveEmail={onRemoveEmail}
+
             onRestorePhone={onRestorePhone}
             onRestoreWebsite={onRestoreWebsite}
             onRestoreEmail={onRestoreEmail}
@@ -444,9 +670,9 @@ function VariantDigitalAgency({
   );
 }
 
-/* ============================================================================
-   PREMIUM GOLD — same approach (no fallbacks, no parsing)
-============================================================================ */
+// ============================================================================
+// PREMIUM GOLD
+// ============================================================================
 
 function VariantPremiumGold({
   headline,
@@ -454,42 +680,58 @@ function VariantPremiumGold({
   ctaText,
   website,
   productImage,
-  brandName,
   price,
   badgeText,
   phone,
   email,
   colors,
-  editable,
+
+  editable = false,
+
   onUpdate,
   onFocusEl,
   onBlurEl,
+
   phoneVisible = true,
   emailVisible = true,
   websiteVisible = true,
+
   onRemovePhone,
   onRemoveEmail,
   onRemoveWebsite,
+
   onRestorePhone,
   onRestoreEmail,
   onRestoreWebsite,
 }: PremiumBrandProps) {
   return (
     <div
-      className="@container w-full h-full aspect-[4/5] relative overflow-hidden font-serif flex flex-col"
-      style={{ backgroundColor: colors.primary, color: colors.secondary }}
+      className="@container relative flex h-full w-full aspect-[4/5] flex-col overflow-hidden font-serif"
+      style={{
+        backgroundColor: colors.primary,
+        color: colors.secondary,
+      }}
     >
-      {/* Decorative border */}
+      {/* ================================================================== */}
+      {/* BORDER */}
+      {/* ================================================================== */}
+
       <div
         className="absolute pointer-events-none"
         style={{
           inset: cq(3.5),
-          border: `1px solid ${hexToRgba(colors.accent, 0.2)}`,
+          border: `1px solid ${hexToRgba(
+            colors.accent,
+            0.2
+          )}`,
           borderRadius: cq(1.5),
         }}
       />
 
-      {/* Subtle grain */}
+      {/* ================================================================== */}
+      {/* GRAIN */}
+      {/* ================================================================== */}
+
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.02]"
         style={{
@@ -498,35 +740,94 @@ function VariantPremiumGold({
         }}
       />
 
-      {/* Header line */}
-      <header className="relative z-20 text-center shrink-0" style={{ paddingTop: cq(4) }}>
-        <div className="flex justify-center items-center" style={{ gap: cq(1.5) }}>
-          <span className="h-px" style={{ width: cq(8), backgroundColor: hexToRgba(colors.accent, 0.3) }} />
-          <span className="rotate-45" style={{ width: cq(0.8), height: cq(0.8), backgroundColor: colors.accent, opacity: 0.5 }} />
-          <span className="h-px" style={{ width: cq(8), backgroundColor: hexToRgba(colors.accent, 0.3) }} />
+      {/* ================================================================== */}
+      {/* HEADER */}
+      {/* ================================================================== */}
+
+      <header
+        className="relative z-20 flex shrink-0 justify-center"
+        style={{
+          paddingTop: cq(4),
+        }}
+      >
+        <div
+          className="flex items-center justify-center"
+          style={{
+            gap: cq(1.5),
+          }}
+        >
+          <span
+            className="h-px"
+            style={{
+              width: cq(8),
+              backgroundColor: hexToRgba(
+                colors.accent,
+                0.3
+              ),
+            }}
+          />
+
+          <span
+            className="rotate-45"
+            style={{
+              width: cq(0.8),
+              height: cq(0.8),
+              backgroundColor: colors.accent,
+              opacity: 0.5,
+            }}
+          />
+
+          <span
+            className="h-px"
+            style={{
+              width: cq(8),
+              backgroundColor: hexToRgba(
+                colors.accent,
+                0.3
+              ),
+            }}
+          />
         </div>
       </header>
 
-      {/* Main */}
+      {/* ================================================================== */}
+      {/* MAIN */}
+      {/* ================================================================== */}
+
       <div
-        className="flex-1 relative min-h-0"
-        style={{ paddingLeft: cq(7), paddingRight: cq(7), paddingTop: cq(3), paddingBottom: cq(4) }}
+        className="relative flex-1 min-h-0"
+        style={{
+          paddingLeft: cq(7),
+          paddingRight: cq(7),
+          paddingTop: cq(3),
+          paddingBottom: cq(4),
+        }}
       >
-        <div className="text-center relative z-20 shrink-0">
+        {/* HEADLINE */}
+
+        <div className="relative z-20 shrink-0 text-center">
           <h1
             className="font-medium uppercase tracking-[-0.04em] leading-[0.9]"
-            style={{ fontSize: "clamp(1.4rem, 7.2cqi, 84px)" }}
+            style={{
+              fontSize: "clamp(1.4rem, 7.2cqi, 84px)",
+            }}
           >
             <EditableHeadlineLines
               value={headline}
               editable={editable}
-              onChange={(v) => onUpdate?.("headline", v)}
+              onChange={(value) =>
+                onUpdate?.("headline", value)
+              }
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               renderLine={(line, index, node) => (
                 <span
                   className="block"
-                  style={index === 1 ? { color: colors.accent } : undefined}
+                  style={
+                    index === 1
+                      ? { color: colors.accent }
+                      : undefined
+                  }
                 >
                   {node}
                 </span>
@@ -534,6 +835,8 @@ function VariantPremiumGold({
             />
           </h1>
         </div>
+
+        {/* PRODUCT IMAGE */}
 
         <div
           className="relative"
@@ -555,7 +858,7 @@ function VariantPremiumGold({
 
           {badgeText && (
             <div
-              className="absolute flex items-center justify-center text-center font-bold uppercase leading-tight rounded-full"
+              className="absolute flex items-center justify-center rounded-full text-center font-bold uppercase leading-tight"
               style={{
                 top: cq(1.5),
                 right: cq(1.5),
@@ -564,7 +867,10 @@ function VariantPremiumGold({
                 backgroundColor: colors.accent,
                 color: colors.primary,
                 fontSize: cq(2),
-                boxShadow: `0 ${cq(0.5)} ${cq(1.5)} ${hexToRgba(colors.accent, 0.25)}`,
+                boxShadow: `0 ${cq(0.5)} ${cq(1.5)} ${hexToRgba(
+                  colors.accent,
+                  0.25
+                )}`,
               }}
             >
               {badgeText}
@@ -572,14 +878,25 @@ function VariantPremiumGold({
           )}
         </div>
 
+        {/* ================================================================== */}
+        {/* BOTTOM CONTENT */}
+        {/* ================================================================== */}
+
         <div className="shrink-0">
+          {/* Divider */}
+
           <div
             className="w-full h-px"
             style={{
               marginBottom: cq(2.5),
-              backgroundColor: hexToRgba(colors.accent, 0.2),
+              backgroundColor: hexToRgba(
+                colors.accent,
+                0.2
+              ),
             }}
           />
+
+          {/* Price / Subtext / CTA */}
 
           <div className="flex items-end justify-between gap-4">
             <div className="max-w-[55%] min-w-0">
@@ -589,23 +906,34 @@ function VariantPremiumGold({
                   fieldId="f-price"
                   editable={editable}
                   value={price}
-                  onChange={(v) => onUpdate?.("price", v)}
+                  onChange={(value) =>
+                    onUpdate?.("price", value)
+                  }
                   onFocusEl={onFocusEl}
                   onBlurEl={onBlurEl}
                   className="font-medium leading-none"
-                  style={{ color: colors.accent, fontSize: cq(4.5) }}
+                  style={{
+                    color: colors.accent,
+                    fontSize: cq(4.5),
+                  }}
                 />
               )}
+
               <EditableText
                 as="p"
                 fieldId="f-sub"
                 editable={editable}
                 value={subtext}
-                onChange={(v) => onUpdate?.("subtext", v)}
+                onChange={(value) =>
+                  onUpdate?.("subtext", value)
+                }
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
                 className="leading-[1.4] opacity-45"
-                style={{ marginTop: cq(0.8), fontSize: cq(1.7) }}
+                style={{
+                  marginTop: cq(0.8),
+                  fontSize: cq(1.7),
+                }}
               />
             </div>
 
@@ -619,6 +947,10 @@ function VariantPremiumGold({
             />
           </div>
 
+          {/* ================================================================= */}
+          {/* CONTACT BAR                                                       */}
+          {/* ================================================================= */}
+
           <div style={{ marginTop: cq(2) }}>
             <div
               style={{
@@ -628,7 +960,10 @@ function VariantPremiumGold({
                 paddingRight: cq(2),
                 borderRadius: cq(1.5),
                 backgroundColor: colors.primary,
-                border: `1px solid ${hexToRgba(colors.secondary, 0.08)}`,
+                border: `1px solid ${hexToRgba(
+                  colors.secondary,
+                  0.08
+                )}`,
               }}
             >
               <ContactBar
@@ -638,17 +973,30 @@ function VariantPremiumGold({
                 accentColor={colors.accent}
                 textColor={colors.secondary}
                 editable={editable}
-                onUpdatePhone={(v) => onUpdate?.("phone", v)}
-                onUpdateWebsite={(v) => onUpdate?.("website", v)}
-                onUpdateEmail={(v) => onUpdate?.("email", v)}
+
+                onUpdatePhone={(value) =>
+                  onUpdate?.("phone", value)
+                }
+
+                onUpdateWebsite={(value) =>
+                  onUpdate?.("website", value)
+                }
+
+                onUpdateEmail={(value) =>
+                  onUpdate?.("email", value)
+                }
+
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
+
                 phoneVisible={phoneVisible}
                 websiteVisible={websiteVisible}
                 emailVisible={emailVisible}
+
                 onRemovePhone={onRemovePhone}
                 onRemoveWebsite={onRemoveWebsite}
                 onRemoveEmail={onRemoveEmail}
+
                 onRestorePhone={onRestorePhone}
                 onRestoreWebsite={onRestoreWebsite}
                 onRestoreEmail={onRestoreEmail}
