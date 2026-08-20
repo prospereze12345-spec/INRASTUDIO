@@ -200,7 +200,6 @@ function SmartCTA({
     </div>
   );
 }
-
 /* ============================================================================
    2. DIGITAL AGENCY
 ============================================================================ */
@@ -219,50 +218,87 @@ function VariantDigitalAgency({
   );
 
   return (
-    // @container enables cqi units so every child's cq() scales to THIS
-    // element's rendered width/height, not the browser window.
+    // aspect-[4/5] is the fix for the "Image 2" squash: without a locked
+    // ratio, this layout only looks right when the parent HAPPENS to be
+    // portrait. Now it enforces its own proportions no matter what the
+    // parent canvas does, and @container still drives every cq() value
+    // off THIS element's own (now-guaranteed) width.
     <div
-      className="@container w-full h-full relative overflow-hidden font-sans flex flex-col"
+      className="@container w-full h-full aspect-[4/5] relative overflow-hidden font-sans flex flex-col"
       style={{ backgroundColor: colors.primary, color: colors.secondary }}
     >
-      {/* The old header — "PREMIUM BRAND" / "SERVICES" — is intentionally
-          gone. It duplicated brandName/website with no visual purpose and
-          ate the top ~10% of the canvas before the headline even started.
-          Website is still fully present, just where it belongs: the
-          ContactBar footer, next to phone and email. The body section
-          below now owns the full canvas height and centers vertically,
-          so removing the header doesn't leave a visible gap. */}
+      {/* Header restored — this is what Image 1 actually has (logo mark +
+          brand/tagline top-left, website top-right) and what the previous
+          "intentionally removed" pass got wrong. It's not decorative
+          duplication, it's what anchors the top of the canvas. Kept as a
+          fixed-height row (shrink-0) so it never eats into the body's
+          vertical centering below. */}
+      <header
+        className="shrink-0 flex items-start justify-between"
+        style={{ paddingLeft: cq(6), paddingRight: cq(6), paddingTop: cq(4.5) }}
+      >
+        <div className="flex items-center" style={{ gap: cq(2) }}>
+          <span
+            className="flex shrink-0 items-center justify-center rounded-xl"
+            style={{
+              width: cq(6.5),
+              height: cq(6.5),
+              backgroundColor: hexToRgba(colors.accent, 0.16),
+              color: colors.accent,
+              fontSize: cq(3),
+            }}
+          >
+            ✻
+          </span>
+          <div className="flex flex-col leading-tight">
+            <EditableText
+              as="span"
+              fieldId="f-brand"
+              editable={editable}
+              value={brandName ?? ""}
+              onChange={(v) => onUpdate?.("brandName", v)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              className="font-bold uppercase tracking-[0.04em]"
+              style={{ fontSize: cq(2.1) }}
+            />
+            {parsed.kicker && (
+              <span
+                className="uppercase tracking-[0.3em] opacity-45"
+                style={{ fontSize: cq(1.4) }}
+              >
+                {parsed.kicker}
+              </span>
+            )}
+          </div>
+        </div>
 
-      {/* Body fills the entire canvas top-to-bottom. No overflow-y-auto
-          anywhere below — a flyer never scrolls. Instead Features/
-          Why-Choose-Us cap how many items render (see slice calls below),
-          which is what guarantees this fits without a scrollbar. */}
+        {website && (
+          <EditableText
+            as="span"
+            fieldId="f-web-top"
+            editable={editable}
+            value={website}
+            onChange={(v) => onUpdate?.("website", v)}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            className="opacity-55"
+            style={{ fontSize: cq(1.6) }}
+          />
+        )}
+      </header>
+
+      {/* Body fills the remaining canvas height. No overflow-y-auto — a
+          flyer never scrolls; Features/Why-Choose-Us cap item count
+          instead (slice calls below). */}
       <div
         className="flex-1 relative min-h-0"
-        style={{ paddingLeft: cq(6), paddingRight: cq(6), paddingTop: cq(5), paddingBottom: cq(5) }}
+        style={{ paddingLeft: cq(6), paddingRight: cq(6), paddingTop: cq(4), paddingBottom: cq(5) }}
       >
-        {/* Left column: ONE flex column with a single `gap` token driving
-            every section's spacing. This replaces the old per-element
-            marginTop values — that's what was reading as a "wall" of text
-            with no consistent rhythm. Change cq(3.2) below to retune every
-            gap in the column at once. */}
         <section
           className="absolute left-0 top-0 bottom-0 w-[52%] flex flex-col justify-center"
-          style={{ paddingRight: cq(5), gap: cq(3.2) }}
+          style={{ paddingRight: cq(5), gap: cq(3.4) }}
         >
-          <div className="flex items-center shrink-0" style={{ gap: cq(1.5) }}>
-            <span className="h-px" style={{ width: cq(3.5), backgroundColor: colors.accent }} />
-            <span
-              className="uppercase tracking-[0.25em] opacity-45"
-              style={{ color: colors.secondary, fontSize: cq(1.65) }}
-            >
-              {parsed.kicker || brandName || "Services"}
-            </span>
-          </div>
-
-          {/* Headline: fluid clamp tied to the column (cqi), not vw.
-              keep-all + normal wrapping stops mid-word breaks. Long
-              headlines shrink instead of blowing up the box. */}
           <h1
             className="font-semibold uppercase tracking-[-0.055em] leading-[0.88] shrink-0"
             style={{
@@ -290,12 +326,7 @@ function VariantDigitalAgency({
             style={{ fontSize: cq(2.15) }}
           />
 
-          {/* Features + Why Choose Us: no wrapper height cap, no scroll.
-              Capped to 3 visible items each — a deliberate design ceiling,
-              same as Canva/real flyer tools use, so a flyer can never be
-              overloaded past what a fixed canvas can hold. Data itself is
-              untouched; slice() only affects what renders. */}
-          <div className="shrink-0 flex flex-col" style={{ gap: cq(2.4) }}>
+          <div className="shrink-0 flex flex-col" style={{ gap: cq(2.8) }}>
             <FeatureList
               features={parsed.features.slice(0, 3)} colors={colors} editable={editable}
               onUpdateFeature={(index, value) => onUpdate?.("badgeText", parsed.updateFeature(index, value))}
@@ -328,11 +359,13 @@ function VariantDigitalAgency({
           </div>
         </section>
 
-        {/* Image column — full-bleed, edge-to-edge, no inset frame. The
-            accent circle sits as a corner overlay rather than eating into
-            the image's height. website has moved off the old header and
-            onto the badge here instead — small, unobtrusive, still legible. */}
-        <section className="absolute right-0 top-0 bottom-0 w-[42%] overflow-hidden rounded-[calc(2.5*var(--ci,1cqi))]">
+        {/* Image column — rounded ONLY on the left edge (top-left,
+            bottom-left) so the photo bleeds flush to the top/right/bottom
+            of the canvas exactly like Image 1, instead of the old uniform
+            rounding that boxed the photo in on every side. The website
+            overlay that used to sit on top of the photo is gone — it now
+            lives in the header where it belongs. */}
+        <section className="absolute right-0 top-0 bottom-0 w-[42%] overflow-hidden rounded-l-[calc(2.5*var(--ci,1cqi))]">
           <Image
             src={productImage}
             alt=""
@@ -343,27 +376,27 @@ function VariantDigitalAgency({
             className="object-cover"
           />
 
-          {website && (
-            <div
-              className="absolute top-0 right-0 font-medium tracking-[0.05em]"
-              style={{
-                padding: `${cq(1.6)} ${cq(2.4)}`,
-                fontSize: cq(1.5),
-                color: colors.secondary,
-                opacity: 0.85,
-              }}
-            >
-              <EditableText
-                as="span"
-                fieldId="f-web"
-                editable={editable}
-                value={website}
-                onChange={(v) => onUpdate?.("website", v)}
-                onFocusEl={onFocusEl}
-                onBlurEl={onBlurEl}
-              />
-            </div>
-          )}
+          {/* Discount / promo sticker — the coral "50% OFF" badge from
+              Image 1. Only renders if extraText carries a value; wire this
+              to whatever field your data actually uses for the discount. */}
+          {parsed.badge && (
+  <div
+    className="absolute flex flex-col items-center justify-center text-center font-bold uppercase leading-none"
+    style={{
+      top: cq(3),
+      right: cq(3),
+      width: cq(11),
+      height: cq(11),
+      borderRadius: "9999px",
+      backgroundColor: colors.accent,
+      color: colors.primary,
+      fontSize: cq(2.6),
+      boxShadow: `0 4px 20px ${hexToRgba(colors.accent, 0.35)}`,
+    }}
+  >
+    {parsed.badge}
+  </div>
+)}
 
           <div
             className="absolute rounded-full"
@@ -372,8 +405,6 @@ function VariantDigitalAgency({
         </section>
       </div>
 
-      {/* ContactBar sits in normal flow as the true footer (shrink-0, not
-          absolute), so it can never overlap content above it. */}
       <div className="shrink-0" style={{ paddingLeft: cq(6), paddingRight: cq(6), paddingBottom: cq(4) }}>
         <ContactBar
           phone={phone} website={website} email={email}
@@ -388,7 +419,6 @@ function VariantDigitalAgency({
     </div>
   );
 }
-
 /* ============================================================================
    3. PREMIUM GOLD
 ============================================================================ */

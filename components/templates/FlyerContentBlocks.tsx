@@ -12,14 +12,7 @@ import {
 
 import { EditableText } from "@/components/EditableText";
 
-// ============================================================================
-// Canvas-relative scale
-// ----------------------------------------------------------------------------
-// Sized against the @container this element renders inside (cqi), NOT the
-// browser viewport (vw). This is what keeps spacing/type consistent whether
-// the flyer is shown full-size in the editor canvas or shrunk into a small
-// preview thumbnail — vw has no idea the preview is scaled down, cqi does.
-// ============================================================================
+
 
 const cq = (n: number) => `clamp(${n * 1.5}px, ${n}cqi, ${n * 12}px)`;
 
@@ -676,10 +669,10 @@ export function ContactBar({
 // ============================================================================
 // Flyer Content Parser (unchanged — no cqi/layout logic here)
 // ============================================================================
-
 export interface ParsedFlyerContent {
   features: string[];
   kicker?: string;
+  badge?: string;          // NEW — e.g. "50% OFF"
   phone?: string;
   email?: string;
   website?: string;
@@ -693,6 +686,8 @@ const BULLET_PREFIX = /^[-•●✓✔▪◦]\s*/;
 const PHONE_PATTERN = /(?:\+?\d[\d\s().-]{7,}\d)/i;
 const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
 const WEBSITE_PATTERN = /(?:https?:\/\/|www\.)[^\s]+/i;
+// NEW — catches "50% OFF", "30% discount", "SALE", etc.
+const DISCOUNT_PATTERN = /\b\d{1,3}\s*%\s*(off|discount)?\b|\bsale\b/i;
 
 function normalizeLine(value: string): string {
   return value.replace(BULLET_PREFIX, "").replace(/\s+/g, " ").trim();
@@ -721,15 +716,28 @@ export function parseFlyerContent(
   badgeText?: string,
   extraText?: string
 ): ParsedFlyerContent {
-  const badge = badgeText?.trim() ?? "";
-  const extra = extraText?.trim() ?? "";
-  const source = `${badge}\n${extra}`;
+  const badgeInput = badgeText?.trim() ?? "";
+  const extraInput = extraText?.trim() ?? "";
+  const source = `${badgeInput}\n${extraInput}`;
 
   const rawLines = source.split(/\r?\n/).map(normalizeLine).filter(Boolean);
   const features: string[] = [];
 
+  // NEW — kicker and badge are now actually captured instead of being
+  // matched by isHeading/DISCOUNT_PATTERN and then discarded.
+  let kicker: string | undefined;
+  let badge: string | undefined;
+
   for (const line of rawLines) {
-    if (isHeading(line) || isContactLine(line)) continue;
+    if (isHeading(line)) {
+      if (!kicker) kicker = line;
+      continue;
+    }
+    if (isContactLine(line)) continue;
+    if (!badge && DISCOUNT_PATTERN.test(line)) {
+      badge = line;
+      continue;
+    }
     const alreadyExists = features.some(
       (feature) => feature.toLowerCase() === line.toLowerCase()
     );
@@ -761,7 +769,8 @@ export function parseFlyerContent(
 
   return {
     features: cleanFeatures,
-    kicker: undefined,
+    kicker,
+    badge,
     phone,
     email,
     website,
