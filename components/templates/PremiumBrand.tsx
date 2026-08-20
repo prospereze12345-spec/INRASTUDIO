@@ -356,20 +356,8 @@ function VariantDigitalAgency({
           className="absolute left-0 top-0 bottom-0 flex flex-col justify-center"
           style={{
             width: "55%",
-
-            /*
-             * Horizontal breathing room.
-             * Keeps the content away from the flyer wall
-             * and away from the product image.
-             */
             paddingLeft: cq(8),
             paddingRight: cq(3),
-
-            /*
-             * Small vertical breathing room.
-             */
-            paddingTop: cq(2),
-            paddingBottom: cq(2),
           }}
         >
           {/* ========================================================== */}
@@ -435,21 +423,18 @@ function VariantDigitalAgency({
             className="shrink-0 flex flex-col"
             style={{
               /*
-               * Reserved area for Features + Why Choose Us.
-               * This prevents backend content from pushing
-               * the CTA into the footer.
+               * Keep enough physical space for the backend
+               * Features and Why Choose Us sections.
                */
               height: cq(25),
 
-              /*
-               * Breathing room after subtext.
-               */
               marginTop: cq(3),
 
               /*
-               * Small controlled space before CTA.
+               * Do not use a huge margin here.
+               * CTA itself will be moved down independently.
                */
-              marginBottom: cq(1),
+              marginBottom: 0,
 
               gap: cq(2),
             }}
@@ -534,15 +519,22 @@ function VariantDigitalAgency({
                 gap: cq(2),
 
                 /*
-                 * Push CTA slightly downward while
-                 * keeping it inside the main content area.
+                 * CTA is deliberately moved DOWN.
+                 *
+                 * This does NOT move the Features or
+                 * Why Choose Us sections.
                  */
-                marginTop: cq(2),
+                marginTop: cq(4),
 
                 /*
-                 * Dedicated CTA height.
+                 * Keeps the CTA compact.
                  */
                 minHeight: cq(7),
+
+                /*
+                 * Extra controlled downward movement.
+                 */
+                transform: `translateY(${cq(2)})`,
               }}
             >
               {price && (
