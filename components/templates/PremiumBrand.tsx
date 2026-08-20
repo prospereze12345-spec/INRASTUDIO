@@ -344,11 +344,6 @@ function VariantDigitalAgency({
         style={{
           paddingLeft: cq(8),
           paddingRight: cq(8),
-
-          /*
-           * More breathing room between the header/wall
-           * and the actual flyer content.
-           */
           paddingTop: cq(3),
           paddingBottom: cq(4),
         }}
@@ -363,10 +358,18 @@ function VariantDigitalAgency({
             width: "55%",
 
             /*
-             * Prevent the text from touching the centre/product area.
+             * Horizontal breathing room.
+             * Keeps the content away from the flyer wall
+             * and away from the product image.
              */
             paddingLeft: cq(8),
             paddingRight: cq(3),
+
+            /*
+             * Small vertical breathing room.
+             */
+            paddingTop: cq(2),
+            paddingBottom: cq(2),
           }}
         >
           {/* ========================================================== */}
@@ -420,10 +423,6 @@ function VariantDigitalAgency({
             className="leading-[1.5] opacity-50 max-w-[82%]"
             style={{
               fontSize: cq(2),
-
-              /*
-               * Deliberate gap after headline.
-               */
               marginTop: cq(3),
             }}
           />
@@ -436,20 +435,21 @@ function VariantDigitalAgency({
             className="shrink-0 flex flex-col"
             style={{
               /*
-               * Keep the benefits area stable so backend content
-               * doesn't push the CTA around unpredictably.
+               * Reserved area for Features + Why Choose Us.
+               * This prevents backend content from pushing
+               * the CTA into the footer.
                */
               height: cq(25),
 
               /*
-               * More separation from subtext.
+               * Breathing room after subtext.
                */
               marginTop: cq(3),
 
               /*
-               * Small breathing room before CTA.
+               * Small controlled space before CTA.
                */
-              marginBottom: cq(2),
+              marginBottom: cq(1),
 
               gap: cq(2),
             }}
@@ -534,17 +534,13 @@ function VariantDigitalAgency({
                 gap: cq(2),
 
                 /*
-                 * This is the important CTA adjustment.
-                 *
-                 * Instead of allowing it to sit directly
-                 * underneath the benefits block, give it a
-                 * controlled downward offset.
+                 * Push CTA slightly downward while
+                 * keeping it inside the main content area.
                  */
-                marginTop: cq(1.5),
+                marginTop: cq(2),
 
                 /*
-                 * Keeps CTA vertically comfortable without
-                 * making the entire section too tall.
+                 * Dedicated CTA height.
                  */
                 minHeight: cq(7),
               }}
@@ -588,17 +584,7 @@ function VariantDigitalAgency({
           className="absolute right-0 top-1/2 -translate-y-1/2 overflow-hidden rounded-2xl"
           style={{
             width: "38%",
-
-            /*
-             * Slightly smaller than before so the image has
-             * breathing room instead of visually touching
-             * the flyer wall.
-             */
             height: "74%",
-
-            /*
-             * Pull it inward from the outside edge.
-             */
             right: cq(8),
 
             boxShadow: `0 ${cq(2)} ${cq(4)} ${hexToRgba(
@@ -647,10 +633,6 @@ function VariantDigitalAgency({
       <div
         className="relative z-10 shrink-0"
         style={{
-          /*
-           * Keep the contact section clearly separated from
-           * the main flyer content.
-           */
           paddingLeft: cq(8),
           paddingRight: cq(8),
           paddingBottom: cq(4),
