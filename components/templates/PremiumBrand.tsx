@@ -107,7 +107,7 @@ export function PremiumBrandTemplate(props: PremiumBrandProps) {
 }
 
 /* ============================================================================
-   SMART CTA
+   SMART CTA — clean, prominent
 ============================================================================ */
 
 function SmartCTA({
@@ -117,7 +117,6 @@ function SmartCTA({
   onFocusEl,
   onBlurEl,
   colors,
-  compact = false,
 }: {
   value: string;
   editable?: boolean;
@@ -125,19 +124,18 @@ function SmartCTA({
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
   colors: PremiumBrandProps["colors"];
-  compact?: boolean;
 }) {
   return (
     <div
       className="inline-flex items-center font-semibold tracking-[0.06em] uppercase rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98]"
       style={{
         ...touchTarget,
-        paddingLeft: compact ? cq(2.5) : cq(3.5),
-        paddingRight: compact ? cq(3) : cq(4),
-        paddingTop: compact ? cq(1) : cq(1.4),
-        paddingBottom: compact ? cq(1) : cq(1.4),
-        gap: compact ? cq(1.2) : cq(1.8),
-        fontSize: compact ? cq(1.5) : cq(1.8),
+        paddingLeft: cq(3),
+        paddingRight: cq(3.5),
+        paddingTop: cq(1.2),
+        paddingBottom: cq(1.2),
+        gap: cq(1.5),
+        fontSize: cq(1.7),
         lineHeight: 1.2,
         maxWidth: "min(90cqi, 100%)",
         backgroundColor: colors.accent,
@@ -148,13 +146,13 @@ function SmartCTA({
       <span
         className="flex shrink-0 items-center justify-center rounded-full"
         style={{
-          width: compact ? cq(3.2) : cq(4),
-          height: compact ? cq(3.2) : cq(4),
+          width: cq(3.5),
+          height: cq(3.5),
           backgroundColor: colors.primary,
           color: colors.accent,
         }}
       >
-        <ShoppingBag style={{ width: compact ? cq(1.6) : cq(2), height: compact ? cq(1.6) : cq(2) }} />
+        <ShoppingBag style={{ width: cq(1.8), height: cq(1.8) }} />
       </span>
 
       <EditableText
@@ -167,13 +165,13 @@ function SmartCTA({
         onBlurEl={onBlurEl}
         className="whitespace-nowrap"
       />
-      <span className="opacity-50 shrink-0" style={{ fontSize: compact ? cq(1.4) : cq(1.8) }}>→</span>
+      <span className="opacity-50 shrink-0" style={{ fontSize: cq(1.6) }}>→</span>
     </div>
   );
 }
 
 /* ============================================================================
-   DIGITAL AGENCY — clean, spacious, no brand label
+   DIGITAL AGENCY — redesigned with proper spacing, no add buttons, solid footer
 ============================================================================ */
 
 function VariantDigitalAgency({
@@ -183,7 +181,6 @@ function VariantDigitalAgency({
   badgeText,
   extraText,
   productImage,
-  brandName,
   website,
   price,
   phone,
@@ -219,6 +216,10 @@ function VariantDigitalAgency({
   const featureItems = parsed.features.length > 0 ? parsed.features : ["Fast delivery", "High quality", "Best support"];
   const whyItems = whyChooseUs && whyChooseUs.length > 0 ? whyChooseUs : ["Fast delivery guaranteed", "High quality products", "Best customer service"];
 
+  // We hide add buttons by passing editable={false} to FeatureList and WhyChooseUsList
+  // even if the parent editable is true.
+  const listEditable = false; // always hide add/remove controls
+
   return (
     <div
       className="@container w-full h-full aspect-[4/5] relative overflow-hidden font-sans flex flex-col"
@@ -226,17 +227,17 @@ function VariantDigitalAgency({
     >
       {/* ── Subtle grain texture ── */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.025]"
+        className="absolute inset-0 pointer-events-none opacity-[0.02]"
         style={{
           backgroundImage: `radial-gradient(circle at 30% 40%, ${colors.accent} 1px, transparent 1px)`,
           backgroundSize: `${cq(2.5)} ${cq(2.5)}`,
         }}
       />
 
-      {/* ── Header ── ONLY website (no brand, no icon) */}
+      {/* ── Header ── only website, lower padding ── */}
       <header
         className="shrink-0 flex items-start justify-end relative z-10"
-        style={{ paddingLeft: cq(6), paddingRight: cq(6), paddingTop: cq(4.5) }}
+        style={{ paddingLeft: cq(7), paddingRight: cq(7), paddingTop: cq(3) }}
       >
         {website && (
           <EditableText
@@ -253,15 +254,15 @@ function VariantDigitalAgency({
         )}
       </header>
 
-      {/* ── Main content ── */}
+      {/* ── Main content ── with generous padding from edges */}
       <div
         className="flex-1 relative min-h-0"
-        style={{ paddingLeft: cq(6), paddingRight: cq(6), paddingTop: cq(2), paddingBottom: cq(4.5) }}
+        style={{ paddingLeft: cq(7), paddingRight: cq(7), paddingTop: cq(1.5), paddingBottom: cq(4) }}
       >
-        {/* Content column */}
+        {/* Left column: content */}
         <section
           className="absolute left-0 top-0 bottom-0 flex flex-col justify-center"
-          style={{ width: "54%", paddingRight: cq(5), gap: cq(3) }}
+          style={{ width: "55%", paddingRight: cq(5), gap: cq(2.5) }}
         >
           {/* Headline */}
           <h1
@@ -269,7 +270,6 @@ function VariantDigitalAgency({
             style={{
               fontSize: "clamp(1.6rem, 8.5cqi, 90px)",
               wordBreak: "keep-all",
-              overflowWrap: "normal",
             }}
           >
             <EditableHeadlineLines
@@ -302,39 +302,41 @@ function VariantDigitalAgency({
             style={{ fontSize: cq(2) }}
           />
 
-          {/* Features + Why Choose Us */}
-          <div className="flex flex-col" style={{ gap: cq(2.5) }}>
+          {/* Features + Why Choose Us (no add buttons) */}
+          <div className="flex flex-col" style={{ gap: cq(2) }}>
             <FeatureList
               features={featureItems.slice(0, 3)}
               colors={colors}
-              editable={editable}
-              onUpdateFeature={(index, value) =>
-                onUpdate?.("badgeText", parsed.updateFeature(index, value))
-              }
-              onAddFeature={() => onUpdate?.("badgeText", parsed.addFeature())}
-              onRemoveFeature={(index) => onUpdate?.("badgeText", parsed.removeFeature(index))}
+              editable={listEditable} // force false to hide add buttons
+              visible={featuresVisible}
+              title="FEATURES"
+              onUpdateTitle={() => {}}
+              onUpdateFeature={() => {}}
+              onAddFeature={() => {}}
+              onRemoveFeature={() => {}}
+              onRestoreSection={onRestoreFeatures}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
-              visible={featuresVisible}
-              onRestoreSection={onRestoreFeatures}
             />
 
             <WhyChooseUsList
               items={whyItems.slice(0, 3)}
               colors={colors}
-              editable={editable}
-              onUpdate={onUpdateWhyChooseUs}
-              onAdd={onAddWhyChooseUs}
-              onRemove={onRemoveWhyChooseUs}
+              editable={listEditable} // force false
+              visible={whyChooseUsVisible}
+              title="WHY CHOOSE US"
+              onUpdateTitle={() => {}}
+              onUpdate={() => {}}
+              onAdd={() => {}}
+              onRemove={() => {}}
+              onRestoreSection={onRestoreWhyChooseUs}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
-              visible={whyChooseUsVisible}
-              onRestoreSection={onRestoreWhyChooseUs}
             />
           </div>
 
-          {/* CTA + Price */}
-          <div className="flex items-center" style={{ gap: cq(2.5), marginTop: cq(0.5) }}>
+          {/* CTA + Price — moved up with less gap */}
+          <div className="flex items-center" style={{ gap: cq(2), marginTop: cq(0.5) }}>
             {price && (
               <EditableText
                 as="p"
@@ -345,7 +347,7 @@ function VariantDigitalAgency({
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
                 className="font-bold tracking-tight"
-                style={{ color: colors.accent, fontSize: cq(4.5) }}
+                style={{ color: colors.accent, fontSize: cq(4) }}
               />
             )}
             <SmartCTA
@@ -359,13 +361,13 @@ function VariantDigitalAgency({
           </div>
         </section>
 
-        {/* Image column — smaller, cleaner */}
+        {/* Right column: Image — larger to match content height */}
         <section
           className="absolute right-0 top-1/2 -translate-y-1/2 overflow-hidden rounded-2xl"
           style={{
-            width: "38%",
-            height: "72%",
-            boxShadow: `0 ${cq(2)} ${cq(4)} ${hexToRgba(colors.secondary, 0.06)}`,
+            width: "40%",
+            height: "78%",
+            boxShadow: `0 ${cq(2)} ${cq(4)} ${hexToRgba(colors.secondary, 0.05)}`,
           }}
         >
           <Image
@@ -378,7 +380,6 @@ function VariantDigitalAgency({
             className="object-cover"
           />
 
-          {/* Discount badge — only if present */}
           {parsed.badge && (
             <div
               className="absolute flex items-center justify-center text-center font-bold uppercase leading-tight rounded-full"
@@ -399,8 +400,8 @@ function VariantDigitalAgency({
         </section>
       </div>
 
-      {/* ── Footer / Contact Bar ── */}
-      <div className="shrink-0 relative z-10" style={{ paddingLeft: cq(6), paddingRight: cq(6), paddingBottom: cq(3.5) }}>
+      {/* ── Footer / Contact Bar — solid, no transparency ── */}
+      <div className="shrink-0 relative z-10" style={{ paddingLeft: cq(7), paddingRight: cq(7), paddingBottom: cq(3.5) }}>
         <div
           style={{
             paddingTop: cq(1.5),
@@ -408,8 +409,8 @@ function VariantDigitalAgency({
             paddingLeft: cq(2.5),
             paddingRight: cq(2.5),
             borderRadius: cq(1.5),
-            backgroundColor: hexToRgba(colors.secondary, 0.04),
-            border: `1px solid ${hexToRgba(colors.secondary, 0.06)}`,
+            backgroundColor: colors.primary, // solid, not transparent
+            border: `1px solid ${hexToRgba(colors.secondary, 0.08)}`,
           }}
         >
           <ContactBar
@@ -441,7 +442,7 @@ function VariantDigitalAgency({
 }
 
 /* ============================================================================
-   PREMIUM GOLD — clean, no brand label
+   PREMIUM GOLD — same refinements (simplified, kept for consistency)
 ============================================================================ */
 
 function VariantPremiumGold({
@@ -500,8 +501,8 @@ function VariantPremiumGold({
         }}
       />
 
-      {/* ── Header ── ONLY decorative line (no brand) */}
-      <header className="relative z-20 text-center shrink-0" style={{ paddingTop: cq(5) }}>
+      {/* ── Header ── simple line */}
+      <header className="relative z-20 text-center shrink-0" style={{ paddingTop: cq(4) }}>
         <div className="flex justify-center items-center" style={{ gap: cq(1.5) }}>
           <span className="h-px" style={{ width: cq(8), backgroundColor: hexToRgba(colors.accent, 0.3) }} />
           <span className="rotate-45" style={{ width: cq(0.8), height: cq(0.8), backgroundColor: colors.accent, opacity: 0.5 }} />
@@ -512,7 +513,7 @@ function VariantPremiumGold({
       {/* ── Main ── */}
       <div
         className="flex-1 relative min-h-0"
-        style={{ paddingLeft: cq(7), paddingRight: cq(7), paddingTop: cq(3.5), paddingBottom: cq(4) }}
+        style={{ paddingLeft: cq(7), paddingRight: cq(7), paddingTop: cq(3), paddingBottom: cq(4) }}
       >
         {/* Headline */}
         <div className="text-center relative z-20 shrink-0">
@@ -621,11 +622,10 @@ function VariantPremiumGold({
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               colors={colors}
-              compact
             />
           </div>
 
-          {/* Contact */}
+          {/* Contact — solid */}
           <div style={{ marginTop: cq(2) }}>
             <div
               style={{
@@ -634,8 +634,8 @@ function VariantPremiumGold({
                 paddingLeft: cq(2),
                 paddingRight: cq(2),
                 borderRadius: cq(1.5),
-                backgroundColor: hexToRgba(colors.secondary, 0.04),
-                border: `1px solid ${hexToRgba(colors.secondary, 0.06)}`,
+                backgroundColor: colors.primary,
+                border: `1px solid ${hexToRgba(colors.secondary, 0.08)}`,
               }}
             >
               <ContactBar
