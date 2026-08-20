@@ -230,12 +230,11 @@ function SmartCTA({
 // ============================================================================
 // DIGITAL AGENCY
 // ============================================================================
-
 function VariantDigitalAgency({
   headline,
   subtext,
   ctaText,
-  ctaVisible = true, // <-- NEW: default to true
+  ctaVisible = true,
   badgeText,
   productImage,
   website,
@@ -293,9 +292,9 @@ function VariantDigitalAgency({
         color: colors.secondary,
       }}
     >
-      {/* ================================================================== */}
-      {/* BACKGROUND TEXTURE */}
-      {/* ================================================================== */}
+      {/* ================================================================ */}
+      {/* BACKGROUND                                                       */}
+      {/* ================================================================ */}
 
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.02]"
@@ -305,16 +304,16 @@ function VariantDigitalAgency({
         }}
       />
 
-      {/* ================================================================== */}
-      {/* HEADER */}
-      {/* ================================================================== */}
+      {/* ================================================================ */}
+      {/* HEADER                                                           */}
+      {/* ================================================================ */}
 
       <header
         className="relative z-10 flex shrink-0 items-start justify-end"
         style={{
-          paddingLeft: cq(7),
-          paddingRight: cq(7),
-          paddingTop: cq(3),
+          paddingLeft: cq(8),
+          paddingRight: cq(8),
+          paddingTop: cq(4),
         }}
       >
         {website && (
@@ -336,33 +335,43 @@ function VariantDigitalAgency({
         )}
       </header>
 
-      {/* ================================================================== */}
-      {/* MAIN CONTENT */}
-      {/* ================================================================== */}
+      {/* ================================================================ */}
+      {/* MAIN SAFE AREA                                                   */}
+      {/* ================================================================ */}
 
       <div
         className="relative flex-1 min-h-0"
         style={{
-          paddingLeft: cq(7),
-          paddingRight: cq(7),
-          paddingTop: cq(1.5),
+          paddingLeft: cq(8),
+          paddingRight: cq(8),
+
+          /*
+           * More breathing room between the header/wall
+           * and the actual flyer content.
+           */
+          paddingTop: cq(3),
           paddingBottom: cq(4),
         }}
       >
-        {/* ================================================================ */}
-        {/* LEFT CONTENT */}
-        {/* ================================================================ */}
+        {/* ============================================================ */}
+        {/* LEFT CONTENT                                                   */}
+        {/* ============================================================ */}
 
         <section
           className="absolute left-0 top-0 bottom-0 flex flex-col justify-center"
           style={{
             width: "55%",
-            paddingRight: cq(2),
+
+            /*
+             * Prevent the text from touching the centre/product area.
+             */
+            paddingLeft: cq(8),
+            paddingRight: cq(3),
           }}
         >
-          {/* ============================================================ */}
-          {/* HEADLINE */}
-          {/* ============================================================ */}
+          {/* ========================================================== */}
+          {/* HEADLINE                                                     */}
+          {/* ========================================================== */}
 
           <h1
             className="font-semibold uppercase tracking-[-0.05em] leading-[0.88]"
@@ -394,9 +403,9 @@ function VariantDigitalAgency({
             />
           </h1>
 
-          {/* ============================================================ */}
-          {/* SUBTEXT */}
-          {/* ============================================================ */}
+          {/* ========================================================== */}
+          {/* SUBTEXT                                                       */}
+          {/* ========================================================== */}
 
           <EditableText
             as="p"
@@ -408,29 +417,46 @@ function VariantDigitalAgency({
             }
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
-            className="leading-[1.5] opacity-50 max-w-[80%]"
+            className="leading-[1.5] opacity-50 max-w-[82%]"
             style={{
               fontSize: cq(2),
-              marginTop: cq(2.5),
+
+              /*
+               * Deliberate gap after headline.
+               */
+              marginTop: cq(3),
             }}
           />
 
-          {/* ============================================================ */}
-          {/* FIXED BENEFITS AREA                                           */}
-          {/* ============================================================ */}
+          {/* ========================================================== */}
+          {/* BENEFITS                                                      */}
+          {/* ========================================================== */}
 
           <div
             className="shrink-0 flex flex-col"
             style={{
+              /*
+               * Keep the benefits area stable so backend content
+               * doesn't push the CTA around unpredictably.
+               */
               height: cq(25),
-              marginTop: cq(2.5),
-              marginBottom: cq(1),
+
+              /*
+               * More separation from subtext.
+               */
+              marginTop: cq(3),
+
+              /*
+               * Small breathing room before CTA.
+               */
+              marginBottom: cq(2),
+
               gap: cq(2),
             }}
           >
-            {/* ---------------------------------------------------------- */}
+            {/* -------------------------------------------------------- */}
             {/* FEATURES                                                   */}
-            {/* ---------------------------------------------------------- */}
+            {/* -------------------------------------------------------- */}
 
             {hasFeatures && (
               <FeatureList
@@ -439,38 +465,32 @@ function VariantDigitalAgency({
                 editable={editable}
                 visible={featuresVisible}
                 title="FEATURES"
-
                 onUpdateTitle={(value) =>
                   onUpdate?.("featuresTitle", value)
                 }
-
                 onUpdateFeature={
                   onUpdateFeature ??
                   (() => undefined)
                 }
-
                 onAddFeature={
                   onAddFeature ??
                   (() => undefined)
                 }
-
                 onRemoveFeature={
                   onRemoveFeature ??
                   (() => undefined)
                 }
-
                 onRestoreSection={
                   onRestoreFeatures
                 }
-
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
               />
             )}
 
-            {/* ---------------------------------------------------------- */}
+            {/* -------------------------------------------------------- */}
             {/* WHY CHOOSE US                                              */}
-            {/* ---------------------------------------------------------- */}
+            {/* -------------------------------------------------------- */}
 
             {hasWhyChooseUs && (
               <WhyChooseUsList
@@ -479,46 +499,54 @@ function VariantDigitalAgency({
                 editable={editable}
                 visible={whyChooseUsVisible}
                 title="WHY CHOOSE US"
-
                 onUpdateTitle={(value) =>
                   onUpdate?.("whyChooseUsTitle", value)
                 }
-
                 onUpdate={
                   onUpdateWhyChooseUs ??
                   (() => undefined)
                 }
-
                 onAdd={
                   onAddWhyChooseUs ??
                   (() => undefined)
                 }
-
                 onRemove={
                   onRemoveWhyChooseUs ??
                   (() => undefined)
                 }
-
                 onRestoreSection={
                   onRestoreWhyChooseUs
                 }
-
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
               />
             )}
           </div>
 
-          {/* ============================================================ */}
-          {/* CTA ROW - conditionally rendered based on ctaVisible        */}
-          {/* ============================================================ */}
+          {/* ========================================================== */}
+          {/* CTA                                                          */}
+          {/* ========================================================== */}
 
           {ctaVisible && (
             <div
               className="flex shrink-0 items-center"
               style={{
                 gap: cq(2),
-                minHeight: cq(6),
+
+                /*
+                 * This is the important CTA adjustment.
+                 *
+                 * Instead of allowing it to sit directly
+                 * underneath the benefits block, give it a
+                 * controlled downward offset.
+                 */
+                marginTop: cq(1.5),
+
+                /*
+                 * Keeps CTA vertically comfortable without
+                 * making the entire section too tall.
+                 */
+                minHeight: cq(7),
               }}
             >
               {price && (
@@ -553,14 +581,26 @@ function VariantDigitalAgency({
         </section>
 
         {/* ================================================================ */}
-        {/* RIGHT PRODUCT IMAGE                                              */}
+        {/* RIGHT PRODUCT IMAGE                                               */}
         {/* ================================================================ */}
 
         <section
           className="absolute right-0 top-1/2 -translate-y-1/2 overflow-hidden rounded-2xl"
           style={{
-            width: "40%",
-            height: "78%",
+            width: "38%",
+
+            /*
+             * Slightly smaller than before so the image has
+             * breathing room instead of visually touching
+             * the flyer wall.
+             */
+            height: "74%",
+
+            /*
+             * Pull it inward from the outside edge.
+             */
+            right: cq(8),
+
             boxShadow: `0 ${cq(2)} ${cq(4)} ${hexToRgba(
               colors.secondary,
               0.05
@@ -600,16 +640,21 @@ function VariantDigitalAgency({
         </section>
       </div>
 
-      {/* ================================================================== */}
+      {/* ================================================================ */}
       {/* FOOTER / CONTACT BAR                                               */}
-      {/* ================================================================== */}
+      {/* ================================================================ */}
 
       <div
         className="relative z-10 shrink-0"
         style={{
-          paddingLeft: cq(7),
-          paddingRight: cq(7),
-          paddingBottom: cq(3.5),
+          /*
+           * Keep the contact section clearly separated from
+           * the main flyer content.
+           */
+          paddingLeft: cq(8),
+          paddingRight: cq(8),
+          paddingBottom: cq(4),
+          paddingTop: cq(1),
         }}
       >
         <div
@@ -666,7 +711,6 @@ function VariantDigitalAgency({
     </div>
   );
 }
-
 // ============================================================================
 // PREMIUM GOLD
 // ============================================================================
