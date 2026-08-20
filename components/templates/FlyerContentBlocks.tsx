@@ -12,8 +12,6 @@ import {
 
 import { EditableText } from "@/components/EditableText";
 
-
-
 const cq = (n: number) => `clamp(${n * 1.5}px, ${n}cqi, ${n * 12}px)`;
 
 // ============================================================================
@@ -37,7 +35,6 @@ export type FeatureListProps = SharedBlockProps & {
   features?: string[];
   visible?: boolean;
   title?: string;
-
   onUpdateTitle?: (value: string) => void;
   onUpdateFeature?: (index: number, value: string) => void;
   onAddFeature?: () => void;
@@ -49,7 +46,6 @@ export type WhyChooseUsListProps = SharedBlockProps & {
   items?: string[];
   visible?: boolean;
   title?: string;
-
   onUpdateTitle?: (value: string) => void;
   onUpdate?: (index: number, value: string) => void;
   onAdd?: () => void;
@@ -61,28 +57,21 @@ export type ContactBarProps = {
   phone?: string;
   website?: string;
   email?: string;
-
   accentColor: string;
   textColor: string;
-
   editable?: boolean;
-
   phoneVisible?: boolean;
   websiteVisible?: boolean;
   emailVisible?: boolean;
-
   onUpdatePhone?: (value: string) => void;
   onUpdateWebsite?: (value: string) => void;
   onUpdateEmail?: (value: string) => void;
-
   onRemovePhone?: () => void;
   onRemoveWebsite?: () => void;
   onRemoveEmail?: () => void;
-
   onRestorePhone?: () => void;
   onRestoreWebsite?: () => void;
   onRestoreEmail?: () => void;
-
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
 };
@@ -91,15 +80,11 @@ type ContactItemProps = {
   id: string;
   icon: React.ReactNode;
   value: string;
-
   accentColor: string;
   textColor: string;
-
   editable?: boolean;
-
   onChange?: (value: string) => void;
   onRemove?: () => void;
-
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
 };
@@ -119,38 +104,15 @@ type RestoreButtonProps = {
 // ============================================================================
 
 function cleanStringArray(values: unknown): string[] {
-  if (!Array.isArray(values)) {
-    return [];
-  }
-
+  if (!Array.isArray(values)) return [];
   return values.filter(
     (value): value is string =>
       typeof value === "string" && value.trim().length > 0
   );
 }
 
-/**
- * Small secondary control (delete-item X). Visual size stays compact so
- * it fits inline in a dense list row, but the tappable hit-area is
- * padded out via negative margin so fingers don't need pixel precision.
- *
- * IMPORTANT — export/download correctness: this button (and every other
- * add/remove/restore control in this file) is only ever rendered inside
- * an `{editable && (...)}` guard. If "+ Add feature" / "+ Add reason" is
- * showing up in an exported flyer, the render pass that produces the
- * export is passing `editable={true}` (or leaving it undefined, which
- * defaults truthy checks incorrectly upstream) — fix that at the export
- * call site, not here. This file has no code path that shows these
- * controls when `editable` is false.
- */
-function RemoveButton({
-  onClick,
-  label = "Remove",
-}: RemoveButtonProps) {
-  if (!onClick) {
-    return null;
-  }
-
+function RemoveButton({ onClick, label = "Remove" }: RemoveButtonProps) {
+  if (!onClick) return null;
   return (
     <button
       type="button"
@@ -177,14 +139,8 @@ function RemoveButton({
   );
 }
 
-function RestoreSectionButton({
-  label,
-  onClick,
-}: RestoreButtonProps) {
-  if (!onClick) {
-    return null;
-  }
-
+function RestoreSectionButton({ label, onClick }: RestoreButtonProps) {
+  if (!onClick) return null;
   return (
     <button
       type="button"
@@ -212,17 +168,8 @@ function RestoreSectionButton({
   );
 }
 
-/**
- * Used only for contact fields that have been hidden.
- */
-function RestoreChip({
-  label,
-  onClick,
-}: RestoreButtonProps) {
-  if (!onClick) {
-    return null;
-  }
-
+function RestoreChip({ label, onClick }: RestoreButtonProps) {
+  if (!onClick) return null;
   return (
     <button
       type="button"
@@ -241,10 +188,7 @@ function RestoreChip({
         hover:border-white/40
         hover:text-white/80
       "
-      style={{
-        fontSize: cq(1.3),
-        minHeight: "36px",
-      }}
+      style={{ fontSize: cq(1.3), minHeight: "36px" }}
     >
       <Plus style={{ width: cq(1.4), height: cq(1.4) }} />
       <span className="truncate">{label}</span>
@@ -252,12 +196,6 @@ function RestoreChip({
   );
 }
 
-/**
- * Trailing "confirmed" badge shown only in read-only (export) mode, on
- * Why-Choose-Us rows. In edit mode this slot is the RemoveButton (X)
- * instead — the two are mutually exclusive so the row never shows both
- * an edit control and a decorative badge at once.
- */
 function ConfirmBadge({ accentColor }: { accentColor: string }) {
   return (
     <span
@@ -276,7 +214,7 @@ function ConfirmBadge({ accentColor }: { accentColor: string }) {
 }
 
 // ============================================================================
-// Feature List
+// Feature List — fixed marginTop
 // ============================================================================
 
 export function FeatureList({
@@ -296,9 +234,7 @@ export function FeatureList({
   const cleanFeatures = cleanStringArray(features);
 
   if (!visible) {
-    if (!editable) {
-      return null;
-    }
+    if (!editable) return null;
     return (
       <RestoreSectionButton
         label="Add features section"
@@ -307,15 +243,13 @@ export function FeatureList({
     );
   }
 
-  if (cleanFeatures.length === 0 && !editable) {
-    return null;
-  }
+  if (cleanFeatures.length === 0 && !editable) return null;
 
   return (
     <section
       data-flyer-block="features"
-      className="flex max-w-[85%] flex-col"
-      style={{ marginTop: cq(2.5), gap: cq(1.4) }}
+      className="flex w-full flex-col"
+      style={{ marginTop: 0, gap: cq(1) }} // ← marginTop: 0, tighter gap
     >
       <EditableText
         as="h3"
@@ -386,7 +320,7 @@ export function FeatureList({
 }
 
 // ============================================================================
-// Why Choose Us
+// Why Choose Us — fixed marginTop
 // ============================================================================
 
 export function WhyChooseUsList({
@@ -406,9 +340,7 @@ export function WhyChooseUsList({
   const cleanItems = cleanStringArray(items);
 
   if (!visible) {
-    if (!editable) {
-      return null;
-    }
+    if (!editable) return null;
     return (
       <RestoreSectionButton
         label="Add why-choose-us section"
@@ -417,15 +349,13 @@ export function WhyChooseUsList({
     );
   }
 
-  if (cleanItems.length === 0 && !editable) {
-    return null;
-  }
+  if (cleanItems.length === 0 && !editable) return null;
 
   return (
     <section
       data-flyer-block="why-choose-us"
-      className="flex max-w-[85%] flex-col"
-      style={{ marginTop: cq(2.5), gap: cq(1.4) }}
+      className="flex w-full flex-col"
+      style={{ marginTop: 0, gap: cq(1) }} // ← marginTop: 0, tighter gap
     >
       <EditableText
         as="h3"
@@ -472,10 +402,6 @@ export function WhyChooseUsList({
             />
           </div>
 
-          {/* Edit mode: X to remove. Read-only/export mode: decorative
-              confirm badge, matching the reference layout where every
-              reason gets a trailing checkmark. The two never render
-              together. */}
           {editable ? (
             <RemoveButton
               label={`Remove reason ${index + 1}`}
@@ -504,7 +430,7 @@ export function WhyChooseUsList({
 }
 
 // ============================================================================
-// Contact Item
+// ContactItem & ContactBar (unchanged)
 // ============================================================================
 
 function ContactItem({
@@ -520,10 +446,7 @@ function ContactItem({
   onBlurEl,
 }: ContactItemProps) {
   const hasValue = value.trim().length > 0;
-
-  if (!editable && !hasValue) {
-    return null;
-  }
+  if (!editable && !hasValue) return null;
 
   return (
     <div className="group flex min-w-0 items-center" style={{ gap: cq(0.8) }}>
@@ -562,10 +485,6 @@ function ContactItem({
   );
 }
 
-// ============================================================================
-// Contact Bar
-// ============================================================================
-
 export function ContactBar({
   phone = "",
   website = "",
@@ -594,9 +513,7 @@ export function ContactBar({
       (emailVisible && email.trim())
   );
 
-  if (!editable && !hasVisibleContact) {
-    return null;
-  }
+  if (!editable && !hasVisibleContact) return null;
 
   const iconStyle = { color: "#ffffff" };
 
@@ -667,12 +584,13 @@ export function ContactBar({
 }
 
 // ============================================================================
-// Flyer Content Parser (unchanged — no cqi/layout logic here)
+// Flyer Content Parser (unchanged)
 // ============================================================================
+
 export interface ParsedFlyerContent {
   features: string[];
   kicker?: string;
-  badge?: string;          // NEW — e.g. "50% OFF"
+  badge?: string;
   phone?: string;
   email?: string;
   website?: string;
@@ -686,7 +604,6 @@ const BULLET_PREFIX = /^[-•●✓✔▪◦]\s*/;
 const PHONE_PATTERN = /(?:\+?\d[\d\s().-]{7,}\d)/i;
 const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
 const WEBSITE_PATTERN = /(?:https?:\/\/|www\.)[^\s]+/i;
-// NEW — catches "50% OFF", "30% discount", "SALE", etc.
 const DISCOUNT_PATTERN = /\b\d{1,3}\s*%\s*(off|discount)?\b|\bsale\b/i;
 
 function normalizeLine(value: string): string {
@@ -722,9 +639,6 @@ export function parseFlyerContent(
 
   const rawLines = source.split(/\r?\n/).map(normalizeLine).filter(Boolean);
   const features: string[] = [];
-
-  // NEW — kicker and badge are now actually captured instead of being
-  // matched by isHeading/DISCOUNT_PATTERN and then discarded.
   let kicker: string | undefined;
   let badge: string | undefined;
 

@@ -1,12 +1,11 @@
 ﻿"use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import Image from "next/image";
 import { ShoppingBag } from "lucide-react";
 import {
   FeatureList,
   ContactBar,
-  parseFlyerContent,
   WhyChooseUsList,
 } from "./FlyerContentBlocks";
 
@@ -25,8 +24,7 @@ export interface PremiumBrandProps {
   headline: string;
   subtext: string;
   ctaText: string;
-  badgeText?: string;
-  extraText?: string;
+  badgeText?: string;           // now just a string for discount badge
   productImage: string;
   brandName?: string;
   website?: string;
@@ -42,15 +40,19 @@ export interface PremiumBrandProps {
   onUpdate?: (field: string, value: string) => void;
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
+
+  // Direct data from backend
+  features?: string[];
   whyChooseUs?: string[];
-  onUpdateWhyChooseUs?: (index: number, value: string) => void;
-  onAddWhyChooseUs?: () => void;
-  onRemoveWhyChooseUs?: (index: number) => void;
+
+  // Visibility toggles
   featuresVisible?: boolean;
   whyChooseUsVisible?: boolean;
   phoneVisible?: boolean;
   emailVisible?: boolean;
   websiteVisible?: boolean;
+
+  // Restore callbacks (if needed)
   onRestoreFeatures?: () => void;
   onRestoreWhyChooseUs?: () => void;
   onRemovePhone?: () => void;
@@ -59,10 +61,16 @@ export interface PremiumBrandProps {
   onRestorePhone?: () => void;
   onRestoreEmail?: () => void;
   onRestoreWebsite?: () => void;
-  features?: string[];
+
+  // These are kept for compatibility but we won't parse them
+  extraText?: string;
+  // Also keep the original feature/why props if they were passed
   onUpdateFeature?: (index: number, value: string) => void;
   onAddFeature?: () => void;
   onRemoveFeature?: (index: number) => void;
+  onUpdateWhyChooseUs?: (index: number, value: string) => void;
+  onAddWhyChooseUs?: () => void;
+  onRemoveWhyChooseUs?: (index: number) => void;
 }
 
 /* ============================================================================
@@ -171,7 +179,7 @@ function SmartCTA({
 }
 
 /* ============================================================================
-   DIGITAL AGENCY — redesigned with proper spacing, no add buttons, solid footer
+   DIGITAL AGENCY — uses direct props, no parsing
 ============================================================================ */
 
 function VariantDigitalAgency({
@@ -179,7 +187,6 @@ function VariantDigitalAgency({
   subtext,
   ctaText,
   badgeText,
-  extraText,
   productImage,
   website,
   price,
@@ -190,10 +197,8 @@ function VariantDigitalAgency({
   onUpdate,
   onFocusEl,
   onBlurEl,
+  features,
   whyChooseUs,
-  onUpdateWhyChooseUs,
-  onAddWhyChooseUs,
-  onRemoveWhyChooseUs,
   featuresVisible,
   whyChooseUsVisible,
   phoneVisible,
@@ -208,24 +213,29 @@ function VariantDigitalAgency({
   onRestoreEmail,
   onRestoreWebsite,
 }: PremiumBrandProps) {
-  const parsed = useMemo(
-    () => parseFlyerContent(badgeText, extraText),
-    [badgeText, extraText]
-  );
+  // Use directly provided arrays, fallback to defaults if empty
+  const featureItems =
+    features && features.length > 0
+      ? features
+      : ["Fast delivery", "High quality", "Best support"];
 
-  const featureItems = parsed.features.length > 0 ? parsed.features : ["Fast delivery", "High quality", "Best support"];
-  const whyItems = whyChooseUs && whyChooseUs.length > 0 ? whyChooseUs : ["Fast delivery guaranteed", "High quality products", "Best customer service"];
+  const whyItems =
+    whyChooseUs && whyChooseUs.length > 0
+      ? whyChooseUs
+      : ["Fast delivery guaranteed", "High quality products", "Best customer service"];
 
-  // We hide add buttons by passing editable={false} to FeatureList and WhyChooseUsList
-  // even if the parent editable is true.
-  const listEditable = false; // always hide add/remove controls
+  // Badge comes straight from badgeText
+  const badge = badgeText || null;
+
+  // Always hide add/remove controls in the lists
+  const listEditable = false;
 
   return (
     <div
       className="@container w-full h-full aspect-[4/5] relative overflow-hidden font-sans flex flex-col"
       style={{ backgroundColor: colors.primary, color: colors.secondary }}
     >
-      {/* ── Subtle grain texture ── */}
+      {/* Subtle grain texture */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.02]"
         style={{
@@ -234,7 +244,7 @@ function VariantDigitalAgency({
         }}
       />
 
-      {/* ── Header ── only website, lower padding ── */}
+      {/* Header – only website */}
       <header
         className="shrink-0 flex items-start justify-end relative z-10"
         style={{ paddingLeft: cq(7), paddingRight: cq(7), paddingTop: cq(3) }}
@@ -254,7 +264,7 @@ function VariantDigitalAgency({
         )}
       </header>
 
-      {/* ── Main content ── with generous padding from edges */}
+      {/* Main content */}
       <div
         className="flex-1 relative min-h-0"
         style={{ paddingLeft: cq(7), paddingRight: cq(7), paddingTop: cq(1.5), paddingBottom: cq(4) }}
@@ -264,7 +274,6 @@ function VariantDigitalAgency({
           className="absolute left-0 top-0 bottom-0 flex flex-col justify-center"
           style={{ width: "55%", paddingRight: cq(5), gap: cq(2.5) }}
         >
-          {/* Headline */}
           <h1
             className="font-semibold uppercase tracking-[-0.05em] leading-[0.88]"
             style={{
@@ -289,7 +298,6 @@ function VariantDigitalAgency({
             />
           </h1>
 
-          {/* Subtext */}
           <EditableText
             as="p"
             fieldId="f-sub"
@@ -302,12 +310,11 @@ function VariantDigitalAgency({
             style={{ fontSize: cq(2) }}
           />
 
-          {/* Features + Why Choose Us (no add buttons) */}
           <div className="flex flex-col" style={{ gap: cq(2) }}>
             <FeatureList
               features={featureItems.slice(0, 3)}
               colors={colors}
-              editable={listEditable} // force false to hide add buttons
+              editable={listEditable}
               visible={featuresVisible}
               title="FEATURES"
               onUpdateTitle={() => {}}
@@ -322,7 +329,7 @@ function VariantDigitalAgency({
             <WhyChooseUsList
               items={whyItems.slice(0, 3)}
               colors={colors}
-              editable={listEditable} // force false
+              editable={listEditable}
               visible={whyChooseUsVisible}
               title="WHY CHOOSE US"
               onUpdateTitle={() => {}}
@@ -335,7 +342,6 @@ function VariantDigitalAgency({
             />
           </div>
 
-          {/* CTA + Price — moved up with less gap */}
           <div className="flex items-center" style={{ gap: cq(2), marginTop: cq(0.5) }}>
             {price && (
               <EditableText
@@ -361,7 +367,7 @@ function VariantDigitalAgency({
           </div>
         </section>
 
-        {/* Right column: Image — larger to match content height */}
+        {/* Right column: Image */}
         <section
           className="absolute right-0 top-1/2 -translate-y-1/2 overflow-hidden rounded-2xl"
           style={{
@@ -380,7 +386,7 @@ function VariantDigitalAgency({
             className="object-cover"
           />
 
-          {parsed.badge && (
+          {badge && (
             <div
               className="absolute flex items-center justify-center text-center font-bold uppercase leading-tight rounded-full"
               style={{
@@ -394,13 +400,13 @@ function VariantDigitalAgency({
                 boxShadow: `0 ${cq(0.5)} ${cq(1.5)} ${hexToRgba(colors.accent, 0.3)}`,
               }}
             >
-              {parsed.badge}
+              {badge}
             </div>
           )}
         </section>
       </div>
 
-      {/* ── Footer / Contact Bar — solid, no transparency ── */}
+      {/* Footer – solid contact bar */}
       <div className="shrink-0 relative z-10" style={{ paddingLeft: cq(7), paddingRight: cq(7), paddingBottom: cq(3.5) }}>
         <div
           style={{
@@ -409,7 +415,7 @@ function VariantDigitalAgency({
             paddingLeft: cq(2.5),
             paddingRight: cq(2.5),
             borderRadius: cq(1.5),
-            backgroundColor: colors.primary, // solid, not transparent
+            backgroundColor: colors.primary,
             border: `1px solid ${hexToRgba(colors.secondary, 0.08)}`,
           }}
         >
@@ -442,7 +448,7 @@ function VariantDigitalAgency({
 }
 
 /* ============================================================================
-   PREMIUM GOLD — same refinements (simplified, kept for consistency)
+   PREMIUM GOLD — same direct‑props approach
 ============================================================================ */
 
 function VariantPremiumGold({
@@ -454,7 +460,6 @@ function VariantPremiumGold({
   brandName,
   price,
   badgeText,
-  extraText,
   phone,
   email,
   colors,
@@ -472,17 +477,12 @@ function VariantPremiumGold({
   onRestoreEmail,
   onRestoreWebsite,
 }: PremiumBrandProps) {
-  const parsed = useMemo(
-    () => parseFlyerContent(badgeText, extraText),
-    [badgeText, extraText]
-  );
-
   return (
     <div
       className="@container w-full h-full aspect-[4/5] relative overflow-hidden font-serif flex flex-col"
       style={{ backgroundColor: colors.primary, color: colors.secondary }}
     >
-      {/* ── Decorative border ── */}
+      {/* Decorative border */}
       <div
         className="absolute pointer-events-none"
         style={{
@@ -492,7 +492,7 @@ function VariantPremiumGold({
         }}
       />
 
-      {/* ── Subtle grain ── */}
+      {/* Subtle grain */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.02]"
         style={{
@@ -501,7 +501,7 @@ function VariantPremiumGold({
         }}
       />
 
-      {/* ── Header ── simple line */}
+      {/* Header line */}
       <header className="relative z-20 text-center shrink-0" style={{ paddingTop: cq(4) }}>
         <div className="flex justify-center items-center" style={{ gap: cq(1.5) }}>
           <span className="h-px" style={{ width: cq(8), backgroundColor: hexToRgba(colors.accent, 0.3) }} />
@@ -510,12 +510,11 @@ function VariantPremiumGold({
         </div>
       </header>
 
-      {/* ── Main ── */}
+      {/* Main */}
       <div
         className="flex-1 relative min-h-0"
         style={{ paddingLeft: cq(7), paddingRight: cq(7), paddingTop: cq(3), paddingBottom: cq(4) }}
       >
-        {/* Headline */}
         <div className="text-center relative z-20 shrink-0">
           <h1
             className="font-medium uppercase tracking-[-0.04em] leading-[0.9]"
@@ -539,7 +538,6 @@ function VariantPremiumGold({
           </h1>
         </div>
 
-        {/* Product Image */}
         <div
           className="relative"
           style={{
@@ -558,7 +556,7 @@ function VariantPremiumGold({
             className="object-contain"
           />
 
-          {parsed.badge && (
+          {badgeText && (
             <div
               className="absolute flex items-center justify-center text-center font-bold uppercase leading-tight rounded-full"
               style={{
@@ -572,12 +570,11 @@ function VariantPremiumGold({
                 boxShadow: `0 ${cq(0.5)} ${cq(1.5)} ${hexToRgba(colors.accent, 0.25)}`,
               }}
             >
-              {parsed.badge}
+              {badgeText}
             </div>
           )}
         </div>
 
-        {/* Bottom area */}
         <div className="shrink-0">
           <div
             className="w-full h-px"
@@ -625,7 +622,6 @@ function VariantPremiumGold({
             />
           </div>
 
-          {/* Contact — solid */}
           <div style={{ marginTop: cq(2) }}>
             <div
               style={{
