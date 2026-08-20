@@ -2,20 +2,30 @@
 
 import React from "react";
 import Image from "next/image";
+import { ShoppingBag } from "lucide-react";
+
 import {
-  ArrowUpRight,
-  Check,
-  Phone,
-  Mail,
-  Globe,
-  Tag,
-} from "lucide-react";
+  FeatureList,
+  ContactBar,
+  WhyChooseUsList,
+} from "./FlyerContentBlocks";
 
 import { EditableText } from "@/components/EditableText";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
-import { WhyChooseUsList, ContactBar } from "./FlyerContentBlocks";
+import { touchTarget } from "@/lib/responsive";
 
-export interface SalePromotionProps {
+// ============================================================================
+// CANVAS SCALE
+// ============================================================================
+
+const cq = (n: number) =>
+  `clamp(${n * 1.5}px, ${n}cqi, ${n * 12}px)`;
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+export interface PremiumBrandProps {
   name?: string;
 
   headline: string;
@@ -23,42 +33,12 @@ export interface SalePromotionProps {
   ctaText: string;
 
   badgeText?: string;
-  extraText?: string;
-
   productImage: string;
-
   brandName?: string;
   website?: string;
+  price?: string;
   phone?: string;
   email?: string;
-
-  price?: string;
-  oldPrice?: string;
-
-  features?: string[];
-  onUpdateFeature?: (index: number, value: string) => void;
-  onAddFeature?: () => void;
-  onRemoveFeature?: (index: number) => void;
-
-  whyChooseUs?: string[];
-  onUpdateWhyChooseUs?: (index: number, value: string) => void;
-  onAddWhyChooseUs?: () => void;
-  onRemoveWhyChooseUs?: (index: number) => void;
-
-  featuresVisible?: boolean;
-  whyChooseUsVisible?: boolean;
-  phoneVisible?: boolean;
-  emailVisible?: boolean;
-  websiteVisible?: boolean;
-
-  onRestoreFeatures?: () => void;
-  onRestoreWhyChooseUs?: () => void;
-  onRemovePhone?: () => void;
-  onRemoveEmail?: () => void;
-  onRemoveWebsite?: () => void;
-  onRestorePhone?: () => void;
-  onRestoreEmail?: () => void;
-  onRestoreWebsite?: () => void;
 
   colors: {
     primary: string;
@@ -69,693 +49,901 @@ export interface SalePromotionProps {
   editable?: boolean;
 
   onUpdate?: (field: string, value: string) => void;
-
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
+
+  // Backend-provided content
+  features?: string[];
+  whyChooseUs?: string[];
+
+  // Section visibility
+  featuresVisible?: boolean;
+  whyChooseUsVisible?: boolean;
+
+  // Contact visibility
+  phoneVisible?: boolean;
+  emailVisible?: boolean;
+  websiteVisible?: boolean;
+
+  // Restore section callbacks
+  onRestoreFeatures?: () => void;
+  onRestoreWhyChooseUs?: () => void;
+
+  // Contact callbacks
+  onRemovePhone?: () => void;
+  onRemoveEmail?: () => void;
+  onRemoveWebsite?: () => void;
+
+  onRestorePhone?: () => void;
+  onRestoreEmail?: () => void;
+  onRestoreWebsite?: () => void;
+
+  // Feature content editing
+  onUpdateFeature?: (index: number, value: string) => void;
+
+  // Why Choose Us content editing
+  onUpdateWhyChooseUs?: (index: number, value: string) => void;
+
+  // Kept for compatibility with parent/editor
+  onAddFeature?: () => void;
+  onRemoveFeature?: (index: number) => void;
+
+  onAddWhyChooseUs?: () => void;
+  onRemoveWhyChooseUs?: (index: number) => void;
+
+  extraText?: string;
 }
 
-export function SalePromotionTemplate(props: SalePromotionProps) {
-  if (
-    !props.headline ||
-    !props.productImage ||
-    !props.colors
-  ) {
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+function hexToRgba(hex: string, alpha: number) {
+  if (!hex) {
+    return `rgba(0,0,0,${alpha})`;
+  }
+
+  const value = hex.replace("#", "");
+
+  if (value.length !== 6) {
+    return hex;
+  }
+
+  const r = parseInt(value.slice(0, 2), 16);
+  const g = parseInt(value.slice(2, 4), 16);
+  const b = parseInt(value.slice(4, 6), 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// ============================================================================
+// MAIN TEMPLATE
+// ============================================================================
+
+export function PremiumBrandTemplate(props: PremiumBrandProps) {
+  const {
+    headline,
+    productImage,
+    colors,
+  } = props;
+
+  if (!headline || !productImage || !colors) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
+      <div className="w-full h-full flex items-center justify-center bg-neutral-100 text-neutral-400 text-sm">
         Loading template...
       </div>
     );
   }
 
-  return <ModernSalesPromotion {...props} />;
+  const templateName = props.name || "Digital Agency";
+
+  switch (templateName) {
+    case "Digital Agency":
+      return <VariantDigitalAgency {...props} />;
+
+    case "Premium Gold":
+      return <VariantPremiumGold {...props} />;
+
+    default:
+      return <VariantDigitalAgency {...props} />;
+  }
 }
 
-function ModernSalesPromotion({
+// ============================================================================
+// CTA
+// ============================================================================
+
+interface SmartCTAProps {
+  value: string;
+  editable?: boolean;
+  onUpdate?: (field: string, value: string) => void;
+  onFocusEl?: (el: HTMLElement) => void;
+  onBlurEl?: () => void;
+  colors: PremiumBrandProps["colors"];
+}
+
+function SmartCTA({
+  value,
+  editable,
+  onUpdate,
+  onFocusEl,
+  onBlurEl,
+  colors,
+}: SmartCTAProps) {
+  return (
+    <div
+      className="inline-flex shrink-0 items-center font-semibold tracking-[0.06em] uppercase rounded-2xl transition-transform hover:scale-[1.02] active:scale-[0.98]"
+      style={{
+        ...touchTarget,
+        paddingLeft: cq(3),
+        paddingRight: cq(3.5),
+        paddingTop: cq(1.2),
+        paddingBottom: cq(1.2),
+        gap: cq(1.5),
+        fontSize: cq(1.7),
+        lineHeight: 1.2,
+        maxWidth: "100%",
+        backgroundColor: colors.accent,
+        color: colors.primary,
+        boxShadow: `0 ${cq(0.6)} ${cq(2)} ${hexToRgba(
+          colors.accent,
+          0.2
+        )}`,
+      }}
+    >
+      <span
+        className="flex shrink-0 items-center justify-center rounded-full"
+        style={{
+          width: cq(3.5),
+          height: cq(3.5),
+          backgroundColor: colors.primary,
+          color: colors.accent,
+        }}
+      >
+        <ShoppingBag
+          style={{
+            width: cq(1.8),
+            height: cq(1.8),
+          }}
+        />
+      </span>
+
+      <EditableText
+        as="span"
+        fieldId="f-cta"
+        editable={editable}
+        value={value}
+        onChange={(value) => onUpdate?.("ctaText", value)}
+        onFocusEl={onFocusEl}
+        onBlurEl={onBlurEl}
+        className="whitespace-nowrap"
+      />
+
+      <span
+        className="shrink-0 opacity-50"
+        style={{
+          fontSize: cq(1.6),
+        }}
+      >
+        →
+      </span>
+    </div>
+  );
+}
+
+// ============================================================================
+// DIGITAL AGENCY
+// ============================================================================
+
+function VariantDigitalAgency({
   headline,
   subtext,
   ctaText,
   badgeText,
-  extraText,
   productImage,
-  brandName,
   website,
+  price,
   phone,
   email,
-  price,
-  oldPrice,
+  colors,
+
+  editable = false,
+
+  onUpdate,
+  onFocusEl,
+  onBlurEl,
+
   features,
-  onUpdateFeature,
-  onAddFeature,
-  onRemoveFeature,
   whyChooseUs,
-  onUpdateWhyChooseUs,
-  onAddWhyChooseUs,
-  onRemoveWhyChooseUs,
-  featuresVisible,
-  whyChooseUsVisible,
-  phoneVisible,
-  emailVisible,
-  websiteVisible,
+
+  featuresVisible = true,
+  whyChooseUsVisible = true,
+
+  phoneVisible = true,
+  emailVisible = true,
+  websiteVisible = true,
+
   onRestoreFeatures,
   onRestoreWhyChooseUs,
+
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
+
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
+
+  onUpdateFeature,
+  onUpdateWhyChooseUs,
+}: PremiumBrandProps) {
+  const hasFeatures =
+    Array.isArray(features) && features.length > 0;
+
+  const hasWhyChooseUs =
+    Array.isArray(whyChooseUs) && whyChooseUs.length > 0;
+
+  return (
+    <div
+      className="@container relative flex h-full w-full aspect-[4/5] flex-col overflow-hidden font-sans"
+      style={{
+        backgroundColor: colors.primary,
+        color: colors.secondary,
+      }}
+    >
+      {/* ================================================================== */}
+      {/* BACKGROUND */}
+      {/* ================================================================== */}
+
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.02]"
+        style={{
+          backgroundImage: `radial-gradient(circle at 30% 40%, ${colors.accent} 1px, transparent 1px)`,
+          backgroundSize: `${cq(2.5)} ${cq(2.5)}`,
+        }}
+      />
+
+      {/* ================================================================== */}
+      {/* HEADER */}
+      {/* ================================================================== */}
+
+      <header
+        className="relative z-10 flex shrink-0 items-start justify-end"
+        style={{
+          paddingLeft: cq(7),
+          paddingRight: cq(7),
+          paddingTop: cq(3),
+        }}
+      >
+        {website && (
+          <EditableText
+            as="span"
+            fieldId="f-web-top"
+            editable={editable}
+            value={website}
+            onChange={(value) =>
+              onUpdate?.("website", value)
+            }
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            className="tracking-wide opacity-40"
+            style={{
+              fontSize: cq(1.5),
+            }}
+          />
+        )}
+      </header>
+
+      {/* ================================================================== */}
+      {/* MAIN */}
+      {/* ================================================================== */}
+
+      <div
+        className="relative flex-1 min-h-0"
+        style={{
+          paddingLeft: cq(7),
+          paddingRight: cq(7),
+          paddingTop: cq(2.5),
+          paddingBottom: cq(4),
+        }}
+      >
+        {/* ================================================================= */}
+        {/* LEFT CONTENT                                                      */}
+        {/* ================================================================= */}
+
+        <section
+          className="absolute left-0 top-0 bottom-0 flex flex-col justify-center"
+          style={{
+            width: "55%",
+            paddingRight: cq(2),
+            paddingTop: cq(2),
+            paddingBottom: cq(2),
+          }}
+        >
+          {/* HEADLINE */}
+
+          <h1
+            className="font-semibold uppercase tracking-[-0.05em] leading-[0.88]"
+            style={{
+              fontSize: "clamp(1.6rem, 8.5cqi, 90px)",
+              wordBreak: "keep-all",
+            }}
+          >
+            <EditableHeadlineLines
+              value={headline}
+              editable={editable}
+              onChange={(value) =>
+                onUpdate?.("headline", value)
+              }
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              renderLine={(line, index, node) => (
+                <span
+                  className="block"
+                  style={
+                    index === 1
+                      ? { color: colors.accent }
+                      : undefined
+                  }
+                >
+                  {node}
+                </span>
+              )}
+            />
+          </h1>
+
+          {/* SUBTEXT */}
+
+          <EditableText
+            as="p"
+            fieldId="f-sub"
+            editable={editable}
+            value={subtext}
+            onChange={(value) =>
+              onUpdate?.("subtext", value)
+            }
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            className="max-w-[80%] leading-[1.5] opacity-50"
+            style={{
+              fontSize: cq(2),
+              marginTop: cq(2.5),
+            }}
+          />
+
+          {/* ================================================================= */}
+          {/* FIXED BENEFITS REGION                                             */}
+          {/*                                                                         */}
+          {/* This space is reserved so the CTA never moves when a section     */}
+          {/* disappears. The actual content sits toward the TOP of this area. */}
+          {/* ================================================================= */}
+
+          <div
+            className="relative shrink-0 flex flex-col"
+            style={{
+              height: cq(25),
+              marginTop: cq(2),
+              marginBottom: cq(1.5),
+              paddingTop: cq(1),
+              gap: cq(2.5),
+            }}
+          >
+            {/* FEATURES */}
+
+            {hasFeatures && (
+              <FeatureList
+                features={features!.slice(0, 3)}
+                colors={colors}
+                editable={editable}
+                visible={featuresVisible}
+
+                onUpdateFeature={
+                  onUpdateFeature ??
+                  (() => undefined)
+                }
+
+                onRestoreSection={
+                  onRestoreFeatures
+                }
+
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+              />
+            )}
+
+            {/* WHY CHOOSE US */}
+
+            {hasWhyChooseUs && (
+              <WhyChooseUsList
+                items={whyChooseUs!.slice(0, 3)}
+                colors={colors}
+                editable={editable}
+                visible={whyChooseUsVisible}
+
+                onUpdate={
+                  onUpdateWhyChooseUs ??
+                  (() => undefined)
+                }
+
+                onRestoreSection={
+                  onRestoreWhyChooseUs
+                }
+
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+              />
+            )}
+          </div>
+
+          {/* ================================================================= */}
+          {/* FIXED CTA ROW                                                     */}
+          {/* ================================================================= */}
+
+          <div
+            className="flex shrink-0 items-center"
+            style={{
+              gap: cq(2),
+              minHeight: cq(6),
+            }}
+          >
+            {price && (
+              <EditableText
+                as="p"
+                fieldId="f-price"
+                editable={editable}
+                value={price}
+                onChange={(value) =>
+                  onUpdate?.("price", value)
+                }
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                className="shrink-0 font-bold tracking-tight"
+                style={{
+                  color: colors.accent,
+                  fontSize: cq(4),
+                }}
+              />
+            )}
+
+            <SmartCTA
+              value={ctaText}
+              editable={editable}
+              onUpdate={onUpdate}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              colors={colors}
+            />
+          </div>
+        </section>
+
+        {/* ================================================================= */}
+        {/* PRODUCT IMAGE                                                     */}
+        {/* ================================================================= */}
+
+        <section
+          className="absolute right-0 top-1/2 -translate-y-1/2 overflow-hidden rounded-2xl"
+          style={{
+            width: "40%",
+            height: "78%",
+            boxShadow: `0 ${cq(2)} ${cq(4)} ${hexToRgba(
+              colors.secondary,
+              0.05
+            )}`,
+          }}
+        >
+          <Image
+            src={productImage}
+            alt=""
+            fill
+            priority
+            crossOrigin="anonymous"
+            draggable={false}
+            className="object-cover"
+          />
+
+          {badgeText && (
+            <div
+              className="absolute flex items-center justify-center rounded-full text-center font-bold uppercase leading-tight"
+              style={{
+                top: cq(2.5),
+                right: cq(2.5),
+                width: cq(8),
+                height: cq(8),
+                backgroundColor: colors.accent,
+                color: colors.primary,
+                fontSize: cq(2.2),
+                boxShadow: `0 ${cq(0.5)} ${cq(1.5)} ${hexToRgba(
+                  colors.accent,
+                  0.3
+                )}`,
+              }}
+            >
+              {badgeText}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* ================================================================== */}
+      {/* CONTACT FOOTER                                                     */}
+      {/* ================================================================== */}
+
+      <div
+        className="relative z-10 shrink-0"
+        style={{
+          paddingLeft: cq(7),
+          paddingRight: cq(7),
+          paddingBottom: cq(3.5),
+        }}
+      >
+        <div
+          style={{
+            paddingTop: cq(1.5),
+            paddingBottom: cq(1.5),
+            paddingLeft: cq(2.5),
+            paddingRight: cq(2.5),
+            borderRadius: cq(1.5),
+            backgroundColor: colors.primary,
+            border: `1px solid ${hexToRgba(
+              colors.secondary,
+              0.08
+            )}`,
+          }}
+        >
+          <ContactBar
+            phone={phone}
+            website={website}
+            email={email}
+            accentColor={colors.accent}
+            textColor={colors.secondary}
+            editable={editable}
+
+            onUpdatePhone={(value) =>
+              onUpdate?.("phone", value)
+            }
+
+            onUpdateWebsite={(value) =>
+              onUpdate?.("website", value)
+            }
+
+            onUpdateEmail={(value) =>
+              onUpdate?.("email", value)
+            }
+
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+
+            phoneVisible={phoneVisible}
+            websiteVisible={websiteVisible}
+            emailVisible={emailVisible}
+
+            onRemovePhone={onRemovePhone}
+            onRemoveWebsite={onRemoveWebsite}
+            onRemoveEmail={onRemoveEmail}
+
+            onRestorePhone={onRestorePhone}
+            onRestoreWebsite={onRestoreWebsite}
+            onRestoreEmail={onRestoreEmail}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// PREMIUM GOLD
+// ============================================================================
+
+function VariantPremiumGold({
+  headline,
+  subtext,
+  ctaText,
+  website,
+  productImage,
+  price,
+  badgeText,
+  phone,
+  email,
+  colors,
+  editable = false,
+  onUpdate,
+  onFocusEl,
+  onBlurEl,
+  phoneVisible = true,
+  emailVisible = true,
+  websiteVisible = true,
   onRemovePhone,
   onRemoveEmail,
   onRemoveWebsite,
   onRestorePhone,
   onRestoreEmail,
   onRestoreWebsite,
-  colors,
-  editable,
-  onUpdate,
-  onFocusEl,
-  onBlurEl,
-}: SalePromotionProps) {
-  const safeFeatures = (features ?? [])
-    .filter(Boolean)
-    .slice(0, 4);
-
-  const update = (field: string, value: string) => {
-    onUpdate?.(field, value);
-  };
-
+}: PremiumBrandProps) {
   return (
     <div
-      className="
-        @container
-        relative
-        w-full
-        h-full
-        overflow-hidden
-        font-sans
-        antialiased
-      "
+      className="@container relative flex h-full w-full aspect-[4/5] flex-col overflow-hidden font-serif"
       style={{
         backgroundColor: colors.primary,
         color: colors.secondary,
       }}
     >
+      {/* Decorative border */}
+
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="absolute pointer-events-none"
         style={{
-          background: `
-            linear-gradient(
-              135deg,
-              ${colors.primary} 0%,
-              ${colors.primary} 58%,
-              ${colors.accent}08 100%
-            )
-          `,
+          inset: cq(3.5),
+          border: `1px solid ${hexToRgba(
+            colors.accent,
+            0.2
+          )}`,
+          borderRadius: cq(1.5),
         }}
       />
 
+      {/* Grain */}
+
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.035]"
+        className="absolute inset-0 pointer-events-none opacity-[0.02]"
         style={{
-          backgroundImage: `
-            linear-gradient(${colors.secondary} 1px, transparent 1px),
-            linear-gradient(90deg, ${colors.secondary} 1px, transparent 1px)
-          `,
-          backgroundSize: "calc(8*var(--ci)) calc(8*var(--ci))",
+          backgroundImage: `radial-gradient(circle at 50% 50%, ${colors.accent} 1px, transparent 1px)`,
+          backgroundSize: `${cq(3)} ${cq(3)}`,
         }}
       />
 
-      <div
-        className="absolute right-[calc(7*var(--ci))] top-0 bottom-0 w-[calc(0.15*var(--ci))] pointer-events-none"
-        style={{
-          backgroundColor: colors.accent,
-          opacity: 0.25,
-        }}
-      />
+      {/* Header */}
 
       <header
-        className="
-          relative
-          z-20
-          flex
-          items-center
-          justify-between
-          px-[calc(5*var(--ci))]
-          pt-[calc(4*var(--ci))]
-          pb-[calc(2*var(--ci))]
-        "
-      >
-        <div className="flex items-center gap-[calc(2*var(--ci))]">
-         
-          <EditableText
-            as="p"
-            fieldId="sale-brand"
-            editable={editable}
-            value={brandName ?? ""}
-            onChange={(v) => update("brandName", v)}
-            onFocusEl={onFocusEl}
-            onBlurEl={onBlurEl}
-            className="
-              text-[calc(2.4*var(--ci))]
-              font-bold
-              tracking-[-0.03em]
-            "
-          />
-        </div>
-
-        <EditableText
-          as="p"
-          fieldId="sale-website"
-          editable={editable}
-          value={website ?? ""}
-          onChange={(v) => update("website", v)}
-          onFocusEl={onFocusEl}
-          onBlurEl={onBlurEl}
-          className="
-            text-[calc(1.8*var(--ci))]
-            tracking-[0.08em]
-            uppercase
-            opacity-45
-          "
-        />
-      </header>
-
-      <main className="relative z-10 h-[calc(100%-calc(11*var(--ci)))] px-[calc(5*var(--ci))] pb-[calc(4*var(--ci))]">
-        <div className="relative h-full">
-
-          <div
-            className="
-              absolute
-              right-0
-              top-[calc(4*var(--ci))]
-              bottom-[calc(9*var(--ci))]
-              w-[58%]
-              overflow-hidden
-              rounded-[calc(4*var(--ci))]
-            "
-            style={{
-              backgroundColor: `${colors.secondary}08`,
-            }}
-          >
-            <Image
-              src={productImage}
-              alt="Product"
-              fill
-              priority
-              crossOrigin="anonymous"
-              className="
-                object-cover
-                object-center
-              "
-            />
-
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `
-                  linear-gradient(
-                    90deg,
-                    ${colors.primary} 0%,
-                    ${colors.primary}22 28%,
-                    transparent 58%
-                  )
-                `,
-              }}
-            />
-
-            <div
-              className="absolute inset-x-0 bottom-0 h-[28%]"
-              style={{
-                background: `
-                  linear-gradient(
-                    to top,
-                    ${colors.primary}55,
-                    transparent
-                  )
-                `,
-              }}
-            />
-
-            {badgeText && (
-              <div
-                className="
-                  absolute
-                  top-[calc(4*var(--ci))]
-                  right-[calc(4*var(--ci))]
-                  px-[calc(3*var(--ci))]
-                  py-[calc(1.7*var(--ci))]
-                  rounded-full
-                  flex
-                  items-center
-                  gap-[calc(1.2*var(--ci))]
-                  shadow-xl
-                "
-                style={{
-                  backgroundColor: colors.accent,
-                  color: colors.primary,
-                }}
-              >
-                <Tag
-                  size={13}
-                  strokeWidth={2.5}
-                />
-
-                <EditableText
-                  as="span"
-                  fieldId="sale-badge"
-                  editable={editable}
-                  value={badgeText}
-                  onChange={(v) => update("badgeText", v)}
-                  onFocusEl={onFocusEl}
-                  onBlurEl={onBlurEl}
-                  className="
-                    text-[calc(2*var(--ci))]
-                    font-black
-                    uppercase
-                    tracking-[0.08em]
-                  "
-                />
-              </div>
-            )}
-          </div>
-
-          <section
-            className="
-              absolute
-              left-0
-              top-[calc(3*var(--ci))]
-              z-20
-              w-[57%]
-              flex
-              flex-col
-            "
-          >
-
-            <div
-              className="
-                flex
-                items-center
-                gap-[calc(1.8*var(--ci))]
-                mb-[calc(3*var(--ci))]
-              "
-            >
-              <div
-                className="w-[calc(5*var(--ci))] h-[calc(0.3*var(--ci))]"
-                style={{
-                  backgroundColor: colors.accent,
-                }}
-              />
-
-              <span
-                className="
-                  text-[calc(1.8*var(--ci))]
-                  uppercase
-                  tracking-[0.22em]
-                  font-bold
-                  opacity-50
-                "
-              >
-                Limited offer
-              </span>
-            </div>
-
-            <h1
-              className="
-                font-black
-                uppercase
-                tracking-[-0.055em]
-                leading-[0.84]
-                text-[calc(10.5*var(--ci))]
-                max-w-[calc(55*var(--ci))]
-              "
-            >
-              <EditableHeadlineLines
-                value={headline}
-                editable={editable}
-                onChange={(v) => update("headline", v)}
-                onFocusEl={onFocusEl}
-                onBlurEl={onBlurEl}
-                renderLine={(line, index, node) => (
-                  <span
-                    className="block"
-                    style={
-                      index === 1
-                        ? {
-                            color: colors.accent,
-                          }
-                        : undefined
-                    }
-                  >
-                    {node}
-                  </span>
-                )}
-              />
-            </h1>
-
-            <EditableText
-              as="p"
-              fieldId="sale-subtext"
-              editable={editable}
-              value={subtext}
-              onChange={(v) => update("subtext", v)}
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-              className="
-                mt-[calc(3*var(--ci))]
-                text-[calc(2.35*var(--ci))]
-                leading-[1.45]
-                opacity-55
-                max-w-[calc(40*var(--ci))]
-              "
-            />
-
-            {safeFeatures.length > 0 && (
-              <div className="mt-[calc(3.5*var(--ci))] flex flex-col gap-[calc(1.3*var(--ci))]">
-                {safeFeatures.map((feature, index) => (
-                  <div
-                    key={index}
-                    className="
-                      flex
-                      items-center
-                      gap-[calc(1.5*var(--ci))]
-                    "
-                  >
-                    <span
-                      className="
-                        flex
-                        items-center
-                        justify-center
-                        shrink-0
-                        rounded-full
-                        w-[calc(3.5*var(--ci))]
-                        h-[calc(3.5*var(--ci))]
-                      "
-                      style={{
-                        backgroundColor: `${colors.accent}20`,
-                      }}
-                    >
-                      <Check
-                        size={11}
-                        strokeWidth={3}
-                        style={{
-                          color: colors.accent,
-                        }}
-                      />
-                    </span>
-
-                    <EditableText
-                      as="span"
-                      fieldId={`sale-feature-${index}`}
-                      editable={editable}
-                      value={feature}
-                      onChange={(v) => {
-                        onUpdateFeature?.(index, v);
-                        const updated = [...safeFeatures];
-                        updated[index] = v;
-                        update("features", updated.join("\n"));
-                      }}
-                      onFocusEl={onFocusEl}
-                      onBlurEl={onBlurEl}
-                      className="
-                        text-[calc(2*var(--ci))]
-                        font-medium
-                        opacity-75
-                      "
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <WhyChooseUsList
-              items={whyChooseUs}
-              colors={colors}
-              editable={editable}
-              onUpdate={onUpdateWhyChooseUs}
-              onAdd={onAddWhyChooseUs}
-              onRemove={onRemoveWhyChooseUs}
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-              visible={whyChooseUsVisible}
-              onRestoreSection={onRestoreWhyChooseUs}
-            />
-
-            <div
-              className="
-                mt-[calc(4*var(--ci))]
-                w-[calc(48*var(--ci))]
-                rounded-[calc(3*var(--ci))]
-                p-[calc(3*var(--ci))]
-                flex
-                items-end
-                justify-between
-                shadow-2xl
-              "
-              style={{
-                backgroundColor: colors.secondary,
-                color: colors.primary,
-              }}
-            >
-
-              <div>
-
-                <div
-                  className="
-                    text-[calc(1.5*var(--ci))]
-                    uppercase
-                    tracking-[0.18em]
-                    opacity-45
-                    mb-[calc(1*var(--ci))]
-                  "
-                >
-                  Special price
-                </div>
-
-                <div className="flex items-end gap-[calc(2*var(--ci))]">
-
-                  {price !== undefined &&
-                    price !== "" && (
-                      <EditableText
-                        as="p"
-                        fieldId="sale-price"
-                        editable={editable}
-                        value={price}
-                        onChange={(v) =>
-                          update("price", v)
-                        }
-                        onFocusEl={onFocusEl}
-                        onBlurEl={onBlurEl}
-                        className="
-                          text-[calc(7*var(--ci))]
-                          font-black
-                          leading-none
-                          tracking-[-0.05em]
-                        "
-                      />
-                    )}
-
-                  {oldPrice !== undefined &&
-                    oldPrice !== "" && (
-                      <EditableText
-                        as="p"
-                        fieldId="sale-old-price"
-                        editable={editable}
-                        value={oldPrice}
-                        onChange={(v) =>
-                          update("oldPrice", v)
-                        }
-                        onFocusEl={onFocusEl}
-                        onBlurEl={onBlurEl}
-                        className="
-                          text-[calc(2.3*var(--ci))]
-                          line-through
-                          opacity-35
-                          pb-[calc(0.7*var(--ci))]
-                        "
-                      />
-                    )}
-                </div>
-              </div>
-
-              <div
-                className="
-                  flex
-                  items-center
-                  justify-center
-                  w-[calc(8*var(--ci))]
-                  h-[calc(8*var(--ci))]
-                  rounded-[calc(2*var(--ci))]
-                  shrink-0
-                "
-                style={{
-                  backgroundColor: colors.accent,
-                  color: colors.primary,
-                }}
-              >
-                <ArrowUpRight
-                  size={20}
-                  strokeWidth={2.5}
-                />
-              </div>
-            </div>
-          </section>
-
-          <div
-            className="
-              absolute
-              left-0
-              bottom-0
-              z-30
-              flex
-              items-center
-              gap-[calc(2*var(--ci))]
-            "
-          >
-            <div
-              className="
-                inline-flex
-                items-center
-                gap-[calc(2*var(--ci))]
-                px-[calc(4*var(--ci))]
-                py-[calc(2.2*var(--ci))]
-                rounded-full
-                font-black
-                uppercase
-                tracking-[0.12em]
-                text-[calc(2.1*var(--ci))]
-              "
-              style={{
-                backgroundColor: colors.accent,
-                color: colors.primary,
-              }}
-            >
-              <EditableText
-                as="span"
-                fieldId="sale-cta"
-                editable={editable}
-                value={ctaText}
-                onChange={(v) =>
-                  update("ctaText", v)
-                }
-                onFocusEl={onFocusEl}
-                onBlurEl={onBlurEl}
-              />
-
-              <ArrowUpRight
-                size={15}
-                strokeWidth={3}
-              />
-            </div>
-
-            {extraText && (
-              <EditableText
-                as="span"
-                fieldId="sale-extra"
-                editable={editable}
-                value={extraText}
-                onChange={(v) =>
-                  update("extraText", v)
-                }
-                onFocusEl={onFocusEl}
-                onBlurEl={onBlurEl}
-                className="
-                  text-[calc(1.7*var(--ci))]
-                  opacity-40
-                  max-w-[calc(20*var(--ci))]
-                "
-              />
-            )}
-          </div>
-
-          <div
-            className="
-              absolute
-              right-0
-              bottom-0
-              z-30
-            "
-          >
-            <ContactBar
-              phone={phone}
-              website={website}
-              email={email}
-              accentColor={colors.accent}
-              textColor={colors.secondary}
-              editable={editable}
-              onUpdatePhone={(v) => update("phone", v)}
-              onUpdateWebsite={(v) => update("website", v)}
-              onUpdateEmail={(v) => update("email", v)}
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-              phoneVisible={phoneVisible}
-              websiteVisible={websiteVisible}
-              emailVisible={emailVisible}
-              onRemovePhone={onRemovePhone}
-              onRemoveWebsite={onRemoveWebsite}
-              onRemoveEmail={onRemoveEmail}
-              onRestorePhone={onRestorePhone}
-              onRestoreWebsite={onRestoreWebsite}
-              onRestoreEmail={onRestoreEmail}
-            />
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-}
-
-function ContactMini({
-  icon,
-  value,
-  fieldId,
-  editable,
-  onChange,
-  onFocusEl,
-  onBlurEl,
-  colors,
-}: {
-  icon: React.ReactNode;
-  value: string;
-  fieldId: string;
-  editable?: boolean;
-  onChange?: (value: string) => void;
-  onFocusEl?: (el: HTMLElement) => void;
-  onBlurEl?: () => void;
-  colors: {
-    primary: string;
-    secondary: string;
-    accent: string;
-  };
-}) {
-  return (
-    <div className="flex items-center gap-[calc(1*var(--ci))]">
-
-      <span
-        className="
-          flex
-          items-center
-          justify-center
-          w-[calc(3.5*var(--ci))]
-          h-[calc(3.5*var(--ci))]
-          rounded-full
-        "
+        className="relative z-20 flex shrink-0 justify-center"
         style={{
-          backgroundColor: `${colors.accent}18`,
-          color: colors.accent,
+          paddingTop: cq(4),
         }}
       >
-        {icon}
-      </span>
+        <div
+          className="flex items-center justify-center"
+          style={{
+            gap: cq(1.5),
+          }}
+        >
+          <span
+            className="h-px"
+            style={{
+              width: cq(8),
+              backgroundColor: hexToRgba(
+                colors.accent,
+                0.3
+              ),
+            }}
+          />
 
-      <EditableText
-        as="span"
-        fieldId={fieldId}
-        editable={editable}
-        value={value}
-        onChange={onChange}
-        onFocusEl={onFocusEl}
-        onBlurEl={onBlurEl}
-        className="
-          text-[calc(1.45*var(--ci))]
-          opacity-45
-          whitespace-nowrap
-        "
-      />
+          <span
+            className="rotate-45"
+            style={{
+              width: cq(0.8),
+              height: cq(0.8),
+              backgroundColor: colors.accent,
+              opacity: 0.5,
+            }}
+          />
 
+          <span
+            className="h-px"
+            style={{
+              width: cq(8),
+              backgroundColor: hexToRgba(
+                colors.accent,
+                0.3
+              ),
+            }}
+          />
+        </div>
+      </header>
+
+      {/* Main */}
+
+      <div
+        className="relative flex-1 min-h-0"
+        style={{
+          paddingLeft: cq(7),
+          paddingRight: cq(7),
+          paddingTop: cq(3),
+          paddingBottom: cq(4),
+        }}
+      >
+        {/* Headline */}
+
+        <div className="relative z-20 shrink-0 text-center">
+          <h1
+            className="font-medium uppercase tracking-[-0.04em] leading-[0.9]"
+            style={{
+              fontSize: "clamp(1.4rem, 7.2cqi, 84px)",
+            }}
+          >
+            <EditableHeadlineLines
+              value={headline}
+              editable={editable}
+              onChange={(value) =>
+                onUpdate?.("headline", value)
+              }
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              renderLine={(line, index, node) => (
+                <span
+                  className="block"
+                  style={
+                    index === 1
+                      ? { color: colors.accent }
+                      : undefined
+                  }
+                >
+                  {node}
+                </span>
+              )}
+            />
+          </h1>
+        </div>
+
+        {/* Product image */}
+
+        <div
+          className="relative"
+          style={{
+            height: "48%",
+            marginTop: cq(2.5),
+            marginBottom: cq(2),
+          }}
+        >
+          <Image
+            src={productImage}
+            alt=""
+            fill
+            priority
+            crossOrigin="anonymous"
+            draggable={false}
+            className="object-contain"
+          />
+
+          {badgeText && (
+            <div
+              className="absolute flex items-center justify-center rounded-full text-center font-bold uppercase leading-tight"
+              style={{
+                top: cq(1.5),
+                right: cq(1.5),
+                width: cq(7),
+                height: cq(7),
+                backgroundColor: colors.accent,
+                color: colors.primary,
+                fontSize: cq(2),
+                boxShadow: `0 ${cq(0.5)} ${cq(1.5)} ${hexToRgba(
+                  colors.accent,
+                  0.25
+                )}`,
+              }}
+            >
+              {badgeText}
+            </div>
+          )}
+        </div>
+
+        {/* Bottom content */}
+
+        <div className="shrink-0">
+          <div
+            className="w-full h-px"
+            style={{
+              marginBottom: cq(2.5),
+              backgroundColor: hexToRgba(
+                colors.accent,
+                0.2
+              ),
+            }}
+          />
+
+          <div className="flex items-end justify-between gap-4">
+            <div className="max-w-[55%] min-w-0">
+              {price && (
+                <EditableText
+                  as="p"
+                  fieldId="f-price"
+                  editable={editable}
+                  value={price}
+                  onChange={(value) =>
+                    onUpdate?.("price", value)
+                  }
+                  onFocusEl={onFocusEl}
+                  onBlurEl={onBlurEl}
+                  className="font-medium leading-none"
+                  style={{
+                    color: colors.accent,
+                    fontSize: cq(4.5),
+                  }}
+                />
+              )}
+
+              <EditableText
+                as="p"
+                fieldId="f-sub"
+                editable={editable}
+                value={subtext}
+                onChange={(value) =>
+                  onUpdate?.("subtext", value)
+                }
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                className="leading-[1.4] opacity-45"
+                style={{
+                  marginTop: cq(0.8),
+                  fontSize: cq(1.7),
+                }}
+              />
+            </div>
+
+            <SmartCTA
+              value={ctaText}
+              editable={editable}
+              onUpdate={onUpdate}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              colors={colors}
+            />
+          </div>
+
+          <div style={{ marginTop: cq(2) }}>
+            <div
+              style={{
+                paddingTop: cq(1.2),
+                paddingBottom: cq(1.2),
+                paddingLeft: cq(2),
+                paddingRight: cq(2),
+                borderRadius: cq(1.5),
+                backgroundColor: colors.primary,
+                border: `1px solid ${hexToRgba(
+                  colors.secondary,
+                  0.08
+                )}`,
+              }}
+            >
+              <ContactBar
+                phone={phone}
+                website={website}
+                email={email}
+                accentColor={colors.accent}
+                textColor={colors.secondary}
+                editable={editable}
+
+                onUpdatePhone={(value) =>
+                  onUpdate?.("phone", value)
+                }
+
+                onUpdateWebsite={(value) =>
+                  onUpdate?.("website", value)
+                }
+
+                onUpdateEmail={(value) =>
+                  onUpdate?.("email", value)
+                }
+
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+
+                phoneVisible={phoneVisible}
+                websiteVisible={websiteVisible}
+                emailVisible={emailVisible}
+
+                onRemovePhone={onRemovePhone}
+                onRemoveWebsite={onRemoveWebsite}
+                onRemoveEmail={onRemoveEmail}
+
+                onRestorePhone={onRestorePhone}
+                onRestoreWebsite={onRestoreWebsite}
+                onRestoreEmail={onRestoreEmail}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
+
