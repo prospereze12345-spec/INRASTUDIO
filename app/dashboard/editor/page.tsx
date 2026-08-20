@@ -35,7 +35,7 @@ const PromoVideo = dynamic<PromoVideoProps>(
 );
 
 import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
-import { SalePromotionTemplate } from "@/components/templates/SalePromotion";
+import {SalePromotionTemplate} from "@/components/templates/SalePromotion";
 import { SleekFlyerTemplate as MinimalProductTemplate } from "@/components/templates/MinimalProduct";
 import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
 
@@ -1335,7 +1335,6 @@ function EditorContent() {
             headline: result.flyer.headline || prev.headline,
             subtext: result.flyer.subheadline || result.flyer.subtext || prev.subtext,
             ctaText: result.flyer.cta || result.flyer.ctaText || prev.ctaText,
-            ctaVisible: result.flyer.ctaVisible ?? prev.ctaVisible,
             badgeText: result.flyer.badgeText || prev.badgeText,
             brandName: result.flyer.brand_name || result.flyer.brandName || prev.brandName,
             price: result.flyer.price_text || prev.price,
