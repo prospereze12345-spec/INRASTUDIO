@@ -41,7 +41,6 @@ const PromoVideo = dynamic<PromoVideoProps>(
 // TEMPLATE IMPORTS
 // ============================================================================
 import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
-import {SalePromotionTemplate} from "@/components/templates/SalePromotion";    // default export
 import { SleekFlyerTemplate as MinimalProductTemplate } from "@/components/templates/MinimalProduct";
 import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
 
@@ -140,8 +139,7 @@ const TemplateRenderer = memo(function TemplateRenderer({
   switch (data.templateCategory) {
     case "Luxury Product":
       return <LuxuryProductTemplate {...shared} />;
-    case "Sale Promotion":
-      return <SalePromotionTemplate {...shared} />;
+    
     case "Minimal Product":
       return <MinimalProductTemplate {...shared} />;
     case "Premium Brand":
