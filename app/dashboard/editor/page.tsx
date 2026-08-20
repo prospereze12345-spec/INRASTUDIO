@@ -196,7 +196,6 @@ type FlyerState = {
   templateVariant: string;
   templateCategory:
     | "Luxury Product"
-    | "Sale Promotion"
     | "Minimal Product"
     | "Premium Brand";
   colors: {
@@ -1073,7 +1072,7 @@ const EMPTY_FLYER_STATE: FlyerState = {
 };
 
 const VALID_CATEGORIES: FlyerState["templateCategory"][] = [
-  "Luxury Product", "Sale Promotion", "Minimal Product", "Premium Brand",
+  "Luxury Product", "Minimal Product", "Premium Brand",
 ];
 
 async function saveOrShareFile(blob: Blob, filename: string, mimeType: string) {

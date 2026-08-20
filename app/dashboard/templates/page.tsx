@@ -20,7 +20,7 @@ import Image from "next/image";
 import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
 import { SleekFlyerTemplate as MinimalProductTemplate } from "@/components/templates/MinimalProduct";
 import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
-import { LUXURY_VARIATIONS, SALE_PROMOTION_VARIATIONS, MINIMAL_PRODUCT_VARIATIONS, PREMIUM_BRAND_VARIATIONS } from "@/lib/template-data";
+import { LUXURY_VARIATIONS, MINIMAL_PRODUCT_VARIATIONS, PREMIUM_BRAND_VARIATIONS } from "@/lib/template-data";
 
 function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   return (
@@ -69,11 +69,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 }
 
 const TEMPLATE_CATEGORIES = [
-  {
-    title: "Sale Promotion",
-    description: "Best for fashion vendors, food businesses, supermarkets, beauty stores, and online retailers.",
-    templates: SALE_PROMOTION_VARIATIONS.map(v => v.name)
-  },
+  
   {
     title: "Luxury Product",
     description: "Best for perfume sellers, skincare brands, jewelry sellers, luxury fashion, and watches.",
@@ -191,7 +187,7 @@ export default function TemplatesPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-3xl">
                     {category.templates.map((templateName, idx) => (
                       <div key={templateName} className="group relative rounded-2xl overflow-hidden bg-white/5 border border-white/5 aspect-[4/5] cursor-pointer hover:border-white/20 transition-colors">
-                        {category.title === "Luxury Product" || category.title === "Sale Promotion" || category.title === "Minimal Product" || category.title === "Premium Brand" ? (
+                        {category.title === "Luxury Product"  || category.title === "Minimal Product" || category.title === "Premium Brand" ? (
                           <div className="w-full h-full pointer-events-none select-none relative">
                             {category.title === "Luxury Product" ? (
                               <LuxuryProductTemplate {...LUXURY_VARIATIONS[idx]} productImage={campaignImage || LUXURY_VARIATIONS[idx].productImage} />
