@@ -55,7 +55,7 @@ interface JobResult {
     subtext?: string;
     cta?: string;
     ctaText?: string;
-    ctaVisible?: boolean;          // ✅ added
+    ctaVisible?: boolean;
     badgeText?: string;
     brand_name?: string;
     brandName?: string;
@@ -106,7 +106,7 @@ const TemplateRenderer = memo(function TemplateRenderer({
     headline: data.headline,
     subtext: data.subtext,
     ctaText: data.ctaText,
-    ctaVisible: data.ctaVisible,                 // ✅ pass to all templates
+    ctaVisible: data.ctaVisible,
     productImage: data.productImage,
     brandName: data.brandName,
     phone: data.phone,
@@ -139,7 +139,6 @@ const TemplateRenderer = memo(function TemplateRenderer({
   switch (data.templateCategory) {
     case "Luxury Product":
       return <LuxuryProductTemplate {...shared} />;
-    
     case "Minimal Product":
       return <MinimalProductTemplate {...shared} />;
     case "Premium Brand":
@@ -175,7 +174,7 @@ type FlyerState = {
   headline: string;
   subtext: string;
   ctaText: string;
-  ctaVisible: boolean;                 // ✅ present
+  ctaVisible: boolean;
   badgeText: string;
   price: string;
   brandName: string;
@@ -1038,6 +1037,127 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
 });
 
 // ============================================================================
+// EXPORT MODAL (NEW)
+// ============================================================================
+type ExportModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onExport: (format: 'png' | 'jpg' | 'pdf', platformId: FormatId | null, action: 'download' | 'share' | null) => void;
+  activeFormat: FormatId;
+};
+
+function ExportModal({ isOpen, onClose, onExport, activeFormat }: ExportModalProps) {
+  const [step, setStep] = useState<'format' | 'action' | 'platform'>('format');
+  const [selectedFormat, setSelectedFormat] = useState<'png' | 'jpg' | 'pdf' | null>(null);
+  const [selectedAction, setSelectedAction] = useState<'download' | 'share' | null>(null);
+  const [selectedPlatform, setSelectedPlatform] = useState<FormatId | null>(null);
+
+  // Reset state when modal opens/closes
+  useEffect(() => {
+    if (!isOpen) {
+      setStep('format');
+      setSelectedFormat(null);
+      setSelectedAction(null);
+      setSelectedPlatform(null);
+    }
+  }, [isOpen]);
+
+  const handleFormatSelect = (fmt: 'png' | 'jpg' | 'pdf') => {
+    setSelectedFormat(fmt);
+    if (fmt === 'pdf') {
+      // PDF: directly export (download) – no sharing
+      onExport(fmt, activeFormat, 'download');
+      onClose();
+    } else {
+      setStep('action');
+    }
+  };
+
+  const handleActionSelect = (action: 'download' | 'share') => {
+    setSelectedAction(action);
+    if (action === 'download') {
+      // Download: use current active format (from editor)
+      onExport(selectedFormat!, activeFormat, 'download');
+      onClose();
+    } else {
+      setStep('platform');
+    }
+  };
+
+  const handlePlatformSelect = (platformId: FormatId) => {
+    setSelectedPlatform(platformId);
+    onExport(selectedFormat!, platformId, 'share');
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  // Platform options for sharing
+  const sharePlatforms: { id: FormatId; label: string }[] = [
+    { id: 'ig', label: 'Instagram' },
+    { id: 'tiktok', label: 'TikTok' },
+    { id: 'square', label: 'Facebook' }, // using "square" for Facebook (1:1)
+    { id: 'story', label: 'WhatsApp Status' },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+        {step === 'format' && (
+          <>
+            <h2 className="text-lg font-bold text-zinc-100 mb-4">Choose format</h2>
+            <div className="space-y-2">
+              <button onClick={() => handleFormatSelect('png')} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-200 font-semibold flex items-center justify-center gap-2">
+                <ImageIcon size={16} /> PNG
+              </button>
+              <button onClick={() => handleFormatSelect('jpg')} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-200 font-semibold flex items-center justify-center gap-2">
+                <ImageIcon size={16} /> JPG
+              </button>
+              <button onClick={() => handleFormatSelect('pdf')} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-200 font-semibold flex items-center justify-center gap-2">
+                <Download size={16} /> PDF
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === 'action' && (
+          <>
+            <h2 className="text-lg font-bold text-zinc-100 mb-4">Choose action</h2>
+            <div className="space-y-2">
+              <button onClick={() => handleActionSelect('download')} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-200 font-semibold flex items-center justify-center gap-2">
+                <Download size={16} /> Download
+              </button>
+              <button onClick={() => handleActionSelect('share')} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-200 font-semibold flex items-center justify-center gap-2">
+                <UploadCloud size={16} /> Share
+              </button>
+              <button onClick={() => setStep('format')} className="w-full py-2 text-sm text-zinc-500 hover:text-zinc-300">
+                ← Back
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === 'platform' && (
+          <>
+            <h2 className="text-lg font-bold text-zinc-100 mb-4">Share to</h2>
+            <div className="space-y-2">
+              {sharePlatforms.map(p => (
+                <button key={p.id} onClick={() => handlePlatformSelect(p.id)} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-200 font-semibold flex items-center justify-center gap-2">
+                  {p.label}
+                </button>
+              ))}
+              <button onClick={() => setStep('action')} className="w-full py-2 text-sm text-zinc-500 hover:text-zinc-300">
+                ← Back
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // MAIN EDITOR COMPONENT
 // ============================================================================
 const EMPTY_FLYER_STATE: FlyerState = {
@@ -1160,6 +1280,8 @@ function EditorContent() {
   >([]);
 
   const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(null);
+  const [pendingUploads, setPendingUploads] = useState(0);
+  const [exportingFormat, setExportingFormat] = useState<"png" | "jpg" | "pdf" | null>(null);
 
   const update = useCallback(
     (field: string, value: any) => {
@@ -1226,8 +1348,6 @@ function EditorContent() {
     setFlyer(prev => ({ ...prev, features: prev.features.filter((_, i) => i !== index) }));
   }, []);
 
-  const [pendingUploads, setPendingUploads] = useState(0);
-
   const handleImageUpload = useCallback(
     async (file: File, field: "productImage" | "logoImage") => {
       if (!file) return;
@@ -1257,27 +1377,36 @@ function EditorContent() {
     [update]
   );
 
-  const [showExportMenu, setShowExportMenu] = useState(false);
-  const [exportingFormat, setExportingFormat] = useState<"png" | "jpg" | "pdf" | null>(null);
-
-  const handleExportFlyer = async (format: "png" | "jpg" | "pdf") => {
+  // ========== NEW EXPORT HANDLER ==========
+  const exportFlyer = useCallback(async (
+    format: 'png' | 'jpg' | 'pdf',
+    platformId: FormatId | null,
+    action: 'download' | 'share' | null
+  ) => {
     if (!flyerNodeRef.current) return;
     if (pendingUploads > 0) {
-      return setExportError("Still uploading your image - please wait a moment and try again.");
+      setExportError("Still uploading your image - please wait a moment and try again.");
+      return;
     }
 
     setExportingFormat(format);
     setExportError(null);
-    setShowExportMenu(false);
 
     const node = flyerNodeRef.current;
-    const fmt = SOCIAL_FORMATS.find(f => f.id === "ig")!;
+    // Determine target platform:
+    // - For share: use the selected platformId
+    // - For download: use the activeFormat (current editor format)
+    const targetFormatId = (action === 'share' ? platformId : activeFormat) ?? activeFormat;
+    const fmt = SOCIAL_FORMATS.find(f => f.id === targetFormatId)!;
+
+    // Save original styles
     const prevWidth = node.style.width;
     const prevHeight = node.style.height;
     const prevCi = node.style.getPropertyValue("--ci");
     const prevCb = node.style.getPropertyValue("--cb");
 
     try {
+      // Resize to target export dimensions
       node.style.width = `${fmt.exportW}px`;
       node.style.height = `${fmt.exportH}px`;
       node.style.setProperty("--ci", `${fmt.exportW / 100}px`);
@@ -1296,32 +1425,50 @@ function EditorContent() {
         },
       };
 
-      if (format === "png" || format === "jpg") {
-        const dataUrl = format === "png"
-          ? await toPng(flyerNodeRef.current, snapshotOpts)
-          : await toJpeg(flyerNodeRef.current, { ...snapshotOpts, quality: 0.95, backgroundColor: "#ffffff" });
-        const blob = await (await fetch(dataUrl)).blob();
-        await saveOrShareFile(blob, `flyer-ig-${Date.now()}.${format}`, blob.type);
-        return;
+      let blob: Blob;
+      if (format === "png") {
+        const dataUrl = await toPng(node, snapshotOpts);
+        blob = await (await fetch(dataUrl)).blob();
+      } else if (format === "jpg") {
+        const dataUrl = await toJpeg(node, { ...snapshotOpts, quality: 0.95, backgroundColor: "#ffffff" });
+        blob = await (await fetch(dataUrl)).blob();
+      } else { // PDF
+        const { default: jsPDF } = await import("jspdf");
+        const dataUrl = await toPng(node, snapshotOpts);
+        const img = new Image();
+        img.src = dataUrl;
+        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+        const pdf = new jsPDF({
+          orientation: img.width >= img.height ? "landscape" : "portrait",
+          unit: "px",
+          format: [img.width, img.height],
+        });
+        pdf.addImage(dataUrl, "PNG", 0, 0, img.width, img.height);
+        blob = pdf.output("blob");
       }
 
-      const [{ default: jsPDF }, dataUrl] = await Promise.all([
-        import("jspdf"),
-        toPng(flyerNodeRef.current, snapshotOpts),
-      ]);
-      const img = new Image();
-      img.src = dataUrl;
-      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+      const ext = format === 'pdf' ? 'pdf' : format;
+      const filename = `flyer-${targetFormatId}-${Date.now()}.${ext}`;
+      const mimeType = format === 'pdf' ? 'application/pdf' : `image/${format}`;
 
-      const pdf = new jsPDF({
-        orientation: img.width >= img.height ? "landscape" : "portrait",
-        unit: "px",
-        format: [img.width, img.height],
-      });
-      pdf.addImage(dataUrl, "PNG", 0, 0, img.width, img.height);
-
-      const pdfBlob = pdf.output("blob");
-      await saveOrShareFile(pdfBlob, `flyer-ig-${Date.now()}.pdf`, "application/pdf");
+      if (action === 'share' && format !== 'pdf') {
+        // Try native share
+        const file = new File([blob], filename, { type: mimeType });
+        if (navigator.canShare?.({ files: [file] })) {
+          try {
+            await navigator.share({ files: [file], title: filename });
+          } catch {
+            // fallback to download
+            await saveOrShareFile(blob, filename, mimeType);
+          }
+        } else {
+          // fallback to download
+          await saveOrShareFile(blob, filename, mimeType);
+        }
+      } else {
+        // Download or PDF (PDF always downloads)
+        await saveOrShareFile(blob, filename, mimeType);
+      }
 
     } catch (err) {
       console.error(err);
@@ -1331,15 +1478,16 @@ function EditorContent() {
           : "Export failed."
       );
     } finally {
+      // Restore original styles
       node.style.width = prevWidth;
       node.style.height = prevHeight;
       if (prevCi) node.style.setProperty("--ci", prevCi); else node.style.removeProperty("--ci");
       if (prevCb) node.style.setProperty("--cb", prevCb); else node.style.removeProperty("--cb");
       setExportingFormat(null);
     }
-  };
+  }, [flyerNodeRef, activeFormat, pendingUploads]);
 
-  // -------- LOAD DATA --------
+  // -------- LOAD DATA (unchanged) --------
   useEffect(() => {
     let cancelled = false;
 
@@ -1442,7 +1590,7 @@ function EditorContent() {
     return () => { cancelled = true; };
   }, [router, searchParams]);
 
-  // -------- CANVAS SIZE --------
+  // -------- CANVAS SIZE (unchanged) --------
   useEffect(() => {
     const recalc = () => {
       if (!canvasWrapRef.current) return;
@@ -1529,76 +1677,25 @@ function EditorContent() {
           </span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          <div className="relative">
-            <button
-              onClick={() => setShowExportMenu(v => !v)}
-              disabled={!!exportingFormat}
-              className="px-3 sm:px-4 py-2 sm:py-1.5 rounded-lg text-[12px] font-bold bg-cyan-400
-                         hover:bg-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed
-                         text-black flex items-center gap-1.5 transition-colors touch-manipulation"
-            >
-              {exportingFormat ? (
-                <>
-                  <Loader2 size={13} className="animate-spin" />
-                  <span className="hidden sm:inline">Exporting {exportingFormat.toUpperCase()}...</span>
-                </>
-              ) : (
-                <>
-                  <Download size={13} />
-                  Export
-                </>
-              )}
-            </button>
-            <AnimatePresence>
-              {showExportMenu && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
-                  <motion.div
-                    initial={{ opacity: 0, y: -6, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -6, scale: 0.97 }}
-                    transition={{ duration: 0.12 }}
-                    className="fixed md:absolute right-2 md:right-0 top-[60px] md:top-[calc(100%+8px)]
-                               w-[calc(100vw-16px)] max-w-[220px] md:w-48 z-50
-                               bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden"
-                  >
-                    <button
-                      onClick={() => handleExportFlyer("png")}
-                      className="w-full flex items-center gap-3 px-3.5 py-3.5 md:py-3 text-left hover:bg-zinc-800 transition-colors touch-manipulation"
-                    >
-                      <ImageIcon size={16} className="text-cyan-400" />
-                      <div>
-                        <div className="text-[12px] font-semibold text-zinc-100">PNG</div>
-                        <div className="text-[10px] text-zinc-500">Best for social & web</div>
-                      </div>
-                    </button>
-                    <div className="h-px bg-zinc-800" />
-                    <button
-                      onClick={() => handleExportFlyer("jpg")}
-                      className="w-full flex items-center gap-3 px-3.5 py-3.5 md:py-3 text-left hover:bg-zinc-800 transition-colors touch-manipulation"
-                    >
-                      <ImageIcon size={16} className="text-cyan-400" />
-                      <div>
-                        <div className="text-[12px] font-semibold text-zinc-100">JPG</div>
-                        <div className="text-[10px] text-zinc-500">Smaller file size</div>
-                      </div>
-                    </button>
-                    <div className="h-px bg-zinc-800" />
-                    <button
-                      onClick={() => handleExportFlyer("pdf")}
-                      className="w-full flex items-center gap-3 px-3.5 py-3.5 md:py-3 text-left hover:bg-zinc-800 transition-colors touch-manipulation"
-                    >
-                      <Download size={16} className="text-cyan-400" />
-                      <div>
-                        <div className="text-[12px] font-semibold text-zinc-100">PDF</div>
-                        <div className="text-[10px] text-zinc-500">Best for print</div>
-                      </div>
-                    </button>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
-          </div>
+          <button
+            onClick={() => setShowExportModal(true)}
+            disabled={!!exportingFormat}
+            className="px-3 sm:px-4 py-2 sm:py-1.5 rounded-lg text-[12px] font-bold bg-cyan-400
+                       hover:bg-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed
+                       text-black flex items-center gap-1.5 transition-colors touch-manipulation"
+          >
+            {exportingFormat ? (
+              <>
+                <Loader2 size={13} className="animate-spin" />
+                <span className="hidden sm:inline">Exporting {exportingFormat.toUpperCase()}...</span>
+              </>
+            ) : (
+              <>
+                <Download size={13} />
+                Export
+              </>
+            )}
+          </button>
         </div>
       </header>
 
@@ -1667,7 +1764,7 @@ function EditorContent() {
                 onRemoveWhyChooseUs={removeWhyChooseUs}
               />
 
-              {/* Logo */}
+              {/* Logo overlay */}
               {logoOverlay.image && (
                 <Movable
                   transform={logoOverlay.transform}
@@ -1690,7 +1787,7 @@ function EditorContent() {
                 </Movable>
               )}
 
-              {/* Discount Badge */}
+              {/* Discount badge */}
               {badgeOverlay.visible && (
                 <Movable
                   transform={badgeOverlay.transform}
@@ -1731,7 +1828,7 @@ function EditorContent() {
                 </Movable>
               )}
 
-              {/* Free Text blocks */}
+              {/* Free text blocks */}
               {freeTexts.map((ft) => (
                 <Movable
                   key={ft.id}
@@ -1906,15 +2003,13 @@ function EditorContent() {
         </aside>
       </div>
 
-      <AnimatePresence>
-        {showExportModal && (
-          <LazyExportModal
-            flyer={flyer}
-            activeFormat={activeFormat}
-            onClose={() => setShowExportModal(false)}
-          />
-        )}
-      </AnimatePresence>
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        onExport={exportFlyer}
+        activeFormat={activeFormat}
+      />
     </div>
   );
 }
