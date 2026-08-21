@@ -419,24 +419,13 @@ function VariantDigitalAgency({
           {/* BENEFITS                                                      */}
           {/* ========================================================== */}
 
-          <div
+                    <div
             className="shrink-0 flex flex-col"
             style={{
-              /*
-               * Keep enough physical space for the backend
-               * Features and Why Choose Us sections.
-               */
-              height: cq(25),
-
+              height: cq(27),
               marginTop: cq(3),
-
-              /*
-               * Do not use a huge margin here.
-               * CTA itself will be moved down independently.
-               */
               marginBottom: 0,
-
-              gap: cq(2),
+              gap: cq(3.2), // more air between Features and Why Choose Us
             }}
           >
             {/* -------------------------------------------------------- */}
@@ -512,29 +501,14 @@ function VariantDigitalAgency({
           {/* CTA                                                          */}
           {/* ========================================================== */}
 
-          {ctaVisible && (
+                    {ctaVisible && (
             <div
               className="flex shrink-0 items-center"
               style={{
                 gap: cq(2),
-
-                /*
-                 * CTA is deliberately moved DOWN.
-                 *
-                 * This does NOT move the Features or
-                 * Why Choose Us sections.
-                 */
-                marginTop: cq(4),
-
-                /*
-                 * Keeps the CTA compact.
-                 */
+                marginTop: cq(6.5), // pushed down further to let benefits breathe
                 minHeight: cq(7),
-
-                /*
-                 * Extra controlled downward movement.
-                 */
-                transform: `translateY(${cq(2)})`,
+                transform: `translateY(${cq(3.5)})`,
               }}
             >
               {price && (
@@ -693,7 +667,7 @@ function VariantPremiumGold({
   headline,
   subtext,
   ctaText,
-  ctaVisible = true, // <-- NEW: default to true
+  ctaVisible = true,
   website,
   productImage,
   price,
@@ -708,6 +682,23 @@ function VariantPremiumGold({
   onFocusEl,
   onBlurEl,
 
+  features,
+  whyChooseUs,
+
+  featuresVisible = true,
+  whyChooseUsVisible = true,
+
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
+
+  onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
+
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
+
   phoneVisible = true,
   emailVisible = true,
   websiteVisible = true,
@@ -720,6 +711,8 @@ function VariantPremiumGold({
   onRestoreEmail,
   onRestoreWebsite,
 }: PremiumBrandProps) {
+  const hasFeatures = Array.isArray(features) && features.length > 0;
+  const hasWhyChooseUs = Array.isArray(whyChooseUs) && whyChooseUs.length > 0;
   return (
     <div
       className="@container relative flex h-full w-full aspect-[4/5] flex-col overflow-hidden font-serif"
@@ -854,10 +847,10 @@ function VariantPremiumGold({
 
         {/* PRODUCT IMAGE */}
 
-        <div
+                <div
           className="relative"
           style={{
-            height: "48%",
+            height: "38%",
             marginTop: cq(2.5),
             marginBottom: cq(2),
           }}
@@ -891,8 +884,56 @@ function VariantPremiumGold({
             >
               {badgeText}
             </div>
-          )}
+                   )}
         </div>
+
+        {/* ================================================================== */}
+        {/* FEATURES / WHY CHOOSE US — mirrors Digital Agency variant          */}
+        {/* ================================================================== */}
+
+        {(hasFeatures || hasWhyChooseUs) && (
+          <div
+            className="grid grid-cols-2 text-left"
+            style={{
+              gap: cq(3),
+              marginBottom: cq(3.5), // breathing room before divider/CTA
+            }}
+          >
+            {hasFeatures && (
+              <FeatureList
+                features={features!.slice(0, 3)}
+                colors={colors}
+                editable={editable}
+                visible={featuresVisible}
+                title="FEATURES"
+                onUpdateTitle={(value) => onUpdate?.("featuresTitle", value)}
+                onUpdateFeature={onUpdateFeature ?? (() => undefined)}
+                onAddFeature={onAddFeature ?? (() => undefined)}
+                onRemoveFeature={onRemoveFeature ?? (() => undefined)}
+                onRestoreSection={onRestoreFeatures}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+              />
+            )}
+
+            {hasWhyChooseUs && (
+              <WhyChooseUsList
+                items={whyChooseUs!.slice(0, 3)}
+                colors={colors}
+                editable={editable}
+                visible={whyChooseUsVisible}
+                title="WHY CHOOSE US"
+                onUpdateTitle={(value) => onUpdate?.("whyChooseUsTitle", value)}
+                onUpdate={onUpdateWhyChooseUs ?? (() => undefined)}
+                onAdd={onAddWhyChooseUs ?? (() => undefined)}
+                onRemove={onRemoveWhyChooseUs ?? (() => undefined)}
+                onRestoreSection={onRestoreWhyChooseUs}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+              />
+            )}
+          </div>
+        )}
 
         {/* ================================================================== */}
         {/* BOTTOM CONTENT */}

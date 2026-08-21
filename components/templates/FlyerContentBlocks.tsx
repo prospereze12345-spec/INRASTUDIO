@@ -490,11 +490,11 @@ function ContactItem({
         gap: cq(0.8),
       }}
     >
-      <span
+           <span
         className="flex shrink-0 items-center justify-center rounded-full"
         style={{
-          width: cq(2),
-          height: cq(2),
+          width: cq(2.6),
+          height: cq(2.6),
           backgroundColor: accentColor,
         }}
       >
@@ -572,8 +572,10 @@ export function ContactBar({
     return null;
   }
 
-  const iconStyle = {
+    const iconStyle: React.CSSProperties = {
     color: "#ffffff",
+    width: cq(1.3),
+    height: cq(1.3),
   };
 
   return (
@@ -591,10 +593,8 @@ export function ContactBar({
           <ContactItem
             id="contact-phone"
             icon={
-              <Phone
-                size={11}
-                style={iconStyle}
-              />
+              <Phone style={iconStyle} />
+
             }
             value={phone}
             editable={editable}
@@ -619,10 +619,8 @@ export function ContactBar({
           <ContactItem
             id="contact-website"
             icon={
-              <Globe
-                size={11}
-                style={iconStyle}
-              />
+              <Globe style={iconStyle} />
+
             }
             value={website}
             editable={editable}
@@ -647,10 +645,7 @@ export function ContactBar({
           <ContactItem
             id="contact-email"
             icon={
-              <Mail
-                size={11}
-                style={iconStyle}
-              />
+              <Mail style={iconStyle} />
             }
             value={email}
             editable={editable}
