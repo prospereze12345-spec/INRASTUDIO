@@ -304,14 +304,13 @@ export function FeatureList({
             >
               {/* Simple dot */}
 
-              <span
+                            <span
                 className="mt-[0.55em] shrink-0 rounded-full"
                 style={{
                   width: cq(0.8),
                   height: cq(0.8),
-                  backgroundColor:
-                    colors.accent,
-                  opacity: 0.7,
+                  backgroundColor: colors.accent,
+                  opacity: 1,
                 }}
               />
 
@@ -518,10 +517,10 @@ function ContactItem({
         />
       ) : (
         <span
-          className="min-w-0 flex-1 truncate"
+          className="min-w-0 flex-1 truncate font-medium"
           style={{
             color: textColor,
-            fontSize: cq(1.4),
+            fontSize: cq(1.6),
           }}
         >
           {value}

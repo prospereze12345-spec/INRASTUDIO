@@ -364,10 +364,10 @@ function VariantDigitalAgency({
           {/* HEADLINE                                                     */}
           {/* ========================================================== */}
 
-          <h1
-            className="font-semibold uppercase tracking-[-0.05em] leading-[0.88]"
+                    <h1
+            className="font-semibold uppercase tracking-[-0.05em] leading-[0.92]"
             style={{
-              fontSize: "clamp(1.6rem, 8.5cqi, 90px)",
+              fontSize: "clamp(1.5rem, 7.4cqi, 76px)",
               wordBreak: "keep-all",
             }}
           >
@@ -419,13 +419,12 @@ function VariantDigitalAgency({
           {/* BENEFITS                                                      */}
           {/* ========================================================== */}
 
-                    <div
+                              <div
             className="shrink-0 flex flex-col"
             style={{
-              height: cq(27),
               marginTop: cq(3),
               marginBottom: 0,
-              gap: cq(3.2), // more air between Features and Why Choose Us
+              gap: cq(3.2),
             }}
           >
             {/* -------------------------------------------------------- */}
@@ -501,14 +500,13 @@ function VariantDigitalAgency({
           {/* CTA                                                          */}
           {/* ========================================================== */}
 
-                    {ctaVisible && (
+          {ctaVisible && (
             <div
               className="flex shrink-0 items-center"
               style={{
                 gap: cq(2),
-                marginTop: cq(6.5), // pushed down further to let benefits breathe
+                marginTop: cq(3.5),
                 minHeight: cq(7),
-                transform: `translateY(${cq(3.5)})`,
               }}
             >
               {price && (
@@ -546,16 +544,16 @@ function VariantDigitalAgency({
         {/* RIGHT PRODUCT IMAGE                                               */}
         {/* ================================================================ */}
 
-        <section
+                <section
           className="absolute right-0 top-1/2 -translate-y-1/2 overflow-hidden rounded-2xl"
           style={{
             width: "38%",
             height: "74%",
             right: cq(8),
-
-            boxShadow: `0 ${cq(2)} ${cq(4)} ${hexToRgba(
+            backgroundColor: hexToRgba(colors.accent, 0.06),
+            boxShadow: `0 ${cq(2.5)} ${cq(5)} ${hexToRgba(
               colors.secondary,
-              0.05
+              0.14
             )}`,
           }}
         >
