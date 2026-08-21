@@ -204,8 +204,6 @@ type FlyerState = {
   };
 };
 
-type CanvasSize = { w: number; h: number };
-
 // ============================================================================
 // CONSTANTS & HELPERS
 // ============================================================================
@@ -217,7 +215,8 @@ const SOCIAL_FORMATS = [
 ] as const;
 type FormatId = typeof SOCIAL_FORMATS[number]["id"];
 
-function calcCanvasSize(formatId: FormatId, maxW: number, maxH: number): CanvasSize {
+// (calcCanvasSize is kept but not used – kept for potential future use)
+function calcCanvasSize(formatId: FormatId, maxW: number, maxH: number): { w: number; h: number } {
   const fmt = SOCIAL_FORMATS.find(f => f.id === formatId)!;
   const aspect = fmt.rw / fmt.rh;
   let w = Math.max(maxW, 240);
@@ -1037,7 +1036,7 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
 });
 
 // ============================================================================
-// EXPORT MODAL (NEW)
+// EXPORT MODAL
 // ============================================================================
 type ExportModalProps = {
   isOpen: boolean;
@@ -1052,7 +1051,6 @@ function ExportModal({ isOpen, onClose, onExport, activeFormat }: ExportModalPro
   const [selectedAction, setSelectedAction] = useState<'download' | 'share' | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<FormatId | null>(null);
 
-  // Reset state when modal opens/closes
   useEffect(() => {
     if (!isOpen) {
       setStep('format');
@@ -1065,7 +1063,6 @@ function ExportModal({ isOpen, onClose, onExport, activeFormat }: ExportModalPro
   const handleFormatSelect = (fmt: 'png' | 'jpg' | 'pdf') => {
     setSelectedFormat(fmt);
     if (fmt === 'pdf') {
-      // PDF: directly export (download) – no sharing
       onExport(fmt, activeFormat, 'download');
       onClose();
     } else {
@@ -1076,7 +1073,6 @@ function ExportModal({ isOpen, onClose, onExport, activeFormat }: ExportModalPro
   const handleActionSelect = (action: 'download' | 'share') => {
     setSelectedAction(action);
     if (action === 'download') {
-      // Download: use current active format (from editor)
       onExport(selectedFormat!, activeFormat, 'download');
       onClose();
     } else {
@@ -1092,11 +1088,10 @@ function ExportModal({ isOpen, onClose, onExport, activeFormat }: ExportModalPro
 
   if (!isOpen) return null;
 
-  // Platform options for sharing
   const sharePlatforms: { id: FormatId; label: string }[] = [
     { id: 'ig', label: 'Instagram' },
     { id: 'tiktok', label: 'TikTok' },
-    { id: 'square', label: 'Facebook' }, // using "square" for Facebook (1:1)
+    { id: 'square', label: 'Facebook' },
     { id: 'story', label: 'WhatsApp Status' },
   ];
 
@@ -1247,7 +1242,7 @@ function EditorContent() {
   const [activeTab, setActiveTab] = useState<RsbTab>("design");
   const [activeTool, setActiveTool] = useState<Tool>("select");
   const [activeFormat, setActiveFormat] = useState<FormatId>("ig");
-  const [canvasSize, setCanvasSize] = useState<CanvasSize>({ w: 380, h: 475 });
+  const [scale, setScale] = useState(1); // NEW: scale for the flyer
   const [focusedEl, setFocusedEl] = useState<HTMLElement | null>(null);
   const [showFtb, setShowFtb] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -1377,7 +1372,7 @@ function EditorContent() {
     [update]
   );
 
-  // ========== NEW EXPORT HANDLER ==========
+  // ========== EXPORT HANDLER (unchanged) ==========
   const exportFlyer = useCallback(async (
     format: 'png' | 'jpg' | 'pdf',
     platformId: FormatId | null,
@@ -1393,20 +1388,15 @@ function EditorContent() {
     setExportError(null);
 
     const node = flyerNodeRef.current;
-    // Determine target platform:
-    // - For share: use the selected platformId
-    // - For download: use the activeFormat (current editor format)
     const targetFormatId = (action === 'share' ? platformId : activeFormat) ?? activeFormat;
     const fmt = SOCIAL_FORMATS.find(f => f.id === targetFormatId)!;
 
-    // Save original styles
     const prevWidth = node.style.width;
     const prevHeight = node.style.height;
     const prevCi = node.style.getPropertyValue("--ci");
     const prevCb = node.style.getPropertyValue("--cb");
 
     try {
-      // Resize to target export dimensions
       node.style.width = `${fmt.exportW}px`;
       node.style.height = `${fmt.exportH}px`;
       node.style.setProperty("--ci", `${fmt.exportW / 100}px`);
@@ -1452,21 +1442,17 @@ function EditorContent() {
       const mimeType = format === 'pdf' ? 'application/pdf' : `image/${format}`;
 
       if (action === 'share' && format !== 'pdf') {
-        // Try native share
         const file = new File([blob], filename, { type: mimeType });
         if (navigator.canShare?.({ files: [file] })) {
           try {
             await navigator.share({ files: [file], title: filename });
           } catch {
-            // fallback to download
             await saveOrShareFile(blob, filename, mimeType);
           }
         } else {
-          // fallback to download
           await saveOrShareFile(blob, filename, mimeType);
         }
       } else {
-        // Download or PDF (PDF always downloads)
         await saveOrShareFile(blob, filename, mimeType);
       }
 
@@ -1478,7 +1464,6 @@ function EditorContent() {
           : "Export failed."
       );
     } finally {
-      // Restore original styles
       node.style.width = prevWidth;
       node.style.height = prevHeight;
       if (prevCi) node.style.setProperty("--ci", prevCi); else node.style.removeProperty("--ci");
@@ -1590,21 +1575,32 @@ function EditorContent() {
     return () => { cancelled = true; };
   }, [router, searchParams]);
 
-  // -------- CANVAS SIZE (unchanged) --------
+  // -------- CANVAS SCALE CALCULATION (NEW) --------
   useEffect(() => {
     const recalc = () => {
       if (!canvasWrapRef.current) return;
-      const { width, height } = canvasWrapRef.current.getBoundingClientRect();
-      const pad = 16;
-      setCanvasSize(calcCanvasSize(activeFormat, width - pad, height - pad));
+      const rect = canvasWrapRef.current.getBoundingClientRect();
+      const pad = 16; // padding around the flyer
+      const availW = Math.max(rect.width - pad * 2, 0);
+      const availH = Math.max(rect.height - pad * 2, 0);
+
+      const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
+      const baseW = fmt.exportW;
+      const baseH = fmt.exportH;
+
+      const scaleX = availW / baseW;
+      const scaleY = availH / baseH;
+      let newScale = Math.min(scaleX, scaleY);
+      // Prevent upscaling (optional, but keeps pixel-perfect design)
+      newScale = Math.min(newScale, 1);
+      setScale(newScale);
     };
+
     recalc();
-    const raf = requestAnimationFrame(recalc);
     const ro = new ResizeObserver(recalc);
     if (canvasWrapRef.current) ro.observe(canvasWrapRef.current);
     window.visualViewport?.addEventListener("resize", recalc);
     return () => {
-      cancelAnimationFrame(raf);
       ro.disconnect();
       window.visualViewport?.removeEventListener("resize", recalc);
     };
@@ -1652,6 +1648,9 @@ function EditorContent() {
       </div>
     );
   }
+
+  // Get the current format's export dimensions for the flyer container
+  const currentFormat = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
 
   // -------- RENDER --------
   return (
@@ -1737,18 +1736,21 @@ function EditorContent() {
             }}
             onClick={handleCanvasClick}
           >
+            {/* Flyer container – fixed dimensions + transform scale */}
             <div
-              key={`canvas-${canvasSize.w}x${canvasSize.h}`}
+              key={`flyer-${activeFormat}`} // force re-render on format change
               ref={flyerNodeRef}
-              className="relative"
+              className="relative shrink-0"
               style={{
-                width: canvasSize.w,
-                height: canvasSize.h,
+                width: currentFormat.exportW,
+                height: currentFormat.exportH,
+                transform: `scale(${scale})`,
+                transformOrigin: "center center",
                 overflow: "hidden",
                 containerType: "size",
                 containerName: "flyer-canvas",
-                ["--ci" as any]: `${canvasSize.w / 100}px`,
-                ["--cb" as any]: `${canvasSize.h / 100}px`,
+                ["--ci" as any]: `${currentFormat.exportW / 100}px`,
+                ["--cb" as any]: `${currentFormat.exportH / 100}px`,
               } as React.CSSProperties}
             >
               <TemplateRenderer
@@ -1764,7 +1766,7 @@ function EditorContent() {
                 onRemoveWhyChooseUs={removeWhyChooseUs}
               />
 
-              {/* Logo overlay */}
+              {/* Logo */}
               {logoOverlay.image && (
                 <Movable
                   transform={logoOverlay.transform}
@@ -1787,7 +1789,7 @@ function EditorContent() {
                 </Movable>
               )}
 
-              {/* Discount badge */}
+              {/* Discount Badge */}
               {badgeOverlay.visible && (
                 <Movable
                   transform={badgeOverlay.transform}
@@ -1828,7 +1830,7 @@ function EditorContent() {
                 </Movable>
               )}
 
-              {/* Free text blocks */}
+              {/* Free Text blocks */}
               {freeTexts.map((ft) => (
                 <Movable
                   key={ft.id}
