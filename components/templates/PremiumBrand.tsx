@@ -544,28 +544,23 @@ function VariantDigitalAgency({
         {/* RIGHT PRODUCT IMAGE                                               */}
         {/* ================================================================ */}
 
-                <section
-          className="absolute right-0 top-1/2 -translate-y-1/2 overflow-hidden rounded-2xl"
-          style={{
-            width: "38%",
-            height: "74%",
-            right: cq(8),
-            backgroundColor: hexToRgba(colors.accent, 0.06),
-            boxShadow: `0 ${cq(2.5)} ${cq(5)} ${hexToRgba(
-              colors.secondary,
-              0.14
-            )}`,
-          }}
-        >
-          <Image
-            src={productImage}
-            alt=""
-            fill
-            priority
-            crossOrigin="anonymous"
-            draggable={false}
-            className="object-cover"
-          />
+               <section
+  className="absolute right-0 top-1/2 -translate-y-1/2"
+  style={{
+    width: "38%",
+    height: "74%",
+    right: cq(8),
+  }}
+>
+  <Image
+    src={productImage}
+    alt=""
+    fill
+    priority
+    crossOrigin="anonymous"
+    draggable={false}
+    className="object-contain"
+  />
 
           {badgeText && (
             <div
@@ -846,22 +841,22 @@ function VariantPremiumGold({
         {/* PRODUCT IMAGE */}
 
                 <div
-          className="relative"
-          style={{
-            height: "38%",
-            marginTop: cq(2.5),
-            marginBottom: cq(2),
-          }}
-        >
-          <Image
-            src={productImage}
-            alt=""
-            fill
-            priority
-            crossOrigin="anonymous"
-            draggable={false}
-            className="object-contain"
-          />
+  className="absolute right-0 top-1/2 -translate-y-1/2"
+  style={{
+    width: "38%",
+    height: "74%",
+    right: cq(8),
+  }}
+>
+  <Image
+    src={productImage}
+    alt=""
+    fill
+    priority
+    crossOrigin="anonymous"
+    draggable={false}
+    className="object-contain"
+  />
 
           {badgeText && (
             <div

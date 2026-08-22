@@ -1,6 +1,6 @@
 ﻿"use client";
 import {
-  useState, useEffect, useRef, useCallback, Suspense, memo,
+  useState, useEffect, useLayoutEffect, useRef, useCallback, Suspense, memo,
 } from "react";
 import type { PromoVideoProps } from "@/remotion/PromoVideo";
 import dynamic from "next/dynamic";
@@ -1242,7 +1242,7 @@ function EditorContent() {
   const [activeTab, setActiveTab] = useState<RsbTab>("design");
   const [activeTool, setActiveTool] = useState<Tool>("select");
   const [activeFormat, setActiveFormat] = useState<FormatId>("ig");
-  const [scale, setScale] = useState(1); // NEW: scale for the flyer
+  const [scale, setScale] = useState<number | null>(null); // null = not measured yet
   const [focusedEl, setFocusedEl] = useState<HTMLElement | null>(null);
   const [showFtb, setShowFtb] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -1393,12 +1393,14 @@ function EditorContent() {
 
     const prevWidth = node.style.width;
     const prevHeight = node.style.height;
+    const prevTransform = node.style.transform;         
     const prevCi = node.style.getPropertyValue("--ci");
     const prevCb = node.style.getPropertyValue("--cb");
 
     try {
       node.style.width = `${fmt.exportW}px`;
       node.style.height = `${fmt.exportH}px`;
+      node.style.transform = "none";                      
       node.style.setProperty("--ci", `${fmt.exportW / 100}px`);
       node.style.setProperty("--cb", `${fmt.exportH / 100}px`);
       await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
@@ -1464,12 +1466,13 @@ function EditorContent() {
           : "Export failed."
       );
     } finally {
-      node.style.width = prevWidth;
-      node.style.height = prevHeight;
-      if (prevCi) node.style.setProperty("--ci", prevCi); else node.style.removeProperty("--ci");
-      if (prevCb) node.style.setProperty("--cb", prevCb); else node.style.removeProperty("--cb");
-      setExportingFormat(null);
-    }
+  node.style.width = prevWidth;
+  node.style.height = prevHeight;
+  node.style.transform = prevTransform;               // ADD
+  if (prevCi) node.style.setProperty("--ci", prevCi); else node.style.removeProperty("--ci");
+  if (prevCb) node.style.setProperty("--cb", prevCb); else node.style.removeProperty("--cb");
+  setExportingFormat(null);
+}
   }, [flyerNodeRef, activeFormat, pendingUploads]);
 
   // -------- LOAD DATA (unchanged) --------
@@ -1576,35 +1579,34 @@ function EditorContent() {
   }, [router, searchParams]);
 
   // -------- CANVAS SCALE CALCULATION (NEW) --------
-  useEffect(() => {
-    const recalc = () => {
-      if (!canvasWrapRef.current) return;
-      const rect = canvasWrapRef.current.getBoundingClientRect();
-      const pad = 16; // padding around the flyer
-      const availW = Math.max(rect.width - pad * 2, 0);
-      const availH = Math.max(rect.height - pad * 2, 0);
+useLayoutEffect(() => {
+  const recalc = () => {
+    if (!canvasWrapRef.current) return;
+    const rect = canvasWrapRef.current.getBoundingClientRect();
+    const pad = 16;
+    const availW = Math.max(rect.width - pad * 2, 0);
+    const availH = Math.max(rect.height - pad * 2, 0);
 
-      const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
-      const baseW = fmt.exportW;
-      const baseH = fmt.exportH;
+    const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
+    const baseW = fmt.exportW;
+    const baseH = fmt.exportH;
 
-      const scaleX = availW / baseW;
-      const scaleY = availH / baseH;
-      let newScale = Math.min(scaleX, scaleY);
-      // Prevent upscaling (optional, but keeps pixel-perfect design)
-      newScale = Math.min(newScale, 1);
-      setScale(newScale);
-    };
+    const scaleX = availW / baseW;
+    const scaleY = availH / baseH;
+    let newScale = Math.min(scaleX, scaleY);
+    newScale = Math.min(newScale, 1);
+    setScale(newScale);
+  };
 
-    recalc();
-    const ro = new ResizeObserver(recalc);
-    if (canvasWrapRef.current) ro.observe(canvasWrapRef.current);
-    window.visualViewport?.addEventListener("resize", recalc);
-    return () => {
-      ro.disconnect();
-      window.visualViewport?.removeEventListener("resize", recalc);
-    };
-  }, [activeFormat, sheetExpanded]);
+  recalc();
+  const ro = new ResizeObserver(recalc);
+  if (canvasWrapRef.current) ro.observe(canvasWrapRef.current);
+  window.visualViewport?.addEventListener("resize", recalc);
+  return () => {
+    ro.disconnect();
+    window.visualViewport?.removeEventListener("resize", recalc);
+  };
+}, [activeFormat, sheetExpanded]);
 
   const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     setSelectedOverlayId(null);
@@ -1737,22 +1739,24 @@ function EditorContent() {
             onClick={handleCanvasClick}
           >
             {/* Flyer container – fixed dimensions + transform scale */}
-            <div
-              key={`flyer-${activeFormat}`} // force re-render on format change
-              ref={flyerNodeRef}
-              className="relative shrink-0"
-              style={{
-                width: currentFormat.exportW,
-                height: currentFormat.exportH,
-                transform: `scale(${scale})`,
-                transformOrigin: "center center",
-                overflow: "hidden",
-                containerType: "size",
-                containerName: "flyer-canvas",
-                ["--ci" as any]: `${currentFormat.exportW / 100}px`,
-                ["--cb" as any]: `${currentFormat.exportH / 100}px`,
-              } as React.CSSProperties}
-            >
+           <div
+  key={`flyer-${activeFormat}`} // force re-render on format change
+  ref={flyerNodeRef}
+  className="relative shrink-0"
+  style={{
+    width: currentFormat.exportW,
+    height: currentFormat.exportH,
+    transform: `scale(${scale ?? 0.001})`,
+    opacity: scale === null ? 0 : 1,
+    transition: "opacity 120ms ease-out",
+    transformOrigin: "center center",
+    overflow: "hidden",
+    containerType: "size",
+    containerName: "flyer-canvas",
+    ["--ci" as any]: `${currentFormat.exportW / 100}px`,
+    ["--cb" as any]: `${currentFormat.exportH / 100}px`,
+  } as React.CSSProperties}
+>
               <TemplateRenderer
                 data={{ ...flyer, logoImage: null, badgeText: "" }}
                 onUpdate={update}
