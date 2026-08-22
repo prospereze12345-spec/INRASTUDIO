@@ -4,8 +4,7 @@ import React from "react";
 import { Globe, Mail, Phone, Plus } from "lucide-react";
 import { EditableText } from "@/components/EditableText";
 
-const cq = (n: number) =>
-  `clamp(${n * 1.5}px, ${n}cqi, ${n * 12}px)`;
+const cq = (n: number) => `calc(var(--ci) * ${n})`;
 
 // ============================================================================
 // TYPES

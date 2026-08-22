@@ -18,8 +18,7 @@ import { touchTarget } from "@/lib/responsive";
 // CANVAS SCALE
 // ============================================================================
 
-const cq = (n: number) =>
-  `clamp(${n * 1.5}px, ${n}cqi, ${n * 12}px)`;
+const cq = (n: number) => `calc(var(--ci) * ${n})`;
 
 // ============================================================================
 // TYPES
@@ -553,14 +552,14 @@ function VariantDigitalAgency({
   }}
 >
   <Image
-    src={productImage}
-    alt=""
-    fill
-    priority
-    crossOrigin="anonymous"
-    draggable={false}
-    className="object-contain"
-  />
+  src={productImage}
+  alt=""
+  fill
+  priority
+  unoptimized          // ADD THIS
+  crossOrigin="anonymous"
+  className="object-contain"
+/>
 
           {badgeText && (
             <div
@@ -849,14 +848,14 @@ function VariantPremiumGold({
   }}
 >
   <Image
-    src={productImage}
-    alt=""
-    fill
-    priority
-    crossOrigin="anonymous"
-    draggable={false}
-    className="object-contain"
-  />
+  src={productImage}
+  alt=""
+  fill
+  priority
+  unoptimized          // ADD THIS
+  crossOrigin="anonymous"
+  className="object-contain"
+/>
 
           {badgeText && (
             <div
