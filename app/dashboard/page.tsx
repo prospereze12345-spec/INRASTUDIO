@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
    Home, LayoutTemplate, Image as ImageIcon, Settings, Crown, Plus,
   Video, Type, X, History, Upload, Menu, Loader2, AlertCircle, Pencil, Clock,
-  MonitorSmartphone, // ← new import
+  MonitorSmartphone, User,   // ← add User
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
@@ -408,9 +408,13 @@ export default function DashboardPage() {
                   </>
                 )}
               </div>
-              <div className="w-10 h-10 rounded-full bg-cyan-900 border-2 border-cyan-400 flex items-center justify-center text-cyan-50 font-bold text-sm shadow-lg shadow-cyan-400/20 shrink-0" title={user?.full_name ?? ""}>
-                {loading ? <span className="w-4 h-4 bg-cyan-700 rounded-full animate-pulse" /> : getInitials(user?.full_name ?? "?")}
-              </div>
+              <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden" title={user?.full_name ?? ""}>
+  {loading ? (
+    <span className="w-4 h-4 bg-slate-700 rounded-full animate-pulse" />
+  ) : (
+    <User className="w-5 h-5 text-slate-400" strokeWidth={1.75} />
+  )}
+</div>
             </section>
 
             {/* ── Stats ── */}
