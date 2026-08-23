@@ -366,7 +366,7 @@ function VariantDigitalAgency({
                     <h1
             className="font-semibold uppercase tracking-[-0.05em] leading-[0.92]"
             style={{
-              fontSize: "clamp(1.5rem, 7.4cqi, 76px)",
+              fontSize: `clamp(2rem, ${cq(7.4)}, 76px)`,
               wordBreak: "keep-all",
             }}
           >
@@ -810,7 +810,7 @@ function VariantPremiumGold({
           <h1
             className="font-medium uppercase tracking-[-0.04em] leading-[0.9]"
             style={{
-              fontSize: "clamp(1.4rem, 7.2cqi, 84px)",
+              fontSize: `clamp(1.9rem, ${cq(7.2)}, 84px)`,
             }}
           >
             <EditableHeadlineLines

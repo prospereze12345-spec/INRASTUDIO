@@ -1419,19 +1419,45 @@ function EditorContent() {
     node.style.setProperty("--cb", `${fmt.exportH / 100}px`);
     await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
 
-    // Swap all images to data URLs so the canvas is never CORS-tainted
-    imgEls = Array.from(node.querySelectorAll("img"));
-    originalSrcs = imgEls.map(img => img.src);
-    await Promise.all(
-      imgEls.map(async (img, i) => {
-        try {
-          img.src = await toDataURL(originalSrcs[i]);
-        } catch {
-          // leave original src if fetch itself fails
-        }
-      })
-    );
-    await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+   // Swap all images to data URLs so the canvas is never CORS-tainted
+imgEls = Array.from(node.querySelectorAll("img"));
+originalSrcs = imgEls.map(img => img.src);
+await Promise.all(
+  imgEls.map(async (img, i) => {
+    try {
+      img.src = await toDataURL(originalSrcs[i]);
+      // Wait for the browser to actually finish decoding this specific
+      // image before moving on. Two rAF calls only guarantee a paint
+      // tick, not that a freshly-swapped (often large) data URL has
+      // finished decoding — on slower mobile CPUs the decode can still
+      // be in flight when html-to-image serializes the DOM, producing
+      // a blank image in the exported file even though it's correct
+      // on desktop. img.decode() resolves only once pixels are ready.
+      if (typeof img.decode === "function") {
+        await img.decode().catch(() => {
+          // Some browsers reject decode() on already-complete images
+          // or edge cases — fall back to waiting on the load event.
+          return new Promise<void>((resolve) => {
+            if (img.complete) return resolve();
+            img.onload = () => resolve();
+            img.onerror = () => resolve();
+          });
+        });
+      } else {
+        await new Promise<void>((resolve) => {
+          if (img.complete) return resolve();
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        });
+      }
+    } catch {
+      // leave original src if fetch itself fails
+    }
+  })
+);
+// One paint tick after all images are confirmed decoded, so layout
+// reflects the final image dimensions before capture.
+await new Promise(res => requestAnimationFrame(res));
 
     const { toPng, toJpeg } = await import("html-to-image");
     const snapshotOpts = {
