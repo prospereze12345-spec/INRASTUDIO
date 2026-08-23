@@ -1248,6 +1248,7 @@ function EditorContent() {
   const [flyer, setFlyer] = useState<FlyerState>(EMPTY_FLYER_STATE);
   const [loading, setLoading] = useState(true);
   const flyerNodeRef = useRef<HTMLDivElement>(null);
+  const exportNodeRef = useRef<HTMLDivElement>(null); 
   const [jobId, setJobId] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [captions, setCaptions] = useState<Caption[]>([]);
@@ -1383,14 +1384,12 @@ function EditorContent() {
     },
     [update]
   );
-
-  // ========== EXPORT HANDLER (unchanged) ==========
-  const exportFlyer = useCallback(async (
+const exportFlyer = useCallback(async (
   format: 'png' | 'jpg' | 'pdf',
   platformId: FormatId | null,
   action: 'download' | 'share' | null
 ) => {
-  if (!flyerNodeRef.current) return;
+  if (!exportNodeRef.current) return;
   if (pendingUploads > 0) {
     setExportError("Still uploading your image - please wait a moment and try again.");
     return;
@@ -1399,76 +1398,45 @@ function EditorContent() {
   setExportingFormat(format);
   setExportError(null);
 
-  const node = flyerNodeRef.current;
-  const targetFormatId = (action === 'share' ? platformId : activeFormat) ?? activeFormat;
-  const fmt = SOCIAL_FORMATS.find(f => f.id === targetFormatId)!;
-
-  const prevWidth = node.style.width;
-  const prevHeight = node.style.height;
-  const prevTransform = node.style.transform;
-  const prevCi = node.style.getPropertyValue("--ci");
-  const prevCb = node.style.getPropertyValue("--cb");
+  const node = exportNodeRef.current;
   let imgEls: HTMLImageElement[] = [];
   let originalSrcs: string[] = [];
 
   try {
-    node.style.width = `${fmt.exportW}px`;
-    node.style.height = `${fmt.exportH}px`;
-    node.style.transform = "none";
-    node.style.setProperty("--ci", `${fmt.exportW / 100}px`);
-    node.style.setProperty("--cb", `${fmt.exportH / 100}px`);
-    await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
-
-   // Swap all images to data URLs so the canvas is never CORS-tainted
-imgEls = Array.from(node.querySelectorAll("img"));
-originalSrcs = imgEls.map(img => img.src);
-await Promise.all(
-  imgEls.map(async (img, i) => {
-    try {
-      img.src = await toDataURL(originalSrcs[i]);
-      // Wait for the browser to actually finish decoding this specific
-      // image before moving on. Two rAF calls only guarantee a paint
-      // tick, not that a freshly-swapped (often large) data URL has
-      // finished decoding — on slower mobile CPUs the decode can still
-      // be in flight when html-to-image serializes the DOM, producing
-      // a blank image in the exported file even though it's correct
-      // on desktop. img.decode() resolves only once pixels are ready.
-      if (typeof img.decode === "function") {
-        await img.decode().catch(() => {
-          // Some browsers reject decode() on already-complete images
-          // or edge cases — fall back to waiting on the load event.
-          return new Promise<void>((resolve) => {
-            if (img.complete) return resolve();
-            img.onload = () => resolve();
-            img.onerror = () => resolve();
-          });
-        });
-      } else {
-        await new Promise<void>((resolve) => {
-          if (img.complete) return resolve();
-          img.onload = () => resolve();
-          img.onerror = () => resolve();
-        });
-      }
-    } catch {
-      // leave original src if fetch itself fails
-    }
-  })
-);
-// One paint tick after all images are confirmed decoded, so layout
-// reflects the final image dimensions before capture.
-await new Promise(res => requestAnimationFrame(res));
+    // Swap all images to data URLs so the canvas is never CORS-tainted
+    imgEls = Array.from(node.querySelectorAll("img"));
+    originalSrcs = imgEls.map(img => img.src);
+    await Promise.all(
+      imgEls.map(async (img, i) => {
+        try {
+          img.src = await toDataURL(originalSrcs[i]);
+          if (typeof img.decode === "function") {
+            await img.decode().catch(() => new Promise<void>((resolve) => {
+              if (img.complete) return resolve();
+              img.onload = () => resolve();
+              img.onerror = () => resolve();
+            }));
+          } else {
+            await new Promise<void>((resolve) => {
+              if (img.complete) return resolve();
+              img.onload = () => resolve();
+              img.onerror = () => resolve();
+            });
+          }
+        } catch {
+          // leave original src if fetch itself fails
+        }
+      })
+    );
+    await new Promise(res => requestAnimationFrame(res));
 
     const { toPng, toJpeg } = await import("html-to-image");
+    const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
     const snapshotOpts = {
       pixelRatio: 1,
       cacheBust: true,
       width: fmt.exportW,
       height: fmt.exportH,
-      filter: (node: HTMLElement) => {
-        if (node.getAttribute && node.getAttribute("data-flyer-control") === "true") return false;
-        return true;
-      },
     };
 
     let blob: Blob;
@@ -1478,7 +1446,7 @@ await new Promise(res => requestAnimationFrame(res));
     } else if (format === "jpg") {
       const dataUrl = await toJpeg(node, { ...snapshotOpts, quality: 0.95, backgroundColor: "#ffffff" });
       blob = await (await fetch(dataUrl)).blob();
-    } else { // PDF
+    } else {
       const { default: jsPDF } = await import("jspdf");
       const dataUrl = await toPng(node, snapshotOpts);
       const img = new Image();
@@ -1493,6 +1461,7 @@ await new Promise(res => requestAnimationFrame(res));
       blob = pdf.output("blob");
     }
 
+    const targetFormatId = (action === 'share' ? platformId : activeFormat) ?? activeFormat;
     const ext = format === 'pdf' ? 'pdf' : format;
     const filename = `flyer-${targetFormatId}-${Date.now()}.${ext}`;
     const mimeType = format === 'pdf' ? 'application/pdf' : `image/${format}`;
@@ -1514,21 +1483,12 @@ await new Promise(res => requestAnimationFrame(res));
 
   } catch (err) {
     console.error(err);
-    setExportError(
-      err instanceof Error
-        ? `${err.message} - this is usually a CORS issue with your product image.`
-        : "Export failed."
-    );
+    setExportError(err instanceof Error ? err.message : "Export failed.");
   } finally {
-    node.style.width = prevWidth;
-    node.style.height = prevHeight;
-    node.style.transform = prevTransform;
-    if (prevCi) node.style.setProperty("--ci", prevCi); else node.style.removeProperty("--ci");
-    if (prevCb) node.style.setProperty("--cb", prevCb); else node.style.removeProperty("--cb");
     imgEls.forEach((img, i) => { img.src = originalSrcs[i]; });
     setExportingFormat(null);
   }
-}, [flyerNodeRef, activeFormat, pendingUploads]);
+}, [exportNodeRef, activeFormat, pendingUploads, flyer, logoOverlay, badgeOverlay, freeTexts]);
 
   // -------- LOAD DATA (unchanged) --------
   useEffect(() => {
@@ -1943,7 +1903,7 @@ useLayoutEffect(() => {
               </AnimatePresence>
             </div>
 
-            <AnimatePresence>
+                       <AnimatePresence>
               {activeTool === "text" && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900/90 border border-zinc-700
@@ -1952,6 +1912,88 @@ useLayoutEffect(() => {
                 </motion.div>
               )}
             </AnimatePresence>
+          </div>
+
+          {/* Hidden export clone — always laid out at full export size, never
+              scaled, never affected by mobile viewport/address-bar shifts.
+              This is what actually gets captured; the visible canvas above is
+              editing-only. */}
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: "-99999px",
+              width: currentFormat.exportW,
+              height: currentFormat.exportH,
+              overflow: "hidden",
+              pointerEvents: "none",
+              ["--ci" as any]: `${currentFormat.exportW / 100}px`,
+              ["--cb" as any]: `${currentFormat.exportH / 100}px`,
+            } as React.CSSProperties}
+          >
+            <div ref={exportNodeRef} style={{ position: "relative", width: "100%", height: "100%" }}>
+              <TemplateRenderer
+                data={{ ...flyer, logoImage: null, badgeText: "" }}
+                onUpdate={() => {}}
+                onElementFocus={() => {}}
+                onElementBlur={() => {}}
+                onUpdateFeature={() => {}}
+                onAddFeature={() => {}}
+                onRemoveFeature={() => {}}
+                onUpdateWhyChooseUs={() => {}}
+                onAddWhyChooseUs={() => {}}
+                onRemoveWhyChooseUs={() => {}}
+              />
+
+              {logoOverlay.image && (
+                <img
+                  src={logoOverlay.image}
+                  alt="Logo"
+                  style={{
+                    position: "absolute",
+                    left: `${logoOverlay.transform.x}%`,
+                    top: `${logoOverlay.transform.y}%`,
+                    transform: `translate(-50%, -50%) scale(${logoOverlay.transform.scale})`,
+                    width: "calc(var(--ci) * 20)",
+                    height: "calc(var(--ci) * 20)",
+                    objectFit: "contain",
+                  }}
+                />
+              )}
+
+              {badgeOverlay.visible && (
+                <div
+                  style={{
+                    position: "absolute",
+                    left: `${badgeOverlay.transform.x}%`,
+                    top: `${badgeOverlay.transform.y}%`,
+                    transform: `translate(-50%, -50%) scale(${badgeOverlay.transform.scale})`,
+                  }}
+                >
+                  <DiscountBadgeSticker
+                    badge={badgeOverlay}
+                    onChangeText={() => {}}
+                    onChangeSubText={() => {}}
+                  />
+                </div>
+              )}
+
+              {freeTexts.map(ft => (
+                <div
+                  key={ft.id}
+                  style={{
+                    position: "absolute",
+                    left: `${ft.transform.x}%`,
+                    top: `${ft.transform.y}%`,
+                    transform: `translate(-50%, -50%) scale(${ft.transform.scale})`,
+                    color: ft.color,
+                    fontWeight: 600,
+                  }}
+                >
+                  {ft.text}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Format bar */}
