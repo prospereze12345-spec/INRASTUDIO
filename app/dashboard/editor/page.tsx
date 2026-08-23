@@ -1919,18 +1919,24 @@ useLayoutEffect(() => {
               This is what actually gets captured; the visible canvas above is
               editing-only. */}
           <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: "-99999px",
-              width: currentFormat.exportW,
-              height: currentFormat.exportH,
-              overflow: "hidden",
-              pointerEvents: "none",
-              ["--ci" as any]: `${currentFormat.exportW / 100}px`,
-              ["--cb" as any]: `${currentFormat.exportH / 100}px`,
-            } as React.CSSProperties}
-          >
+  aria-hidden="true"
+  style={{
+    position: "absolute",
+    width: 0,
+    height: 0,
+    overflow: "hidden",
+    pointerEvents: "none",
+  }}
+>
+  <div
+    style={{
+      width: currentFormat.exportW,
+      height: currentFormat.exportH,
+      ["--ci" as any]: `${currentFormat.exportW / 100}px`,
+      ["--cb" as any]: `${currentFormat.exportH / 100}px`,
+    } as React.CSSProperties}
+  >
+    </div>
             <div ref={exportNodeRef} style={{ position: "relative", width: "100%", height: "100%" }}>
               <TemplateRenderer
                 data={{ ...flyer, logoImage: null, badgeText: "" }}

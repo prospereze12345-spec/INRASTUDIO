@@ -157,6 +157,7 @@ const VariantMonoSplit = ({
           src={productImage}
           alt="Product"
           fill
+          priority
           unoptimized
           crossOrigin="anonymous"
           className="object-cover object-center"
@@ -528,6 +529,7 @@ const VariantKoan = ({
             src={productImage}
             alt="Product"
             fill
+            priority
             unoptimized
             crossOrigin="anonymous"
             className="object-contain"

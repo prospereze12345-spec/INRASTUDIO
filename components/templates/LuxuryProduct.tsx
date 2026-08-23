@@ -122,6 +122,14 @@ export function LuxuryProductTemplate(props: LuxuryProductProps) {
 
 /* ─────────────────────────────────────────────────────────────────
    IMAGE SAFETY WRAPPER
+   `priority` is required here, not optional — this image is rendered
+   inside an offscreen export clone (positioned so it's never in the
+   viewport, by design). Without `priority`, Next.js's default
+   loading="lazy" relies on IntersectionObserver visibility, which
+   never fires for an element that can never scroll into view — so
+   the image simply never loads. This was invisible on some desktop
+   browsers (more generous lazy-load heuristics) but consistently
+   failed on mobile, which is why the bug only showed up there.
 ───────────────────────────────────────────────────────────────── */
 
 function SafeImage({
@@ -146,6 +154,7 @@ function SafeImage({
           src={bustedSrc}
           alt="Product"
           fill
+          priority
           unoptimized
           crossOrigin="anonymous"
           className="object-contain object-center"
@@ -218,6 +227,7 @@ const VariantNoirEditorial = ({
             src={bustedBg}
             alt="Product"
             fill
+            priority
             unoptimized
             crossOrigin="anonymous"
             className="object-cover object-center"
