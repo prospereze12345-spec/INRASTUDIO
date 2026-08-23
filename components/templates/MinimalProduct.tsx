@@ -60,10 +60,19 @@ export interface SleekFlyerProps {
 }
 
 /* ─────────────────────────────────────────────────────────────────
+   CANVAS SCALE
+   Same mechanism as PremiumBrandTemplate: `--ci` is a real numeric
+   CSS custom property (set by the editor to exportWidth / 100),
+   not the `cqi` container-query unit. `cqi` isn't reliably resolved
+   by html-to-image when it serializes the DOM for export, so every
+   size in this file must route through this helper instead of using
+   raw `cqi`/`vw` values.
+───────────────────────────────────────────────────────────────── */
+
+const cq = (n: number) => `calc(var(--ci) * ${n})`;
+
+/* ─────────────────────────────────────────────────────────────────
    HELPERS
-   Same alpha-compositing contract as PremiumBrandTemplate — used for
-   the contact-bar framing so the footer stops reading as an
-   afterthought and matches the other two templates' weight.
 ───────────────────────────────────────────────────────────────── */
 
 function hexToRgba(hex: string, alpha: number) {
@@ -148,8 +157,9 @@ const VariantMonoSplit = ({
           src={productImage}
           alt="Product"
           fill
-          className="object-cover object-center"
+          unoptimized
           crossOrigin="anonymous"
+          className="object-cover object-center"
         />
 
         {/* Fade into the content panel */}
@@ -164,7 +174,7 @@ const VariantMonoSplit = ({
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            boxShadow: `inset 0 0 ${"6cqi"} ${hexToRgba(colors.primary, 0.18)}`,
+            boxShadow: `inset 0 0 ${cq(6)} ${hexToRgba(colors.primary, 0.18)}`,
           }}
         />
       </div>
@@ -177,7 +187,7 @@ const VariantMonoSplit = ({
           width: "45%",
           height: "100%",
           backgroundColor: colors.primary,
-          padding: "7cqi 6cqi 7cqi 5cqi",
+          padding: `${cq(7)} ${cq(6)} ${cq(7)} ${cq(5)}`,
         }}
       >
         {/* Brand */}
@@ -191,7 +201,7 @@ const VariantMonoSplit = ({
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             style={{
-              fontSize: "2.2cqi",
+              fontSize: cq(2.2),
               fontWeight: 700,
               letterSpacing: "0.22em",
               textTransform: "uppercase",
@@ -202,8 +212,8 @@ const VariantMonoSplit = ({
 
           <div
             style={{
-              width: "1.8cqi",
-              height: "1.8cqi",
+              width: cq(1.8),
+              height: cq(1.8),
               borderRadius: "50%",
               backgroundColor: colors.accent,
             }}
@@ -217,15 +227,15 @@ const VariantMonoSplit = ({
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            gap: "3cqi",
+            gap: cq(3),
             overflow: "hidden",
           }}
         >
-          <div style={{ width: "8cqi", height: "0.3cqi", backgroundColor: colors.accent, marginBottom: "1cqi" }} />
+          <div style={{ width: cq(8), height: cq(0.3), backgroundColor: colors.accent, marginBottom: cq(1) }} />
 
           <h1
             style={{
-              fontSize: "clamp(24px, 11cqi, 96px)",
+              fontSize: `clamp(24px, ${cq(11)}, 96px)`,
               fontWeight: 800,
               lineHeight: 0.92,
               letterSpacing: "-0.03em",
@@ -258,7 +268,7 @@ const VariantMonoSplit = ({
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               style={{
-                fontSize: "2.6cqi",
+                fontSize: cq(2.6),
                 lineHeight: 1.5,
                 color: colors.secondary,
                 opacity: 0.55,
@@ -304,7 +314,7 @@ const VariantMonoSplit = ({
           )}
 
           {price !== undefined && price !== "" && (
-            <div style={{ display: "inline-flex", alignItems: "baseline", gap: "0.8cqi", marginTop: "1cqi" }}>
+            <div style={{ display: "inline-flex", alignItems: "baseline", gap: cq(0.8), marginTop: cq(1) }}>
               <EditableText
                 as="span"
                 fieldId="f-price"
@@ -314,7 +324,7 @@ const VariantMonoSplit = ({
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
                 style={{
-                  fontSize: "7cqi",
+                  fontSize: cq(7),
                   fontWeight: 700,
                   letterSpacing: "-0.04em",
                   color: colors.secondary,
@@ -325,17 +335,17 @@ const VariantMonoSplit = ({
         </div>
 
         {/* Bottom actions */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "2.5cqi" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: cq(2.5) }}>
           <div
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: "2cqi",
+              gap: cq(2),
               backgroundColor: colors.secondary,
               color: colors.primary,
-              padding: "2.2cqi 4cqi",
+              padding: `${cq(2.2)} ${cq(4)}`,
               borderRadius: "100px",
-              fontSize: "2.4cqi",
+              fontSize: cq(2.4),
               fontWeight: 600,
               letterSpacing: "0.02em",
               width: "fit-content",
@@ -351,7 +361,7 @@ const VariantMonoSplit = ({
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
             />
-            <svg width="1.4cqi" height="1.4cqi" viewBox="0 0 12 12" fill="currentColor">
+            <svg width={cq(1.4)} height={cq(1.4)} viewBox="0 0 12 12" fill="currentColor">
               <path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
             </svg>
           </div>
@@ -361,7 +371,7 @@ const VariantMonoSplit = ({
           <div
             style={{
               borderTop: `1px solid ${hexToRgba(colors.accent, 0.18)}`,
-              paddingTop: "2cqi",
+              paddingTop: cq(2),
             }}
           >
             <ContactBar
@@ -447,7 +457,7 @@ const VariantKoan = ({
       style={{ backgroundColor: colors.primary, color: colors.secondary }}
     >
       {/* Brand */}
-      <div style={{ padding: "5cqi 0 0", textAlign: "center", zIndex: 10, flexShrink: 0 }}>
+      <div style={{ padding: `${cq(5)} 0 0`, textAlign: "center", zIndex: 10, flexShrink: 0 }}>
         <EditableText
           as="span"
           fieldId="f-brand"
@@ -457,7 +467,7 @@ const VariantKoan = ({
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
           style={{
-            fontSize: "2cqi",
+            fontSize: cq(2),
             fontWeight: 700,
             letterSpacing: "0.3em",
             textTransform: "uppercase",
@@ -477,11 +487,11 @@ const VariantKoan = ({
           onFocusEl={onFocusEl}
           onBlurEl={onBlurEl}
           style={{
-            fontSize: "2.4cqi",
+            fontSize: cq(2.4),
             fontStyle: "italic",
             color: colors.secondary,
             opacity: 0.35,
-            margin: "2cqi 0 0",
+            margin: `${cq(2)} 0 0`,
             letterSpacing: "0.04em",
             zIndex: 10,
             flexShrink: 0,
@@ -494,10 +504,10 @@ const VariantKoan = ({
         <div
           style={{
             position: "absolute",
-            width: "70cqi",
-            height: "70cqi",
+            width: cq(70),
+            height: cq(70),
             borderRadius: "50%",
-            border: `0.12cqi solid ${colors.secondary}`,
+            border: `${cq(0.12)} solid ${colors.secondary}`,
             opacity: 0.08,
             zIndex: 2,
           }}
@@ -505,22 +515,23 @@ const VariantKoan = ({
         <div
           style={{
             position: "absolute",
-            width: "52cqi",
-            height: "52cqi",
+            width: cq(52),
+            height: cq(52),
             borderRadius: "50%",
-            border: `0.2cqi solid ${colors.accent}`,
+            border: `${cq(0.2)} solid ${colors.accent}`,
             opacity: 0.6,
             zIndex: 2,
           }}
         />
-        <div style={{ position: "relative", width: "62cqi", height: "62cqi", zIndex: 10 }}>
+        <div style={{ position: "relative", width: cq(62), height: cq(62), zIndex: 10 }}>
           <Image
             src={productImage}
             alt="Product"
             fill
-            className="object-contain"
-            style={{ filter: "drop-shadow(0 4cqi 8cqi rgba(0,0,0,0.12))" }}
+            unoptimized
             crossOrigin="anonymous"
+            className="object-contain"
+            style={{ filter: `drop-shadow(0 ${cq(4)} ${cq(8)} rgba(0,0,0,0.12))` }}
           />
         </div>
       </div>
@@ -530,19 +541,19 @@ const VariantKoan = ({
         style={{
           flexShrink: 0,
           textAlign: "center",
-          padding: "0 8cqi 5.5cqi",
+          padding: `0 ${cq(8)} ${cq(5.5)}`,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: "2.5cqi",
+          gap: cq(2.5),
           width: "100%",
         }}
       >
-        <div style={{ width: "5cqi", height: "0.25cqi", backgroundColor: colors.accent }} />
+        <div style={{ width: cq(5), height: cq(0.25), backgroundColor: colors.accent }} />
 
         <h1
           style={{
-            fontSize: "clamp(20px, 9cqi, 80px)",
+            fontSize: `clamp(20px, ${cq(9)}, 80px)`,
             fontWeight: 700,
             letterSpacing: "-0.03em",
             lineHeight: 0.95,
@@ -575,7 +586,7 @@ const VariantKoan = ({
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             style={{
-              fontSize: "2.4cqi",
+              fontSize: cq(2.4),
               lineHeight: 1.5,
               color: colors.secondary,
               opacity: 0.45,
@@ -587,7 +598,7 @@ const VariantKoan = ({
         )}
 
         {(hasFeatures || hasWhyChooseUs) && (
-          <div style={{ width: "100%", maxWidth: "65cqi", textAlign: "left", display: "flex", flexDirection: "column", gap: "2cqi" }}>
+          <div style={{ width: "100%", maxWidth: cq(65), textAlign: "left", display: "flex", flexDirection: "column", gap: cq(2) }}>
             {hasFeatures && (
               <FeatureList
                 features={features!.slice(0, 3)}
@@ -623,7 +634,7 @@ const VariantKoan = ({
           </div>
         )}
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4cqi", marginTop: "0.5cqi", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: cq(4), marginTop: cq(0.5), flexWrap: "wrap" }}>
           {price !== undefined && price !== "" && (
             <EditableText
               as="span"
@@ -633,7 +644,7 @@ const VariantKoan = ({
               onChange={(value) => onUpdate?.("price", value)}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
-              style={{ fontSize: "4cqi", fontWeight: 700, color: colors.accent, letterSpacing: "-0.02em" }}
+              style={{ fontSize: cq(4), fontWeight: 700, color: colors.accent, letterSpacing: "-0.02em" }}
             />
           )}
 
@@ -646,10 +657,10 @@ const VariantKoan = ({
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             style={{
-              border: `0.12cqi solid ${colors.secondary}`,
-              padding: "1.6cqi 4.5cqi",
+              border: `${cq(0.12)} solid ${colors.secondary}`,
+              padding: `${cq(1.6)} ${cq(4.5)}`,
               borderRadius: "100px",
-              fontSize: "2.2cqi",
+              fontSize: cq(2.2),
               fontWeight: 500,
               letterSpacing: "0.06em",
               color: colors.secondary,
@@ -662,7 +673,7 @@ const VariantKoan = ({
         </div>
 
         {/* Contact — framed with a top divider + tint, matching Mono Split */}
-        <div style={{ width: "100%", borderTop: `1px solid ${hexToRgba(colors.accent, 0.18)}`, paddingTop: "2.5cqi" }}>
+        <div style={{ width: "100%", borderTop: `1px solid ${hexToRgba(colors.accent, 0.18)}`, paddingTop: cq(2.5) }}>
           <ContactBar
             phone={phone}
             website={website}
@@ -690,4 +701,3 @@ const VariantKoan = ({
     </div>
   );
 };
-
