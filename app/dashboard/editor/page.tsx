@@ -1212,6 +1212,18 @@ async function saveOrShareFile(blob: Blob, filename: string, mimeType: string) {
   URL.revokeObjectURL(url);
 }
 
+
+async function toDataURL(url: string): Promise<string> {
+  const res = await fetch(url, { mode: "cors" });
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 async function uploadAsset(file: File): Promise<string> {
   const form = new FormData();
   form.append("file", file);
@@ -1374,106 +1386,123 @@ function EditorContent() {
 
   // ========== EXPORT HANDLER (unchanged) ==========
   const exportFlyer = useCallback(async (
-    format: 'png' | 'jpg' | 'pdf',
-    platformId: FormatId | null,
-    action: 'download' | 'share' | null
-  ) => {
-    if (!flyerNodeRef.current) return;
-    if (pendingUploads > 0) {
-      setExportError("Still uploading your image - please wait a moment and try again.");
-      return;
+  format: 'png' | 'jpg' | 'pdf',
+  platformId: FormatId | null,
+  action: 'download' | 'share' | null
+) => {
+  if (!flyerNodeRef.current) return;
+  if (pendingUploads > 0) {
+    setExportError("Still uploading your image - please wait a moment and try again.");
+    return;
+  }
+
+  setExportingFormat(format);
+  setExportError(null);
+
+  const node = flyerNodeRef.current;
+  const targetFormatId = (action === 'share' ? platformId : activeFormat) ?? activeFormat;
+  const fmt = SOCIAL_FORMATS.find(f => f.id === targetFormatId)!;
+
+  const prevWidth = node.style.width;
+  const prevHeight = node.style.height;
+  const prevTransform = node.style.transform;
+  const prevCi = node.style.getPropertyValue("--ci");
+  const prevCb = node.style.getPropertyValue("--cb");
+  let imgEls: HTMLImageElement[] = [];
+  let originalSrcs: string[] = [];
+
+  try {
+    node.style.width = `${fmt.exportW}px`;
+    node.style.height = `${fmt.exportH}px`;
+    node.style.transform = "none";
+    node.style.setProperty("--ci", `${fmt.exportW / 100}px`);
+    node.style.setProperty("--cb", `${fmt.exportH / 100}px`);
+    await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+
+    // Swap all images to data URLs so the canvas is never CORS-tainted
+    imgEls = Array.from(node.querySelectorAll("img"));
+    originalSrcs = imgEls.map(img => img.src);
+    await Promise.all(
+      imgEls.map(async (img, i) => {
+        try {
+          img.src = await toDataURL(originalSrcs[i]);
+        } catch {
+          // leave original src if fetch itself fails
+        }
+      })
+    );
+    await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+
+    const { toPng, toJpeg } = await import("html-to-image");
+    const snapshotOpts = {
+      pixelRatio: 1,
+      cacheBust: true,
+      width: fmt.exportW,
+      height: fmt.exportH,
+      filter: (node: HTMLElement) => {
+        if (node.getAttribute && node.getAttribute("data-flyer-control") === "true") return false;
+        return true;
+      },
+    };
+
+    let blob: Blob;
+    if (format === "png") {
+      const dataUrl = await toPng(node, snapshotOpts);
+      blob = await (await fetch(dataUrl)).blob();
+    } else if (format === "jpg") {
+      const dataUrl = await toJpeg(node, { ...snapshotOpts, quality: 0.95, backgroundColor: "#ffffff" });
+      blob = await (await fetch(dataUrl)).blob();
+    } else { // PDF
+      const { default: jsPDF } = await import("jspdf");
+      const dataUrl = await toPng(node, snapshotOpts);
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+      const pdf = new jsPDF({
+        orientation: img.width >= img.height ? "landscape" : "portrait",
+        unit: "px",
+        format: [img.width, img.height],
+      });
+      pdf.addImage(dataUrl, "PNG", 0, 0, img.width, img.height);
+      blob = pdf.output("blob");
     }
 
-    setExportingFormat(format);
-    setExportError(null);
+    const ext = format === 'pdf' ? 'pdf' : format;
+    const filename = `flyer-${targetFormatId}-${Date.now()}.${ext}`;
+    const mimeType = format === 'pdf' ? 'application/pdf' : `image/${format}`;
 
-    const node = flyerNodeRef.current;
-    const targetFormatId = (action === 'share' ? platformId : activeFormat) ?? activeFormat;
-    const fmt = SOCIAL_FORMATS.find(f => f.id === targetFormatId)!;
-
-    const prevWidth = node.style.width;
-    const prevHeight = node.style.height;
-    const prevTransform = node.style.transform;         
-    const prevCi = node.style.getPropertyValue("--ci");
-    const prevCb = node.style.getPropertyValue("--cb");
-
-    try {
-      node.style.width = `${fmt.exportW}px`;
-      node.style.height = `${fmt.exportH}px`;
-      node.style.transform = "none";                      
-      node.style.setProperty("--ci", `${fmt.exportW / 100}px`);
-      node.style.setProperty("--cb", `${fmt.exportH / 100}px`);
-      await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
-
-      const { toPng, toJpeg } = await import("html-to-image");
-      const snapshotOpts = {
-        pixelRatio: 1,
-        cacheBust: true,
-        width: fmt.exportW,
-        height: fmt.exportH,
-        filter: (node: HTMLElement) => {
-          if (node.getAttribute && node.getAttribute("data-flyer-control") === "true") return false;
-          return true;
-        },
-      };
-
-      let blob: Blob;
-      if (format === "png") {
-        const dataUrl = await toPng(node, snapshotOpts);
-        blob = await (await fetch(dataUrl)).blob();
-      } else if (format === "jpg") {
-        const dataUrl = await toJpeg(node, { ...snapshotOpts, quality: 0.95, backgroundColor: "#ffffff" });
-        blob = await (await fetch(dataUrl)).blob();
-      } else { // PDF
-        const { default: jsPDF } = await import("jspdf");
-        const dataUrl = await toPng(node, snapshotOpts);
-        const img = new Image();
-        img.src = dataUrl;
-        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
-        const pdf = new jsPDF({
-          orientation: img.width >= img.height ? "landscape" : "portrait",
-          unit: "px",
-          format: [img.width, img.height],
-        });
-        pdf.addImage(dataUrl, "PNG", 0, 0, img.width, img.height);
-        blob = pdf.output("blob");
-      }
-
-      const ext = format === 'pdf' ? 'pdf' : format;
-      const filename = `flyer-${targetFormatId}-${Date.now()}.${ext}`;
-      const mimeType = format === 'pdf' ? 'application/pdf' : `image/${format}`;
-
-      if (action === 'share' && format !== 'pdf') {
-        const file = new File([blob], filename, { type: mimeType });
-        if (navigator.canShare?.({ files: [file] })) {
-          try {
-            await navigator.share({ files: [file], title: filename });
-          } catch {
-            await saveOrShareFile(blob, filename, mimeType);
-          }
-        } else {
+    if (action === 'share' && format !== 'pdf') {
+      const file = new File([blob], filename, { type: mimeType });
+      if (navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: filename });
+        } catch {
           await saveOrShareFile(blob, filename, mimeType);
         }
       } else {
         await saveOrShareFile(blob, filename, mimeType);
       }
+    } else {
+      await saveOrShareFile(blob, filename, mimeType);
+    }
 
-    } catch (err) {
-      console.error(err);
-      setExportError(
-        err instanceof Error
-          ? `${err.message} - this is usually a CORS issue with your product image.`
-          : "Export failed."
-      );
-    } finally {
-  node.style.width = prevWidth;
-  node.style.height = prevHeight;
-  node.style.transform = prevTransform;               // ADD
-  if (prevCi) node.style.setProperty("--ci", prevCi); else node.style.removeProperty("--ci");
-  if (prevCb) node.style.setProperty("--cb", prevCb); else node.style.removeProperty("--cb");
-  setExportingFormat(null);
-}
-  }, [flyerNodeRef, activeFormat, pendingUploads]);
+  } catch (err) {
+    console.error(err);
+    setExportError(
+      err instanceof Error
+        ? `${err.message} - this is usually a CORS issue with your product image.`
+        : "Export failed."
+    );
+  } finally {
+    node.style.width = prevWidth;
+    node.style.height = prevHeight;
+    node.style.transform = prevTransform;
+    if (prevCi) node.style.setProperty("--ci", prevCi); else node.style.removeProperty("--ci");
+    if (prevCb) node.style.setProperty("--cb", prevCb); else node.style.removeProperty("--cb");
+    imgEls.forEach((img, i) => { img.src = originalSrcs[i]; });
+    setExportingFormat(null);
+  }
+}, [flyerNodeRef, activeFormat, pendingUploads]);
 
   // -------- LOAD DATA (unchanged) --------
   useEffect(() => {
