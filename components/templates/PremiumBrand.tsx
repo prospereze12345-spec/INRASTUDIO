@@ -30,10 +30,10 @@ export interface PremiumBrandProps {
   headline: string;
   subtext: string;
   ctaText: string;
-  ctaVisible?: boolean; // <-- NEW: CTA visibility toggle
+  ctaVisible?: boolean;
 
   badgeText?: string;
-  productImage: string;
+  productImage: string; // can be empty, we'll handle it
   brandName?: string;
   website?: string;
   price?: string;
@@ -52,11 +52,9 @@ export interface PremiumBrandProps {
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
 
-  // Backend-provided content
   features?: string[];
   whyChooseUs?: string[];
 
-  // Section visibility
   featuresVisible?: boolean;
   whyChooseUsVisible?: boolean;
 
@@ -64,11 +62,9 @@ export interface PremiumBrandProps {
   emailVisible?: boolean;
   websiteVisible?: boolean;
 
-  // Section restore
   onRestoreFeatures?: () => void;
   onRestoreWhyChooseUs?: () => void;
 
-  // Contact visibility
   onRemovePhone?: () => void;
   onRemoveEmail?: () => void;
   onRemoveWebsite?: () => void;
@@ -77,17 +73,14 @@ export interface PremiumBrandProps {
   onRestoreEmail?: () => void;
   onRestoreWebsite?: () => void;
 
-  // Feature editing
   onUpdateFeature?: (index: number, value: string) => void;
   onAddFeature?: () => void;
   onRemoveFeature?: (index: number) => void;
 
-  // Why choose us editing
   onUpdateWhyChooseUs?: (index: number, value: string) => void;
   onAddWhyChooseUs?: () => void;
   onRemoveWhyChooseUs?: (index: number) => void;
 
-  // Legacy compatibility
   extraText?: string;
 }
 
@@ -124,13 +117,8 @@ export function PremiumBrandTemplate(props: PremiumBrandProps) {
     colors,
   } = props;
 
-  if (!headline || !productImage || !colors) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-neutral-100 text-neutral-400 text-sm">
-        Loading template...
-      </div>
-    );
-  }
+  // REMOVED the early return – we always render the template structure.
+  // If productImage is missing, we show a placeholder inside the image area.
 
   const templateName = props.name || "Digital Agency";
 
@@ -363,7 +351,7 @@ function VariantDigitalAgency({
           {/* HEADLINE                                                     */}
           {/* ========================================================== */}
 
-                    <h1
+          <h1
             className="font-semibold uppercase tracking-[-0.05em] leading-[0.92]"
             style={{
               fontSize: `clamp(2rem, ${cq(7.4)}, 76px)`,
@@ -418,7 +406,7 @@ function VariantDigitalAgency({
           {/* BENEFITS                                                      */}
           {/* ========================================================== */}
 
-                              <div
+          <div
             className="shrink-0 flex flex-col"
             style={{
               marginTop: cq(3),
@@ -543,23 +531,38 @@ function VariantDigitalAgency({
         {/* RIGHT PRODUCT IMAGE                                               */}
         {/* ================================================================ */}
 
-               <section
-  className="absolute right-0 top-1/2 -translate-y-1/2"
-  style={{
-    width: "38%",
-    height: "74%",
-    right: cq(8),
-  }}
->
-  <Image
-  src={productImage}
-  alt=""
-  fill
-  priority
-  unoptimized          // ADD THIS
-  crossOrigin="anonymous"
-  className="object-contain"
-/>
+        <section
+          className="absolute right-0 top-1/2 -translate-y-1/2"
+          style={{
+            width: "38%",
+            height: "74%",
+            right: cq(8),
+          }}
+        >
+          {productImage ? (
+            <Image
+              src={productImage}
+              alt=""
+              fill
+              priority
+              unoptimized
+              crossOrigin="anonymous"
+              className="object-contain"
+            />
+          ) : (
+            // Fallback placeholder when no image is provided
+            <div
+              className="w-full h-full flex items-center justify-center rounded-lg"
+              style={{
+                backgroundColor: hexToRgba(colors.secondary, 0.08),
+                border: `1px dashed ${hexToRgba(colors.secondary, 0.15)}`,
+              }}
+            >
+              <span className="text-[11px] font-medium opacity-30" style={{ color: colors.secondary }}>
+                No image
+              </span>
+            </div>
+          )}
 
           {badgeText && (
             <div
@@ -651,6 +654,7 @@ function VariantDigitalAgency({
     </div>
   );
 }
+
 // ============================================================================
 // PREMIUM GOLD
 // ============================================================================
@@ -839,23 +843,37 @@ function VariantPremiumGold({
 
         {/* PRODUCT IMAGE */}
 
-                <div
-  className="absolute right-0 top-1/2 -translate-y-1/2"
-  style={{
-    width: "38%",
-    height: "74%",
-    right: cq(8),
-  }}
->
-  <Image
-  src={productImage}
-  alt=""
-  fill
-  priority
-  unoptimized          // ADD THIS
-  crossOrigin="anonymous"
-  className="object-contain"
-/>
+        <div
+          className="absolute right-0 top-1/2 -translate-y-1/2"
+          style={{
+            width: "38%",
+            height: "74%",
+            right: cq(8),
+          }}
+        >
+          {productImage ? (
+            <Image
+              src={productImage}
+              alt=""
+              fill
+              priority
+              unoptimized
+              crossOrigin="anonymous"
+              className="object-contain"
+            />
+          ) : (
+            <div
+              className="w-full h-full flex items-center justify-center rounded-lg"
+              style={{
+                backgroundColor: hexToRgba(colors.secondary, 0.08),
+                border: `1px dashed ${hexToRgba(colors.secondary, 0.15)}`,
+              }}
+            >
+              <span className="text-[11px] font-medium opacity-30" style={{ color: colors.secondary }}>
+                No image
+              </span>
+            </div>
+          )}
 
           {badgeText && (
             <div
@@ -876,7 +894,7 @@ function VariantPremiumGold({
             >
               {badgeText}
             </div>
-                   )}
+          )}
         </div>
 
         {/* ================================================================== */}
