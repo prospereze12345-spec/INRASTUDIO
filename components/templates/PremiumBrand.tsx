@@ -118,20 +118,6 @@ function hexToRgba(hex: string, alpha: number) {
 // ============================================================================
 
 export function PremiumBrandTemplate(props: PremiumBrandProps) {
-  const {
-    headline,
-    productImage,
-    colors,
-  } = props;
-
-  if (!headline || !productImage || !colors) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-neutral-100 text-neutral-400 text-sm">
-        Loading template...
-      </div>
-    );
-  }
-
   const templateName = props.name || "Digital Agency";
 
   switch (templateName) {
@@ -551,16 +537,21 @@ function VariantDigitalAgency({
     right: cq(8),
   }}
 >
-  <Image
-  src={productImage}
-  alt=""
-  fill
-  priority
-  unoptimized          // ADD THIS
-  crossOrigin="anonymous"
-  className="object-contain"
-/>
-
+    {productImage ? (
+    <Image
+      src={productImage}
+      alt=""
+      fill
+      priority
+      unoptimized
+      crossOrigin="anonymous"
+      className="object-contain"
+    />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center bg-neutral-200 text-neutral-400 text-xs rounded-lg">
+      No image yet
+    </div>
+  )}
           {badgeText && (
             <div
               className="absolute flex items-center justify-center rounded-full text-center font-bold uppercase leading-tight"
@@ -847,15 +838,21 @@ function VariantPremiumGold({
     right: cq(8),
   }}
 >
-  <Image
-  src={productImage}
-  alt=""
-  fill
-  priority
-  unoptimized          // ADD THIS
-  crossOrigin="anonymous"
-  className="object-contain"
-/>
+    {productImage ? (
+    <Image
+      src={productImage}
+      alt=""
+      fill
+      priority
+      unoptimized
+      crossOrigin="anonymous"
+      className="object-contain"
+    />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center bg-neutral-200 text-neutral-400 text-xs rounded-lg">
+      No image yet
+    </div>
+  )}
 
           {badgeText && (
             <div

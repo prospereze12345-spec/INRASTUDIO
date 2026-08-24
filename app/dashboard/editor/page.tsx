@@ -876,13 +876,11 @@ const VideoPanel = memo(function VideoPanel({
         throw new Error(err.error || `Render failed (${res.status})`);
       }
 
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `promo-${selectedFormat}.mp4`;
-      a.click();
-      URL.revokeObjectURL(url);
+            const blob = await res.blob();
+      const videoBlob = blob.type === "video/mp4"
+        ? blob
+        : new Blob([blob], { type: "video/mp4" });
+      await saveOrShareFile(videoBlob, `promo-${selectedFormat}.mp4`, "video/mp4");
     } catch (err) {
       console.error(err);
       setDownloadError(err instanceof Error ? err.message : "Video render failed.");
@@ -1417,19 +1415,19 @@ const exportFlyer = useCallback(async (
 
   try {
     // Swap all images to data URLs so the canvas is never CORS-tainted
-    imgEls = Array.from(node.querySelectorAll("img"));
+        imgEls = Array.from(node.querySelectorAll("img"));
     originalSrcs = imgEls.map(img => img.src);
-        await Promise.all(
+    await Promise.all(
       imgEls.map(async (img, i) => {
-        img.src = await toDataURL(originalSrcs[i]);
+        img.crossOrigin = "anonymous";
+        const dataUrl = await toDataURL(originalSrcs[i]);
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error(`Image failed to render: ${originalSrcs[i]}`));
+          img.src = dataUrl;
+        });
         if (typeof img.decode === "function") {
           await img.decode().catch(() => {});
-        } else {
-          await new Promise<void>((resolve) => {
-            if (img.complete) return resolve();
-            img.onload = () => resolve();
-            img.onerror = () => resolve();
-          });
         }
       })
     );

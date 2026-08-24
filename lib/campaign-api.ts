@@ -1,5 +1,6 @@
 ﻿
 import { apiFetch, ApiError } from "@/lib/auth";
+
 export type JobStatus = "pending" | "processing" | "done" | "error";
 
 export interface JobCreatedResponse {
@@ -15,6 +16,7 @@ export interface Caption {
   platform: string;
   text: string;
 }
+
 export interface JobResultResponse {
   job_id: string;
   status: "done";
@@ -56,7 +58,8 @@ export interface JobResultResponse {
   };
   template_category?: string;
 }
-// â”€â”€â”€ 1. Create job (POST /api/campaign/generate/) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+// --- 1. Create job (POST /api/campaign/generate/) --------------------------
 export async function createCampaignJob(imageFile: File | Blob): Promise<JobCreatedResponse> {
   const form = new FormData();
   form.append("image", imageFile);
@@ -69,25 +72,25 @@ export async function createCampaignJob(imageFile: File | Blob): Promise<JobCrea
   });
 }
 
-// â”€â”€â”€ 2. Poll job status (GET /api/campaign/status/<job_id>/) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- 2. Poll job status (GET /api/campaign/status/<job_id>/) ---------------
 export async function getJobStatus(jobId: string): Promise<JobStatusResponse> {
   return apiFetch<JobStatusResponse>(`/api/campaign/status/${jobId}`);
 }
 
-// â”€â”€â”€ 3. Fetch result (GET /api/campaign/result/<job_id>/) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- 3. Fetch result (GET /api/campaign/result/<job_id>/) ------------------
 export async function getJobResult(jobId: string): Promise<JobResultResponse> {
   return apiFetch<JobResultResponse>(`/api/campaign/result/${jobId}`);
 }
 
-// â”€â”€â”€ 3b. Fetch by id + cache (used when opening an existing campaign,
-//         e.g. from the dashboard's "Recent Campaigns" list) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- 3b. Fetch by id + cache (used when opening an existing campaign,
+//         e.g. from the dashboard's "Recent Campaigns" list) --------------
 export async function fetchJobById(jobId: string): Promise<JobResultResponse> {
   const result = await getJobResult(jobId);
   saveJobResult(result);
   return result;
 }
 
-// â”€â”€â”€ 4. Poll-until-done helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- 4. Poll-until-done helper ---------------------------------------------
 export async function pollUntilDone(
   jobId: string,
   opts?: {
@@ -110,7 +113,7 @@ export async function pollUntilDone(
   throw new Error("Timed out waiting for job to complete");
 }
 
-// â”€â”€â”€ Cache layer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Cache layer -------------------------------------------------------------
 // sessionStorage doesn't survive mobile in-app browsers, PWA relaunches, or
 // iOS backgrounding as reliably as desktop tabs. We keep sessionStorage as
 // the fast path but fall back to localStorage (with a TTL so stale campaign
@@ -118,7 +121,7 @@ export async function pollUntilDone(
 const SS_JOB_ID = "campaign_job_id";
 const SS_RESULT = "campaign_result";
 const LS_RESULT_PREFIX = "campaign_result_cache:";
-const CACHE_TTL_MS = 1000 * 60 * 30; // 30 min â€” long enough to survive an app
+const CACHE_TTL_MS = 1000 * 60 * 30; // 30 min - long enough to survive an app
                                       // relaunch mid-edit, short enough to avoid
                                       // showing a genuinely stale campaign.
 
@@ -133,7 +136,7 @@ export function saveJobResult(result: JobResultResponse): void {
     const entry: CachedEntry = { result, cachedAt: Date.now() };
     localStorage.setItem(`${LS_RESULT_PREFIX}${result.job_id}`, JSON.stringify(entry));
   } catch {
-    // localStorage full/unavailable (private mode etc.) â€” sessionStorage still works
+    // localStorage full/unavailable (private mode etc.) - sessionStorage still works
   }
 }
 
@@ -173,14 +176,9 @@ export function clearJobResult(jobId?: string | null): void {
   }
 }
 
-// â”€â”€â”€ util â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- util --------------------------------------------------------------------
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export { ApiError };
-
-
-
-
-
