@@ -1193,16 +1193,23 @@ const VALID_CATEGORIES: FlyerState["templateCategory"][] = [
 async function saveOrShareFile(blob: Blob, filename: string, mimeType: string) {
   const file = new File([blob], filename, { type: mimeType });
 
-  if (navigator.canShare?.({ files: [file] })) {
+  if (!isInAppWebView() && navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: filename });
       return;
     } catch {
-      // fall through to download
+      // fall through
     }
   }
 
   const url = URL.createObjectURL(blob);
+
+  if (isInAppWebView() || mimeType.startsWith("image/")) {
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    return;
+  }
+
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
@@ -1212,9 +1219,15 @@ async function saveOrShareFile(blob: Blob, filename: string, mimeType: string) {
   URL.revokeObjectURL(url);
 }
 
-
+function isInAppWebView(): boolean {
+  const ua = navigator.userAgent || "";
+  return /FBAN|FBAV|Instagram|WhatsApp|Line\/|MicroMessenger|Twitter/i.test(ua);
+}
 async function toDataURL(url: string): Promise<string> {
-  const res = await fetch(url, { mode: "cors" });
+  const res = await fetch(url, { mode: "cors", cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`Image fetch failed (${res.status}): ${url}`);
+  }
   const blob = await res.blob();
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1406,25 +1419,17 @@ const exportFlyer = useCallback(async (
     // Swap all images to data URLs so the canvas is never CORS-tainted
     imgEls = Array.from(node.querySelectorAll("img"));
     originalSrcs = imgEls.map(img => img.src);
-    await Promise.all(
+        await Promise.all(
       imgEls.map(async (img, i) => {
-        try {
-          img.src = await toDataURL(originalSrcs[i]);
-          if (typeof img.decode === "function") {
-            await img.decode().catch(() => new Promise<void>((resolve) => {
-              if (img.complete) return resolve();
-              img.onload = () => resolve();
-              img.onerror = () => resolve();
-            }));
-          } else {
-            await new Promise<void>((resolve) => {
-              if (img.complete) return resolve();
-              img.onload = () => resolve();
-              img.onerror = () => resolve();
-            });
-          }
-        } catch {
-          // leave original src if fetch itself fails
+        img.src = await toDataURL(originalSrcs[i]);
+        if (typeof img.decode === "function") {
+          await img.decode().catch(() => {});
+        } else {
+          await new Promise<void>((resolve) => {
+            if (img.complete) return resolve();
+            img.onload = () => resolve();
+            img.onerror = () => resolve();
+          });
         }
       })
     );
