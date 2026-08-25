@@ -814,7 +814,7 @@ interface VideoPanelProps {
 }
 
 // ============================================================================
-// VIDEO PANEL — with polling
+// VIDEO PANEL — with polling and direct download
 // ============================================================================
 const VideoPanel = memo(function VideoPanel({
   flyer,
@@ -826,6 +826,7 @@ const VideoPanel = memo(function VideoPanel({
   const [selectedFormat, setSelectedFormat] = useState<FormatId>(activeFormatId);
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const playerRef = useRef<PlayerRef>(null);
 
   const fmt = SOCIAL_FORMATS.find(f => f.id === selectedFormat)!;
@@ -848,65 +849,65 @@ const VideoPanel = memo(function VideoPanel({
     badge: badgeOverlay.visible ? badgeOverlay : null,
   };
 
-const POLL_INTERVAL_MS = 3000;
-const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const POLL_INTERVAL_MS = 3000;
 
-const pollJobStatus = useCallback(async (
-  videoJobId: string,
-  onTick: (seconds: number) => void
-): Promise<string> => {
-  let seconds = 0;
-  while (true) {
-    await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
-    seconds += POLL_INTERVAL_MS / 1000;
-    onTick(seconds);
+  const pollJobStatus = useCallback(async (
+    videoJobId: string,
+    onTick: (seconds: number) => void
+  ): Promise<string> => {
+    let seconds = 0;
+    while (true) {
+      await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+      seconds += POLL_INTERVAL_MS / 1000;
+      onTick(seconds);
 
-    const statusRes = await fetch(`/api/campaign/render-video/${videoJobId}/`);
-    if (!statusRes.ok) throw new Error(`Status check failed (${statusRes.status})`);
-    const statusData = await statusRes.json();
-    if (statusData.status === "success") return statusData.video_url;
-    if (statusData.status === "failed") throw new Error(statusData.error || "Render failed");
-  }
-}, []);
-
-const downloadFromUrl = async (videoUrl: string, filename: string) => {
-  const videoRes = await fetch(videoUrl);
-  const blob = await videoRes.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-};
-
-const handleDownload = async () => {
-  if (downloading) return;
-  setDownloading(true);
-  setDownloadError(null);
-  setElapsedSeconds(0);
-
-  try {
-    const res = await fetch("/api/campaign/render-video/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ format: selectedFormat, props: promoProps }),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || `Render failed (${res.status})`);
+      const statusRes = await fetch(`/api/campaign/render-video/${videoJobId}/`);
+      if (!statusRes.ok) throw new Error(`Status check failed (${statusRes.status})`);
+      const statusData = await statusRes.json();
+      if (statusData.status === "success") return statusData.video_url;
+      if (statusData.status === "failed") throw new Error(statusData.error || "Render failed");
     }
-    const { job_id: videoJobId } = await res.json();
+  }, []);
 
-    const videoUrl = await pollJobStatus(videoJobId, setElapsedSeconds);
-    await downloadFromUrl(videoUrl, `promo-${selectedFormat}.mp4`);
-  } catch (err) {
-    console.error(err);
-    setDownloadError(err instanceof Error ? err.message : "Video render failed.");
-  } finally {
-    setDownloading(false);
-  }
-};
+  const downloadFromUrl = async (videoUrl: string, filename: string) => {
+    const videoRes = await fetch(videoUrl);
+    const blob = await videoRes.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownload = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    setDownloadError(null);
+    setElapsedSeconds(0);
+
+    try {
+      const res = await fetch("/api/campaign/render-video/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ format: selectedFormat, props: promoProps }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Render failed (${res.status})`);
+      }
+      const { job_id: videoJobId } = await res.json();
+
+      const videoUrl = await pollJobStatus(videoJobId, setElapsedSeconds);
+      await downloadFromUrl(videoUrl, `promo-${selectedFormat}.mp4`);
+    } catch (err) {
+      console.error(err);
+      setDownloadError(err instanceof Error ? err.message : "Video render failed.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Label>Select format</Label>
@@ -951,17 +952,17 @@ const handleDownload = async () => {
       <Divider />
 
       <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-3 space-y-1.5">
-  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2">
-    Premium video elements included
-  </p>
-  {[
-    "Cinematic product reveal with depth",
-    "Word-by-word animated headline",
-    "Price badge pop with spring physics",
-    "CTA with animated underline sweep",
-    "Brand intro + outro bumpers",
-    "Ambient accent light circles",
-  ].map(t => (
+        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2">
+          Premium video elements included
+        </p>
+        {[
+          "Cinematic product reveal with depth",
+          "Word-by-word animated headline",
+          "Price badge pop with spring physics",
+          "CTA with animated underline sweep",
+          "Brand intro + outro bumpers",
+          "Ambient accent light circles",
+        ].map(t => (
           <div key={t} className="flex items-center gap-2">
             <div className="w-1 h-1 rounded-full bg-cyan-400 shrink-0" />
             <span className="text-[10px] text-zinc-400">{t}</span>
@@ -970,8 +971,8 @@ const handleDownload = async () => {
       </div>
 
       {downloadError && (
-  <p className="text-red-400 text-[11px]">{downloadError}</p>
-)}
+        <p className="text-red-400 text-[11px]">{downloadError}</p>
+      )}
 
       <button
         type="button"
@@ -985,11 +986,11 @@ const handleDownload = async () => {
           }`}
       >
         {downloading ? (
-  <>
-    <div className="w-4 h-4 border-2 border-transparent border-t-black border-r-black rounded-full animate-spin" />
-    <span>Rendering{elapsedSeconds > 0 ? ` (${Math.floor(elapsedSeconds)}s)` : "..."}</span>
-  </>
-) : (
+          <>
+            <div className="w-4 h-4 border-2 border-transparent border-t-black border-r-black rounded-full animate-spin" />
+            <span>Rendering{elapsedSeconds > 0 ? ` (${Math.floor(elapsedSeconds)}s)` : "..."}</span>
+          </>
+        ) : (
           <>
             <Download size={16} />
             <span>Download {fmt.label} Video</span>
@@ -999,7 +1000,6 @@ const handleDownload = async () => {
     </div>
   );
 });
-
 
 const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Caption[] }) {
   const [copied, setCopied] = useState<string | null>(null);
@@ -1104,6 +1104,7 @@ function ExportDropdown({
     </div>
   );
 }
+
 // ============================================================================
 // MAIN EDITOR COMPONENT
 // ============================================================================
@@ -1142,18 +1143,8 @@ const VALID_CATEGORIES: FlyerState["templateCategory"][] = [
   "Luxury Product", "Minimal Product", "Premium Brand",
 ];
 
-async function saveOrShareFile(blob: Blob, filename: string, mimeType: string) {
-  const file = new File([blob], filename, { type: mimeType });
-
-  if (navigator.canShare?.({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: filename });
-      return;
-    } catch {
-      // fall through to download
-    }
-  }
-
+// Direct download helper (no sharing)
+async function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -1356,7 +1347,7 @@ function EditorContent() {
   );
 
   // ============================================================================
-  // EXPORT FLYER — fully implemented
+  // EXPORT FLYER — fully implemented with direct download
   // ============================================================================
   const exportFlyer = useCallback(async (
     format: 'png' | 'jpg' | 'pdf',
@@ -1379,7 +1370,7 @@ function EditorContent() {
       imgEls = Array.from(node.querySelectorAll("img"));
       originalSrcs = imgEls.map(img => img.src);
 
-      // 2. Convert each to data URL with fallback
+      // 2. Convert each to data URL with fallback and wait for them to load
       await Promise.all(
         imgEls.map(async (img, i) => {
           try {
@@ -1397,8 +1388,9 @@ function EditorContent() {
         })
       );
 
-      // 3. Extra wait for layout
+      // 3. Extra wait for layout and paint
       await new Promise(res => requestAnimationFrame(res));
+      await new Promise(res => setTimeout(res, 100));
 
       // 4. Capture with html-to-image
       const { toPng, toJpeg } = await import("html-to-image");
@@ -1409,6 +1401,7 @@ function EditorContent() {
         width: fmt.exportW,
         height: fmt.exportH,
         useCORS: true,
+        skipAutoScale: true,
       };
 
       let blob: Blob;
@@ -1431,11 +1424,10 @@ function EditorContent() {
         blob = await (await fetch(dataUrl)).blob();
       }
 
-      // 5. Download
+      // 5. Direct download (no share)
       const ext = format === 'pdf' ? 'pdf' : format;
       const filename = `flyer-${activeFormat}.${ext}`;
-      const mimeType = format === 'pdf' ? 'application/pdf' : `image/${format}`;
-      await saveOrShareFile(blob, filename, mimeType);
+      await downloadBlob(blob, filename);
 
     } catch (err) {
       console.error(err);
@@ -1445,7 +1437,7 @@ function EditorContent() {
       imgEls.forEach((img, i) => { img.src = originalSrcs[i]; });
       setExportingFormat(null);
     }
-  }, [exportNodeRef, activeFormat, pendingUploads, flyer, logoOverlay, badgeOverlay, freeTexts]);
+  }, [exportNodeRef, activeFormat, pendingUploads]);
 
   // -------- LOAD DATA --------
   useEffect(() => {
