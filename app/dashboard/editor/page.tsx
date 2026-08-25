@@ -848,68 +848,86 @@ const VideoPanel = memo(function VideoPanel({
     badge: badgeOverlay.visible ? badgeOverlay : null,
   };
 
-  const handleDownload = async () => {
-    if (downloading) return;
-    setDownloading(true);
-    setDownloadError(null);
+const [pendingJobId, setPendingJobId] = useState<string | null>(null);
 
-    try {
-      // 1. Start the render
-      const res = await fetch("/api/campaign/render-video/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          format: selectedFormat,
-          props: promoProps,
-        }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `Render failed (${res.status})`);
-      }
-      const { job_id: videoJobId } = await res.json();
+const POLL_INTERVAL_MS = 3000;
+const MAX_POLL_ATTEMPTS = 200; // ~10 minutes
 
-      // 2. Poll for completion
-      let videoUrl: string | null = null;
-      let attempts = 0;
-      const maxAttempts = 60; // 3 minutes with 3s interval
-      while (attempts < maxAttempts) {
-        await new Promise(r => setTimeout(r, 3000));
-        attempts++;
-        const statusRes = await fetch(`/api/campaign/render-video/${videoJobId}/`);
-        if (!statusRes.ok) {
-          throw new Error(`Status check failed (${statusRes.status})`);
-        }
-        const statusData = await statusRes.json();
-        if (statusData.status === "success") {
-          videoUrl = statusData.video_url;
-          break;
-        }
-        if (statusData.status === "failed") {
-          throw new Error(statusData.error || "Render failed");
-        }
-        // still processing, continue
-      }
-      if (!videoUrl) {
-        throw new Error("Render timed out.");
-      }
+const pollJobStatus = useCallback(async (videoJobId: string): Promise<string> => {
+  for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
+    await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+    const statusRes = await fetch(`/api/campaign/render-video/${videoJobId}/`);
+    if (!statusRes.ok) throw new Error(`Status check failed (${statusRes.status})`);
+    const statusData = await statusRes.json();
+    if (statusData.status === "success") return statusData.video_url;
+    if (statusData.status === "failed") throw new Error(statusData.error || "Render failed");
+  }
+  throw new Error("TIMEOUT");
+}, []);
 
-      // 3. Download the video
-      const videoRes = await fetch(videoUrl);
-      const blob = await videoRes.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `promo-${selectedFormat}.mp4`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
+const downloadFromUrl = async (videoUrl: string, filename: string) => {
+  const videoRes = await fetch(videoUrl);
+  const blob = await videoRes.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+const handleDownload = async () => {
+  if (downloading) return;
+  setDownloading(true);
+  setDownloadError(null);
+
+  try {
+    const res = await fetch("/api/campaign/render-video/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ format: selectedFormat, props: promoProps }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Render failed (${res.status})`);
+    }
+    const { job_id: videoJobId } = await res.json();
+    setPendingJobId(videoJobId);
+
+    const videoUrl = await pollJobStatus(videoJobId);
+    await downloadFromUrl(videoUrl, `promo-${selectedFormat}.mp4`);
+    setPendingJobId(null);
+  } catch (err) {
+    if (err instanceof Error && err.message === "TIMEOUT") {
+      setDownloadError("Still rendering — this can take a few minutes. Click 'Check again' below.");
+    } else {
       console.error(err);
       setDownloadError(err instanceof Error ? err.message : "Video render failed.");
-    } finally {
-      setDownloading(false);
+      setPendingJobId(null);
     }
-  };
+  } finally {
+    setDownloading(false);
+  }
+};
+const handleCheckAgain = async () => {
+  if (!pendingJobId || downloading) return;
+  setDownloading(true);
+  setDownloadError(null);
+  try {
+    const videoUrl = await pollJobStatus(pendingJobId);
+    await downloadFromUrl(videoUrl, `promo-${selectedFormat}.mp4`);
+    setPendingJobId(null);
+  } catch (err) {
+    if (err instanceof Error && err.message === "TIMEOUT") {
+      setDownloadError("Still rendering. Click 'Check again' in a bit.");
+    } else {
+      setDownloadError(err instanceof Error ? err.message : "Video render failed.");
+      setPendingJobId(null);
+    }
+  } finally {
+    setDownloading(false);
+  }
+};
 
   return (
     <div className="space-y-4">
@@ -959,12 +977,7 @@ const VideoPanel = memo(function VideoPanel({
           Premium video elements included
         </p>
         {[
-          "Cinematic product reveal with depth",
-          "Word-by-word animated headline",
-          "Price badge pop with spring physics",
-          "CTA with animated underline sweep",
-          "Brand intro + outro bumpers",
-          "Ambient accent light circles",
+          
         ].map(t => (
           <div key={t} className="flex items-center gap-2">
             <div className="w-1 h-1 rounded-full bg-cyan-400 shrink-0" />
@@ -974,7 +987,18 @@ const VideoPanel = memo(function VideoPanel({
       </div>
 
       {downloadError && (
-        <p className="text-red-400 text-[11px]">{downloadError}</p>
+        <div className="space-y-2">
+          <p className="text-red-400 text-[11px]">{downloadError}</p>
+          {pendingJobId && (
+            <button
+              onClick={handleCheckAgain}
+              disabled={downloading}
+              className="w-full py-2 rounded-lg text-[12px] font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
+            >
+              Check again
+            </button>
+          )}
+        </div>
       )}
 
       <button
@@ -1004,9 +1028,7 @@ const VideoPanel = memo(function VideoPanel({
   );
 });
 
-// ============================================================================
-// CAPTIONS PANEL (unchanged)
-// ============================================================================
+
 const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Caption[] }) {
   const [copied, setCopied] = useState<string | null>(null);
 
