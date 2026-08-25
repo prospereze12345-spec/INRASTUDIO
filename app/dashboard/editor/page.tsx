@@ -948,6 +948,7 @@ const VideoPanel = memo(function VideoPanel({
           controls
           loop
           autoPlay
+          acknowledgeRemotionLicense
         />
       </div>
 
