@@ -848,21 +848,25 @@ const VideoPanel = memo(function VideoPanel({
     badge: badgeOverlay.visible ? badgeOverlay : null,
   };
 
-const [pendingJobId, setPendingJobId] = useState<string | null>(null);
-
 const POLL_INTERVAL_MS = 3000;
-const MAX_POLL_ATTEMPTS = 200; // ~10 minutes
+const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
-const pollJobStatus = useCallback(async (videoJobId: string): Promise<string> => {
-  for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
+const pollJobStatus = useCallback(async (
+  videoJobId: string,
+  onTick: (seconds: number) => void
+): Promise<string> => {
+  let seconds = 0;
+  while (true) {
     await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+    seconds += POLL_INTERVAL_MS / 1000;
+    onTick(seconds);
+
     const statusRes = await fetch(`/api/campaign/render-video/${videoJobId}/`);
     if (!statusRes.ok) throw new Error(`Status check failed (${statusRes.status})`);
     const statusData = await statusRes.json();
     if (statusData.status === "success") return statusData.video_url;
     if (statusData.status === "failed") throw new Error(statusData.error || "Render failed");
   }
-  throw new Error("TIMEOUT");
 }, []);
 
 const downloadFromUrl = async (videoUrl: string, filename: string) => {
@@ -880,6 +884,7 @@ const handleDownload = async () => {
   if (downloading) return;
   setDownloading(true);
   setDownloadError(null);
+  setElapsedSeconds(0);
 
   try {
     const res = await fetch("/api/campaign/render-video/", {
@@ -892,43 +897,16 @@ const handleDownload = async () => {
       throw new Error(err.error || `Render failed (${res.status})`);
     }
     const { job_id: videoJobId } = await res.json();
-    setPendingJobId(videoJobId);
 
-    const videoUrl = await pollJobStatus(videoJobId);
+    const videoUrl = await pollJobStatus(videoJobId, setElapsedSeconds);
     await downloadFromUrl(videoUrl, `promo-${selectedFormat}.mp4`);
-    setPendingJobId(null);
   } catch (err) {
-    if (err instanceof Error && err.message === "TIMEOUT") {
-      setDownloadError("Still rendering — this can take a few minutes. Click 'Check again' below.");
-    } else {
-      console.error(err);
-      setDownloadError(err instanceof Error ? err.message : "Video render failed.");
-      setPendingJobId(null);
-    }
+    console.error(err);
+    setDownloadError(err instanceof Error ? err.message : "Video render failed.");
   } finally {
     setDownloading(false);
   }
 };
-const handleCheckAgain = async () => {
-  if (!pendingJobId || downloading) return;
-  setDownloading(true);
-  setDownloadError(null);
-  try {
-    const videoUrl = await pollJobStatus(pendingJobId);
-    await downloadFromUrl(videoUrl, `promo-${selectedFormat}.mp4`);
-    setPendingJobId(null);
-  } catch (err) {
-    if (err instanceof Error && err.message === "TIMEOUT") {
-      setDownloadError("Still rendering. Click 'Check again' in a bit.");
-    } else {
-      setDownloadError(err instanceof Error ? err.message : "Video render failed.");
-      setPendingJobId(null);
-    }
-  } finally {
-    setDownloading(false);
-  }
-};
-
   return (
     <div className="space-y-4">
       <Label>Select format</Label>
@@ -973,12 +951,17 @@ const handleCheckAgain = async () => {
       <Divider />
 
       <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-3 space-y-1.5">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2">
-          Premium video elements included
-        </p>
-        {[
-          
-        ].map(t => (
+  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2">
+    Premium video elements included
+  </p>
+  {[
+    "Cinematic product reveal with depth",
+    "Word-by-word animated headline",
+    "Price badge pop with spring physics",
+    "CTA with animated underline sweep",
+    "Brand intro + outro bumpers",
+    "Ambient accent light circles",
+  ].map(t => (
           <div key={t} className="flex items-center gap-2">
             <div className="w-1 h-1 rounded-full bg-cyan-400 shrink-0" />
             <span className="text-[10px] text-zinc-400">{t}</span>
@@ -987,19 +970,8 @@ const handleCheckAgain = async () => {
       </div>
 
       {downloadError && (
-        <div className="space-y-2">
-          <p className="text-red-400 text-[11px]">{downloadError}</p>
-          {pendingJobId && (
-            <button
-              onClick={handleCheckAgain}
-              disabled={downloading}
-              className="w-full py-2 rounded-lg text-[12px] font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
-            >
-              Check again
-            </button>
-          )}
-        </div>
-      )}
+  <p className="text-red-400 text-[11px]">{downloadError}</p>
+)}
 
       <button
         type="button"
@@ -1013,11 +985,11 @@ const handleCheckAgain = async () => {
           }`}
       >
         {downloading ? (
-          <>
-            <div className="w-4 h-4 border-2 border-transparent border-t-black border-r-black rounded-full animate-spin" />
-            <span>Rendering video...</span>
-          </>
-        ) : (
+  <>
+    <div className="w-4 h-4 border-2 border-transparent border-t-black border-r-black rounded-full animate-spin" />
+    <span>Rendering{elapsedSeconds > 0 ? ` (${Math.floor(elapsedSeconds)}s)` : "..."}</span>
+  </>
+) : (
           <>
             <Download size={16} />
             <span>Download {fmt.label} Video</span>
@@ -1084,21 +1056,39 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
 // ============================================================================
 // EXPORT DROPDOWN (replaces modal)
 // ============================================================================
-function ExportDropdown({ onExport }: { onExport: (format: 'png' | 'jpg' | 'pdf') => void }) {
+function ExportDropdown({
+  onExport,
+  exportingFormat,
+}: {
+  onExport: (format: 'png' | 'jpg' | 'pdf') => void;
+  exportingFormat: 'png' | 'jpg' | 'pdf' | null;
+}) {
   const [open, setOpen] = useState(false);
+  const isExporting = exportingFormat !== null;
 
   return (
     <div className="relative">
       <button
-        onClick={() => setOpen(v => !v)}
+        onClick={() => !isExporting && setOpen(v => !v)}
+        disabled={isExporting}
         className="px-3 sm:px-4 py-2 sm:py-1.5 rounded-lg text-[12px] font-bold bg-cyan-400
-                   hover:bg-cyan-300 text-black flex items-center gap-1.5 transition-colors touch-manipulation"
+                   hover:bg-cyan-300 disabled:opacity-60 disabled:cursor-not-allowed
+                   text-black flex items-center gap-1.5 transition-colors touch-manipulation"
       >
-        <Download size={13} />
-        Export
-        <ChevronDown size={13} />
+        {isExporting ? (
+          <>
+            <Loader2 size={13} className="animate-spin" />
+            Exporting {exportingFormat.toUpperCase()}...
+          </>
+        ) : (
+          <>
+            <Download size={13} />
+            Export
+            <ChevronDown size={13} />
+          </>
+        )}
       </button>
-      {open && (
+      {open && !isExporting && (
         <div className="absolute right-0 mt-1 w-36 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden z-50">
           {(['png', 'jpg', 'pdf'] as const).map(f => (
             <button
@@ -1114,7 +1104,6 @@ function ExportDropdown({ onExport }: { onExport: (format: 'png' | 'jpg' | 'pdf'
     </div>
   );
 }
-
 // ============================================================================
 // MAIN EDITOR COMPONENT
 // ============================================================================
@@ -1660,7 +1649,7 @@ function EditorContent() {
           </span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          <ExportDropdown onExport={exportFlyer} />
+          <ExportDropdown onExport={exportFlyer} exportingFormat={exportingFormat} />
         </div>
       </header>
 
