@@ -1,4 +1,5 @@
 ﻿"use client";
+
 import {
   useState, useEffect, useLayoutEffect, useRef, useCallback, Suspense, memo,
 } from "react";
@@ -12,6 +13,7 @@ import {
   Video, MessageSquare, Check, Copy, Bold, Italic, ListChecks,
   AlignLeft, AlignCenter, AlignRight, Plus, Minus, Package, GripVertical, X,
   UploadCloud, Film, Square, Smartphone, Monitor, Image as ImageIcon, Loader2,
+  ChevronDown,
 } from "lucide-react";
 import { loadJobResult, fetchJobById, ApiError } from "@/lib/campaign-api";
 import type { PlayerRef } from "@remotion/player";
@@ -77,7 +79,7 @@ interface JobResult {
 }
 
 // ============================================================================
-// TEMPLATE RENDERER
+// TEMPLATE RENDERER (unchanged)
 // ============================================================================
 const TemplateRenderer = memo(function TemplateRenderer({
   data,
@@ -214,19 +216,6 @@ const SOCIAL_FORMATS = [
   { id: "tiktok", label: "TikTok", icon: Film, ratio: "9:16", rw: 9, rh: 16, fps: 30, durationS: 12, exportW: 1080, exportH: 1920 },
 ] as const;
 type FormatId = typeof SOCIAL_FORMATS[number]["id"];
-
-// (calcCanvasSize is kept but not used – kept for potential future use)
-function calcCanvasSize(formatId: FormatId, maxW: number, maxH: number): { w: number; h: number } {
-  const fmt = SOCIAL_FORMATS.find(f => f.id === formatId)!;
-  const aspect = fmt.rw / fmt.rh;
-  let w = Math.max(maxW, 240);
-  let h = Math.round(w / aspect);
-  if (h > maxH) {
-    h = Math.max(maxH, 240);
-    w = Math.round(h * aspect);
-  }
-  return { w, h };
-}
 
 const PLATFORM_META: { key: keyof BackendCaptions; label: string; color: string }[] = [
   { key: "instagram", label: "Instagram", color: "text-pink-400" },
@@ -824,6 +813,9 @@ interface VideoPanelProps {
   badgeOverlay: DiscountBadge;
 }
 
+// ============================================================================
+// VIDEO PANEL — with polling
+// ============================================================================
 const VideoPanel = memo(function VideoPanel({
   flyer,
   activeFormatId,
@@ -862,6 +854,7 @@ const VideoPanel = memo(function VideoPanel({
     setDownloadError(null);
 
     try {
+      // 1. Start the render
       const res = await fetch("/api/campaign/render-video/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -870,13 +863,40 @@ const VideoPanel = memo(function VideoPanel({
           props: promoProps,
         }),
       });
-
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || `Render failed (${res.status})`);
       }
+      const { job_id: videoJobId } = await res.json();
 
-      const blob = await res.blob();
+      // 2. Poll for completion
+      let videoUrl: string | null = null;
+      let attempts = 0;
+      const maxAttempts = 60; // 3 minutes with 3s interval
+      while (attempts < maxAttempts) {
+        await new Promise(r => setTimeout(r, 3000));
+        attempts++;
+        const statusRes = await fetch(`/api/campaign/render-video/${videoJobId}/`);
+        if (!statusRes.ok) {
+          throw new Error(`Status check failed (${statusRes.status})`);
+        }
+        const statusData = await statusRes.json();
+        if (statusData.status === "success") {
+          videoUrl = statusData.video_url;
+          break;
+        }
+        if (statusData.status === "failed") {
+          throw new Error(statusData.error || "Render failed");
+        }
+        // still processing, continue
+      }
+      if (!videoUrl) {
+        throw new Error("Render timed out.");
+      }
+
+      // 3. Download the video
+      const videoRes = await fetch(videoUrl);
+      const blob = await videoRes.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -983,6 +1003,9 @@ const VideoPanel = memo(function VideoPanel({
   );
 });
 
+// ============================================================================
+// CAPTIONS PANEL (unchanged)
+// ============================================================================
 const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Caption[] }) {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -1036,118 +1059,35 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
 });
 
 // ============================================================================
-// EXPORT MODAL
+// EXPORT DROPDOWN (replaces modal)
 // ============================================================================
-type ExportModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  onExport: (format: 'png' | 'jpg' | 'pdf', platformId: FormatId | null, action: 'download' | 'share' | null) => void;
-  activeFormat: FormatId;
-};
-
-function ExportModal({ isOpen, onClose, onExport, activeFormat }: ExportModalProps) {
-  const [step, setStep] = useState<'format' | 'action' | 'platform'>('format');
-  const [selectedFormat, setSelectedFormat] = useState<'png' | 'jpg' | 'pdf' | null>(null);
-  const [selectedAction, setSelectedAction] = useState<'download' | 'share' | null>(null);
-  const [selectedPlatform, setSelectedPlatform] = useState<FormatId | null>(null);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setStep('format');
-      setSelectedFormat(null);
-      setSelectedAction(null);
-      setSelectedPlatform(null);
-    }
-  }, [isOpen]);
-
-  const handleFormatSelect = (fmt: 'png' | 'jpg' | 'pdf') => {
-    setSelectedFormat(fmt);
-    if (fmt === 'pdf') {
-      onExport(fmt, activeFormat, 'download');
-      onClose();
-    } else {
-      setStep('action');
-    }
-  };
-
-  const handleActionSelect = (action: 'download' | 'share') => {
-    setSelectedAction(action);
-    if (action === 'download') {
-      onExport(selectedFormat!, activeFormat, 'download');
-      onClose();
-    } else {
-      setStep('platform');
-    }
-  };
-
-  const handlePlatformSelect = (platformId: FormatId) => {
-    setSelectedPlatform(platformId);
-    onExport(selectedFormat!, platformId, 'share');
-    onClose();
-  };
-
-  if (!isOpen) return null;
-
-  const sharePlatforms: { id: FormatId; label: string }[] = [
-    { id: 'ig', label: 'Instagram' },
-    { id: 'tiktok', label: 'TikTok' },
-    { id: 'square', label: 'Facebook' },
-    { id: 'story', label: 'WhatsApp Status' },
-  ];
+function ExportDropdown({ onExport }: { onExport: (format: 'png' | 'jpg' | 'pdf') => void }) {
+  const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-        {step === 'format' && (
-          <>
-            <h2 className="text-lg font-bold text-zinc-100 mb-4">Choose format</h2>
-            <div className="space-y-2">
-              <button onClick={() => handleFormatSelect('png')} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-200 font-semibold flex items-center justify-center gap-2">
-                <ImageIcon size={16} /> PNG
-              </button>
-              <button onClick={() => handleFormatSelect('jpg')} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-200 font-semibold flex items-center justify-center gap-2">
-                <ImageIcon size={16} /> JPG
-              </button>
-              <button onClick={() => handleFormatSelect('pdf')} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-200 font-semibold flex items-center justify-center gap-2">
-                <Download size={16} /> PDF
-              </button>
-            </div>
-          </>
-        )}
-
-        {step === 'action' && (
-          <>
-            <h2 className="text-lg font-bold text-zinc-100 mb-4">Choose action</h2>
-            <div className="space-y-2">
-              <button onClick={() => handleActionSelect('download')} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-200 font-semibold flex items-center justify-center gap-2">
-                <Download size={16} /> Download
-              </button>
-              <button onClick={() => handleActionSelect('share')} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-200 font-semibold flex items-center justify-center gap-2">
-                <UploadCloud size={16} /> Share
-              </button>
-              <button onClick={() => setStep('format')} className="w-full py-2 text-sm text-zinc-500 hover:text-zinc-300">
-                ← Back
-              </button>
-            </div>
-          </>
-        )}
-
-        {step === 'platform' && (
-          <>
-            <h2 className="text-lg font-bold text-zinc-100 mb-4">Share to</h2>
-            <div className="space-y-2">
-              {sharePlatforms.map(p => (
-                <button key={p.id} onClick={() => handlePlatformSelect(p.id)} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-200 font-semibold flex items-center justify-center gap-2">
-                  {p.label}
-                </button>
-              ))}
-              <button onClick={() => setStep('action')} className="w-full py-2 text-sm text-zinc-500 hover:text-zinc-300">
-                ← Back
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+    <div className="relative">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="px-3 sm:px-4 py-2 sm:py-1.5 rounded-lg text-[12px] font-bold bg-cyan-400
+                   hover:bg-cyan-300 text-black flex items-center gap-1.5 transition-colors touch-manipulation"
+      >
+        <Download size={13} />
+        Export
+        <ChevronDown size={13} />
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-1 w-36 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden z-50">
+          {(['png', 'jpg', 'pdf'] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => { onExport(f); setOpen(false); }}
+              className="w-full text-left px-3.5 py-2.5 text-[12px] text-zinc-200 hover:bg-zinc-800"
+            >
+              {f.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -1212,16 +1152,35 @@ async function saveOrShareFile(blob: Blob, filename: string, mimeType: string) {
   URL.revokeObjectURL(url);
 }
 
-
+// Improved toDataURL with fallback
 async function toDataURL(url: string): Promise<string> {
-  const res = await fetch(url, { mode: "cors" });
-  const blob = await res.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
+  // Try fetch with CORS first
+  try {
+    const res = await fetch(url, { mode: "cors" });
+    const blob = await res.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    // Fallback: canvas with the image element
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => reject(new Error('Failed to load image for data URL'));
+      img.src = url;
+    });
+  }
 }
 
 async function uploadAsset(file: File): Promise<string> {
@@ -1255,10 +1214,9 @@ function EditorContent() {
   const [activeTab, setActiveTab] = useState<RsbTab>("design");
   const [activeTool, setActiveTool] = useState<Tool>("select");
   const [activeFormat, setActiveFormat] = useState<FormatId>("ig");
-  const [scale, setScale] = useState<number | null>(null); // null = not measured yet
+  const [scale, setScale] = useState<number | null>(null);
   const [focusedEl, setFocusedEl] = useState<HTMLElement | null>(null);
   const [showFtb, setShowFtb] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
   const [sheetExpanded, setSheetExpanded] = useState(false);
 
   const [logoOverlay, setLogoOverlay] = useState<{
@@ -1384,78 +1342,100 @@ function EditorContent() {
     },
     [update]
   );
-const exportFlyer = useCallback(async (
-  format: 'png' | 'jpg' | 'pdf',
-  platformId: FormatId | null,
-  action: 'download' | 'share' | null
-) => {
-  if (!exportNodeRef.current) return;
-  if (pendingUploads > 0) {
-    setExportError("Still uploading your image - please wait a moment and try again.");
-    return;
-  }
 
-  setExportingFormat(format);
-  setExportError(null);
+  // ============================================================================
+  // EXPORT FLYER — fully implemented
+  // ============================================================================
+  const exportFlyer = useCallback(async (
+    format: 'png' | 'jpg' | 'pdf',
+  ) => {
+    if (!exportNodeRef.current) return;
+    if (pendingUploads > 0) {
+      setExportError("Still uploading your image - please wait a moment and try again.");
+      return;
+    }
 
-  const node = exportNodeRef.current;
-  let imgEls: HTMLImageElement[] = [];
-  let originalSrcs: string[] = [];
+    setExportingFormat(format);
+    setExportError(null);
 
-  try {
-    // 1. Gather all img elements
-    imgEls = Array.from(node.querySelectorAll("img"));
-    originalSrcs = imgEls.map(img => img.src);
+    const node = exportNodeRef.current;
+    let imgEls: HTMLImageElement[] = [];
+    let originalSrcs: string[] = [];
 
-    // 2. Convert each to data URL with fallback
-    await Promise.all(
-      imgEls.map(async (img, i) => {
-        try {
-          const dataUrl = await toDataURL(originalSrcs[i]);
-          img.src = dataUrl;
-          // Wait for the new data URL to load
-          if (img.complete) return;
-          await new Promise<void>((resolve) => {
-            img.onload = () => resolve();
-            img.onerror = () => resolve();
-          });
-        } catch {
-          // Keep original src if conversion fails (better than blank)
-        }
-      })
-    );
+    try {
+      // 1. Gather all img elements
+      imgEls = Array.from(node.querySelectorAll("img"));
+      originalSrcs = imgEls.map(img => img.src);
 
-    // 3. Extra wait for layout
-    await new Promise(res => requestAnimationFrame(res));
+      // 2. Convert each to data URL with fallback
+      await Promise.all(
+        imgEls.map(async (img, i) => {
+          try {
+            const dataUrl = await toDataURL(originalSrcs[i]);
+            img.src = dataUrl;
+            // Wait for the new data URL to load
+            if (img.complete) return;
+            await new Promise<void>((resolve) => {
+              img.onload = () => resolve();
+              img.onerror = () => resolve();
+            });
+          } catch {
+            // Keep original src if conversion fails (better than blank)
+          }
+        })
+      );
 
-    // 4. Import html-to-image and capture
-    const { toPng, toJpeg } = await import("html-to-image");
-    const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
-    const snapshotOpts = {
-      pixelRatio: 1,
-      cacheBust: true,
-      width: fmt.exportW,
-      height: fmt.exportH,
-      useCORS: true, // important
-    };
+      // 3. Extra wait for layout
+      await new Promise(res => requestAnimationFrame(res));
 
-    let blob: Blob;
-    // ... same as before (png/jpg/pdf generation)
+      // 4. Capture with html-to-image
+      const { toPng, toJpeg } = await import("html-to-image");
+      const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
+      const snapshotOpts = {
+        pixelRatio: 1,
+        cacheBust: true,
+        width: fmt.exportW,
+        height: fmt.exportH,
+        useCORS: true,
+      };
 
-    // 5. Save/share as before
-    // ...
+      let blob: Blob;
+      if (format === 'jpg') {
+        const dataUrl = await toJpeg(node, { ...snapshotOpts, quality: 0.95, backgroundColor: '#ffffff' });
+        blob = await (await fetch(dataUrl)).blob();
+      } else if (format === 'pdf') {
+        const { default: jsPDF } = await import('jspdf');
+        const dataUrl = await toPng(node, snapshotOpts);
+        const pdf = new jsPDF({
+          orientation: fmt.exportW > fmt.exportH ? "landscape" : "portrait",
+          unit: "px",
+          format: [fmt.exportW, fmt.exportH],
+        });
+        pdf.addImage(dataUrl, "PNG", 0, 0, fmt.exportW, fmt.exportH);
+        blob = pdf.output("blob");
+      } else {
+        // png
+        const dataUrl = await toPng(node, snapshotOpts);
+        blob = await (await fetch(dataUrl)).blob();
+      }
 
-  } catch (err) {
-    console.error(err);
-    setExportError(err instanceof Error ? err.message : "Export failed.");
-  } finally {
-    // Restore original srcs
-    imgEls.forEach((img, i) => { img.src = originalSrcs[i]; });
-    setExportingFormat(null);
-  }
-}, [exportNodeRef, activeFormat, pendingUploads, flyer, logoOverlay, badgeOverlay, freeTexts]);
+      // 5. Download
+      const ext = format === 'pdf' ? 'pdf' : format;
+      const filename = `flyer-${activeFormat}.${ext}`;
+      const mimeType = format === 'pdf' ? 'application/pdf' : `image/${format}`;
+      await saveOrShareFile(blob, filename, mimeType);
 
-  // -------- LOAD DATA (unchanged) --------
+    } catch (err) {
+      console.error(err);
+      setExportError(err instanceof Error ? err.message : "Export failed.");
+    } finally {
+      // Restore original srcs
+      imgEls.forEach((img, i) => { img.src = originalSrcs[i]; });
+      setExportingFormat(null);
+    }
+  }, [exportNodeRef, activeFormat, pendingUploads, flyer, logoOverlay, badgeOverlay, freeTexts]);
+
+  // -------- LOAD DATA --------
   useEffect(() => {
     let cancelled = false;
 
@@ -1558,35 +1538,35 @@ const exportFlyer = useCallback(async (
     return () => { cancelled = true; };
   }, [router, searchParams]);
 
-  // -------- CANVAS SCALE CALCULATION (NEW) --------
-useLayoutEffect(() => {
-  const recalc = () => {
-    if (!canvasWrapRef.current) return;
-    const rect = canvasWrapRef.current.getBoundingClientRect();
-    const pad = 16;
-    const availW = Math.max(rect.width - pad * 2, 0);
-    const availH = Math.max(rect.height - pad * 2, 0);
+  // -------- CANVAS SCALE CALCULATION --------
+  useLayoutEffect(() => {
+    const recalc = () => {
+      if (!canvasWrapRef.current) return;
+      const rect = canvasWrapRef.current.getBoundingClientRect();
+      const pad = 16;
+      const availW = Math.max(rect.width - pad * 2, 0);
+      const availH = Math.max(rect.height - pad * 2, 0);
 
-    const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
-    const baseW = fmt.exportW;
-    const baseH = fmt.exportH;
+      const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
+      const baseW = fmt.exportW;
+      const baseH = fmt.exportH;
 
-    const scaleX = availW / baseW;
-    const scaleY = availH / baseH;
-    let newScale = Math.min(scaleX, scaleY);
-    newScale = Math.min(newScale, 1);
-    setScale(newScale);
-  };
+      const scaleX = availW / baseW;
+      const scaleY = availH / baseH;
+      let newScale = Math.min(scaleX, scaleY);
+      newScale = Math.min(newScale, 1);
+      setScale(newScale);
+    };
 
-  recalc();
-  const ro = new ResizeObserver(recalc);
-  if (canvasWrapRef.current) ro.observe(canvasWrapRef.current);
-  window.visualViewport?.addEventListener("resize", recalc);
-  return () => {
-    ro.disconnect();
-    window.visualViewport?.removeEventListener("resize", recalc);
-  };
-}, [activeFormat, sheetExpanded]);
+    recalc();
+    const ro = new ResizeObserver(recalc);
+    if (canvasWrapRef.current) ro.observe(canvasWrapRef.current);
+    window.visualViewport?.addEventListener("resize", recalc);
+    return () => {
+      ro.disconnect();
+      window.visualViewport?.removeEventListener("resize", recalc);
+    };
+  }, [activeFormat, sheetExpanded]);
 
   const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     setSelectedOverlayId(null);
@@ -1631,7 +1611,6 @@ useLayoutEffect(() => {
     );
   }
 
-  // Get the current format's export dimensions for the flyer container
   const currentFormat = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
 
   // -------- RENDER --------
@@ -1658,25 +1637,7 @@ useLayoutEffect(() => {
           </span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          <button
-            onClick={() => setShowExportModal(true)}
-            disabled={!!exportingFormat}
-            className="px-3 sm:px-4 py-2 sm:py-1.5 rounded-lg text-[12px] font-bold bg-cyan-400
-                       hover:bg-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed
-                       text-black flex items-center gap-1.5 transition-colors touch-manipulation"
-          >
-            {exportingFormat ? (
-              <>
-                <Loader2 size={13} className="animate-spin" />
-                <span className="hidden sm:inline">Exporting {exportingFormat.toUpperCase()}...</span>
-              </>
-            ) : (
-              <>
-                <Download size={13} />
-                Export
-              </>
-            )}
-          </button>
+          <ExportDropdown onExport={exportFlyer} />
         </div>
       </header>
 
@@ -1719,24 +1680,24 @@ useLayoutEffect(() => {
             onClick={handleCanvasClick}
           >
             {/* Flyer container – fixed dimensions + transform scale */}
-           <div
-  key={`flyer-${activeFormat}`} // force re-render on format change
-  ref={flyerNodeRef}
-  className="relative shrink-0"
-  style={{
-    width: currentFormat.exportW,
-    height: currentFormat.exportH,
-    transform: `scale(${scale ?? 0.001})`,
-    opacity: scale === null ? 0 : 1,
-    transition: "opacity 120ms ease-out",
-    transformOrigin: "center center",
-    overflow: "hidden",
-    containerType: "size",
-    containerName: "flyer-canvas",
-    ["--ci" as any]: `${currentFormat.exportW / 100}px`,
-    ["--cb" as any]: `${currentFormat.exportH / 100}px`,
-  } as React.CSSProperties}
->
+            <div
+              key={`flyer-${activeFormat}`}
+              ref={flyerNodeRef}
+              className="relative shrink-0"
+              style={{
+                width: currentFormat.exportW,
+                height: currentFormat.exportH,
+                transform: `scale(${scale ?? 0.001})`,
+                opacity: scale === null ? 0 : 1,
+                transition: "opacity 120ms ease-out",
+                transformOrigin: "center center",
+                overflow: "hidden",
+                containerType: "size",
+                containerName: "flyer-canvas",
+                ["--ci" as any]: `${currentFormat.exportW / 100}px`,
+                ["--cb" as any]: `${currentFormat.exportH / 100}px`,
+              } as React.CSSProperties}
+            >
               <TemplateRenderer
                 data={{ ...flyer, logoImage: null, badgeText: "" }}
                 onUpdate={update}
@@ -1868,7 +1829,7 @@ useLayoutEffect(() => {
               </AnimatePresence>
             </div>
 
-                       <AnimatePresence>
+            <AnimatePresence>
               {activeTool === "text" && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900/90 border border-zinc-700
@@ -1879,29 +1840,20 @@ useLayoutEffect(() => {
             </AnimatePresence>
           </div>
 
-          {/* Hidden export clone — always laid out at full export size, never
-              scaled, never affected by mobile viewport/address-bar shifts.
-              This is what actually gets captured; the visible canvas above is
-              editing-only. */}
+          {/* Hidden export clone — off-screen, full size */}
           <div
-  aria-hidden="true"
-  style={{
-    position: "absolute",
-    width: 0,
-    height: 0,
-    overflow: "hidden",
-    pointerEvents: "none",
-  }}
->
-  <div
-    style={{
-      width: currentFormat.exportW,
-      height: currentFormat.exportH,
-      ["--ci" as any]: `${currentFormat.exportW / 100}px`,
-      ["--cb" as any]: `${currentFormat.exportH / 100}px`,
-    } as React.CSSProperties}
-  >
-    </div>
+            aria-hidden="true"
+            style={{
+              position: "fixed",
+              left: "-9999px",
+              top: 0,
+              width: currentFormat.exportW,
+              height: currentFormat.exportH,
+              pointerEvents: "none",
+              ["--ci" as any]: `${currentFormat.exportW / 100}px`,
+              ["--cb" as any]: `${currentFormat.exportH / 100}px`,
+            } as React.CSSProperties}
+          >
             <div ref={exportNodeRef} style={{ position: "relative", width: "100%", height: "100%" }}>
               <TemplateRenderer
                 data={{ ...flyer, logoImage: null, badgeText: "" }}
@@ -2076,19 +2028,9 @@ useLayoutEffect(() => {
           </div>
         </aside>
       </div>
-
-      {/* Export Modal */}
-      <ExportModal
-        isOpen={showExportModal}
-        onClose={() => setShowExportModal(false)}
-        onExport={exportFlyer}
-        activeFormat={activeFormat}
-      />
     </div>
   );
 }
-
-const LazyExportModal = dynamic(() => import("@/components/ExportModal"), { ssr: false });
 
 export default function FlyerEditor() {
   return (
