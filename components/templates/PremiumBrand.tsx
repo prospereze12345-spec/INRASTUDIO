@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import React from "react";
-import Image from "next/image";
 import { ShoppingBag } from "lucide-react";
 
 import {
@@ -33,7 +32,7 @@ export interface PremiumBrandProps {
   ctaVisible?: boolean;
 
   badgeText?: string;
-  productImage: string; // can be empty, we'll handle it
+  productImage: string;
   brandName?: string;
   website?: string;
   price?: string;
@@ -111,15 +110,6 @@ function hexToRgba(hex: string, alpha: number) {
 // ============================================================================
 
 export function PremiumBrandTemplate(props: PremiumBrandProps) {
-  const {
-    headline,
-    productImage,
-    colors,
-  } = props;
-
-  // REMOVED the early return – we always render the template structure.
-  // If productImage is missing, we show a placeholder inside the image area.
-
   const templateName = props.name || "Digital Agency";
 
   switch (templateName) {
@@ -528,7 +518,7 @@ function VariantDigitalAgency({
         </section>
 
         {/* ================================================================ */}
-        {/* RIGHT PRODUCT IMAGE                                               */}
+        {/* RIGHT PRODUCT IMAGE – using plain <img> with crossOrigin */}
         {/* ================================================================ */}
 
         <section
@@ -540,17 +530,18 @@ function VariantDigitalAgency({
           }}
         >
           {productImage ? (
-            <Image
+            <img
               src={productImage}
-              alt=""
-              fill
-              priority
-              unoptimized
+              alt="Product"
               crossOrigin="anonymous"
-              className="object-contain"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+              }}
+              draggable={false}
             />
           ) : (
-            // Fallback placeholder when no image is provided
             <div
               className="w-full h-full flex items-center justify-center rounded-lg"
               style={{
@@ -841,7 +832,7 @@ function VariantPremiumGold({
           </h1>
         </div>
 
-        {/* PRODUCT IMAGE */}
+        {/* PRODUCT IMAGE – using plain <img> with crossOrigin */}
 
         <div
           className="absolute right-0 top-1/2 -translate-y-1/2"
@@ -852,14 +843,16 @@ function VariantPremiumGold({
           }}
         >
           {productImage ? (
-            <Image
+            <img
               src={productImage}
-              alt=""
-              fill
-              priority
-              unoptimized
+              alt="Product"
               crossOrigin="anonymous"
-              className="object-contain"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+              }}
+              draggable={false}
             />
           ) : (
             <div
@@ -898,7 +891,7 @@ function VariantPremiumGold({
         </div>
 
         {/* ================================================================== */}
-        {/* FEATURES / WHY CHOOSE US — mirrors Digital Agency variant          */}
+        {/* FEATURES / WHY CHOOSE US */}
         {/* ================================================================== */}
 
         {(hasFeatures || hasWhyChooseUs) && (
@@ -906,7 +899,7 @@ function VariantPremiumGold({
             className="grid grid-cols-2 text-left"
             style={{
               gap: cq(3),
-              marginBottom: cq(3.5), // breathing room before divider/CTA
+              marginBottom: cq(3.5),
             }}
           >
             {hasFeatures && (
@@ -963,7 +956,7 @@ function VariantPremiumGold({
             }}
           />
 
-          {/* Price / Subtext / CTA - conditionally rendered */}
+          {/* Price / Subtext / CTA */}
 
           <div className="flex items-end justify-between gap-4">
             <div className="max-w-[55%] min-w-0">
@@ -1004,7 +997,6 @@ function VariantPremiumGold({
               />
             </div>
 
-            {/* CTA - only rendered if ctaVisible is true */}
             {ctaVisible && (
               <SmartCTA
                 value={ctaText}
