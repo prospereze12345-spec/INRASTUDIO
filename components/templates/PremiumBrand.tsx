@@ -14,7 +14,7 @@ import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 import { touchTarget } from "@/lib/responsive";
 
 // ============================================================================
-// CANVAS SCALE
+// CANVAS SCALE (still used for text sizing)
 // ============================================================================
 
 const cq = (n: number) => `calc(var(--ci) * ${n})`;
@@ -518,10 +518,10 @@ function VariantDigitalAgency({
         </section>
 
         {/* ================================================================ */}
-        {/* RIGHT PRODUCT IMAGE – using plain <img> with crossOrigin */}
-        {/* ================================================================ */}
+        /* RIGHT PRODUCT IMAGE – FIXED POSITIONING                         */
+        /* ================================================================ */}
 
-        <section
+        <div
           className="absolute right-0 top-1/2 -translate-y-1/2"
           style={{
             width: "38%",
@@ -529,53 +529,57 @@ function VariantDigitalAgency({
             right: cq(8),
           }}
         >
-          {productImage ? (
-            <img
-              src={productImage}
-              alt="Product"
-              crossOrigin="anonymous"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-              }}
-              draggable={false}
-            />
-          ) : (
-            <div
-              className="w-full h-full flex items-center justify-center rounded-lg"
-              style={{
-                backgroundColor: hexToRgba(colors.secondary, 0.08),
-                border: `1px dashed ${hexToRgba(colors.secondary, 0.15)}`,
-              }}
-            >
-              <span className="text-[11px] font-medium opacity-30" style={{ color: colors.secondary }}>
-                No image
-              </span>
-            </div>
-          )}
+          {/* Image container – relative for badge positioning */}
+          <div className="relative w-full h-full">
+            {productImage ? (
+              <img
+                src={productImage}
+                alt="Product"
+                crossOrigin="anonymous"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                }}
+                draggable={false}
+              />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center rounded-lg"
+                style={{
+                  backgroundColor: hexToRgba(colors.secondary, 0.08),
+                  border: `1px dashed ${hexToRgba(colors.secondary, 0.15)}`,
+                }}
+              >
+                <span className="text-[11px] font-medium opacity-30" style={{ color: colors.secondary }}>
+                  No image
+                </span>
+              </div>
+            )}
 
-          {badgeText && (
-            <div
-              className="absolute flex items-center justify-center rounded-full text-center font-bold uppercase leading-tight"
-              style={{
-                top: cq(2.5),
-                right: cq(2.5),
-                width: cq(8),
-                height: cq(8),
-                backgroundColor: colors.accent,
-                color: colors.primary,
-                fontSize: cq(2.2),
-                boxShadow: `0 ${cq(0.5)} ${cq(1.5)} ${hexToRgba(
-                  colors.accent,
-                  0.3
-                )}`,
-              }}
-            >
-              {badgeText}
-            </div>
-          )}
-        </section>
+            {/* Badge – positioned with % relative to image container */}
+            {badgeText && (
+              <div
+                className="absolute flex items-center justify-center rounded-full text-center font-bold uppercase leading-tight"
+                style={{
+                  top: "6%",
+                  right: "6%",
+                  width: "28%",
+                  aspectRatio: "1/1",
+                  backgroundColor: colors.accent,
+                  color: colors.primary,
+                  fontSize: `clamp(0.8rem, ${cq(2.2)}, 2.2rem)`,
+                  boxShadow: `0 ${cq(0.5)} ${cq(1.5)} ${hexToRgba(
+                    colors.accent,
+                    0.3
+                  )}`,
+                }}
+              >
+                {badgeText}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* ================================================================ */}
@@ -700,6 +704,7 @@ function VariantPremiumGold({
 }: PremiumBrandProps) {
   const hasFeatures = Array.isArray(features) && features.length > 0;
   const hasWhyChooseUs = Array.isArray(whyChooseUs) && whyChooseUs.length > 0;
+
   return (
     <div
       className="@container relative flex h-full w-full aspect-[4/5] flex-col overflow-hidden font-serif"
@@ -832,7 +837,7 @@ function VariantPremiumGold({
           </h1>
         </div>
 
-        {/* PRODUCT IMAGE – using plain <img> with crossOrigin */}
+        {/* PRODUCT IMAGE – FIXED POSITIONING */}
 
         <div
           className="absolute right-0 top-1/2 -translate-y-1/2"
@@ -842,52 +847,54 @@ function VariantPremiumGold({
             right: cq(8),
           }}
         >
-          {productImage ? (
-            <img
-              src={productImage}
-              alt="Product"
-              crossOrigin="anonymous"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-              }}
-              draggable={false}
-            />
-          ) : (
-            <div
-              className="w-full h-full flex items-center justify-center rounded-lg"
-              style={{
-                backgroundColor: hexToRgba(colors.secondary, 0.08),
-                border: `1px dashed ${hexToRgba(colors.secondary, 0.15)}`,
-              }}
-            >
-              <span className="text-[11px] font-medium opacity-30" style={{ color: colors.secondary }}>
-                No image
-              </span>
-            </div>
-          )}
+          <div className="relative w-full h-full">
+            {productImage ? (
+              <img
+                src={productImage}
+                alt="Product"
+                crossOrigin="anonymous"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                }}
+                draggable={false}
+              />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center rounded-lg"
+                style={{
+                  backgroundColor: hexToRgba(colors.secondary, 0.08),
+                  border: `1px dashed ${hexToRgba(colors.secondary, 0.15)}`,
+                }}
+              >
+                <span className="text-[11px] font-medium opacity-30" style={{ color: colors.secondary }}>
+                  No image
+                </span>
+              </div>
+            )}
 
-          {badgeText && (
-            <div
-              className="absolute flex items-center justify-center rounded-full text-center font-bold uppercase leading-tight"
-              style={{
-                top: cq(1.5),
-                right: cq(1.5),
-                width: cq(7),
-                height: cq(7),
-                backgroundColor: colors.accent,
-                color: colors.primary,
-                fontSize: cq(2),
-                boxShadow: `0 ${cq(0.5)} ${cq(1.5)} ${hexToRgba(
-                  colors.accent,
-                  0.25
-                )}`,
-              }}
-            >
-              {badgeText}
-            </div>
-          )}
+            {badgeText && (
+              <div
+                className="absolute flex items-center justify-center rounded-full text-center font-bold uppercase leading-tight"
+                style={{
+                  top: "6%",
+                  right: "6%",
+                  width: "28%",
+                  aspectRatio: "1/1",
+                  backgroundColor: colors.accent,
+                  color: colors.primary,
+                  fontSize: `clamp(0.8rem, ${cq(2)}, 2rem)`,
+                  boxShadow: `0 ${cq(0.5)} ${cq(1.5)} ${hexToRgba(
+                    colors.accent,
+                    0.25
+                  )}`,
+                }}
+              >
+                {badgeText}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* ================================================================== */}
