@@ -1080,7 +1080,7 @@ const VALID_CATEGORIES: FlyerState["templateCategory"][] = [
   "Luxury Product", "Minimal Product", "Premium Brand",
 ];
 
-// ---------- EXPORT HELPERS (using html-to-image) ----------
+// ---------- EXPORT HELPERS ----------
 async function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -1269,7 +1269,7 @@ function EditorContent() {
     [update]
   );
 
-  // ---------- EXPORT FLYER (using html-to-image, no oklch error) ----------
+  // ---------- EXPORT FLYER (fixed for mobile) ----------
   const exportFlyer = useCallback(async (
     format: 'png' | 'jpg' | 'pdf',
   ) => {
@@ -1287,10 +1287,16 @@ function EditorContent() {
     let originalSrcs: string[] = [];
 
     try {
-      // 1. Convert all images to data URLs
+      // 1. Ensure all images in the export node have crossOrigin set
       imgEls = Array.from(node.querySelectorAll("img"));
-      originalSrcs = imgEls.map(img => img.src);
+      imgEls.forEach(img => {
+        if (img.src && !img.src.startsWith('data:')) {
+          img.crossOrigin = "anonymous";
+        }
+      });
 
+      // 2. Convert all images to data URLs
+      originalSrcs = imgEls.map(img => img.src);
       await Promise.all(
         imgEls.map(async (img, i) => {
           try {
@@ -1307,11 +1313,11 @@ function EditorContent() {
         })
       );
 
-      // 2. Extra paint delay for mobile
+      // 3. Extra paint delay for mobile (500ms)
       await new Promise(res => requestAnimationFrame(res));
-      await new Promise(res => setTimeout(res, 300));
+      await new Promise(res => setTimeout(res, 500));
 
-      // 3. Use html-to-image – it does not attempt to parse oklch
+      // 4. Use html-to-image
       const { toPng, toJpeg } = await import("html-to-image");
       const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
       const snapshotOpts = {
@@ -1653,16 +1659,16 @@ function EditorContent() {
             </div>
           </div>
 
-          {/* Hidden export clone – opacity:0, pointer-events:none */}
+          {/* Hidden export clone – visible off-screen (better for mobile) */}
           <div
             aria-hidden="true"
             style={{
               position: "fixed",
+              left: "-9999px",
               top: 0,
-              left: 0,
               width: currentFormat.exportW,
               height: currentFormat.exportH,
-              opacity: 0,
+              visibility: "visible",
               pointerEvents: "none",
               zIndex: -1,
               ["--ci" as any]: `${currentFormat.exportW / 100}px`,
@@ -1685,6 +1691,7 @@ function EditorContent() {
                 <img
                   src={logoOverlay.image}
                   alt="Logo"
+                  crossOrigin="anonymous"
                   style={{
                     position: "absolute",
                     left: `${logoOverlay.transform.x}%`,
