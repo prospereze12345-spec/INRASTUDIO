@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import { EditableText } from "@/components/EditableText";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 import { FeatureList, ContactBar, WhyChooseUsList } from "./FlyerContentBlocks";
@@ -121,15 +120,7 @@ export function LuxuryProductTemplate(props: LuxuryProductProps) {
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   IMAGE SAFETY WRAPPER
-   `priority` is required here, not optional — this image is rendered
-   inside an offscreen export clone (positioned so it's never in the
-   viewport, by design). Without `priority`, Next.js's default
-   loading="lazy" relies on IntersectionObserver visibility, which
-   never fires for an element that can never scroll into view — so
-   the image simply never loads. This was invisible on some desktop
-   browsers (more generous lazy-load heuristics) but consistently
-   failed on mobile, which is why the bug only showed up there.
+   IMAGE SAFETY WRAPPER (now uses plain <img>)
 ───────────────────────────────────────────────────────────────── */
 
 function SafeImage({
@@ -149,15 +140,19 @@ function SafeImage({
   return (
     <div className={className} style={{ position: "relative", width: "100%", aspectRatio, ...style }}>
       {bustedSrc ? (
-        <Image
-          key={bustedSrc}
+        <img
           src={bustedSrc}
           alt="Product"
-          fill
-          priority
-          unoptimized
           crossOrigin="anonymous"
-          className="object-contain object-center"
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            objectPosition: "center",
+          }}
+          draggable={false}
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center text-xs opacity-30">
@@ -220,17 +215,20 @@ const VariantNoirEditorial = ({
       className="@container w-full h-full relative overflow-hidden flex flex-col font-sans aspect-[4/5]"
       style={{ backgroundColor: colors.primary, color: "#fff" }}
     >
+      {/* Background image – plain <img> */}
       <div className="absolute inset-0">
         {bustedBg ? (
-          <Image
-            key={bustedBg}
+          <img
             src={bustedBg}
-            alt="Product"
-            fill
-            priority
-            unoptimized
+            alt="Product background"
             crossOrigin="anonymous"
-            className="object-cover object-center"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "center",
+            }}
+            draggable={false}
           />
         ) : (
           <div className="absolute inset-0" style={{ backgroundColor: colors.secondary }} />
@@ -364,7 +362,7 @@ const VariantAtelierLight = ({
   onRemovePhone, onRemoveEmail, onRemoveWebsite,
   onRestorePhone, onRestoreEmail, onRestoreWebsite,
   website,
-}: LuxuryProductProps) => {
+}: LuxuryProductProps) {
   const hasFeatures = Array.isArray(features) && features.length > 0;
   const hasWhyChooseUs = Array.isArray(whyChooseUs) && whyChooseUs.length > 0;
 

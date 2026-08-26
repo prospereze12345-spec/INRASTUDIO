@@ -3,7 +3,6 @@
 import { EditableText } from "@/components/EditableText";
 
 import React from "react";
-import Image from "next/image";
 import { FeatureList, ContactBar, WhyChooseUsList } from "./FlyerContentBlocks";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 
@@ -153,14 +152,17 @@ const VariantMonoSplit = ({
       {/* ── Product image ─────────────────────────────────────────────── */}
 
       <div className="relative overflow-hidden" style={{ width: "55%", height: "100%" }}>
-        <Image
+        <img
           src={productImage}
           alt="Product"
-          fill
-          priority
-          unoptimized
           crossOrigin="anonymous"
-          className="object-cover object-center"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "center",
+          }}
+          draggable={false}
         />
 
         {/* Fade into the content panel */}
@@ -525,15 +527,17 @@ const VariantKoan = ({
           }}
         />
         <div style={{ position: "relative", width: cq(62), height: cq(62), zIndex: 10 }}>
-          <Image
+          <img
             src={productImage}
             alt="Product"
-            fill
-            priority
-            unoptimized
             crossOrigin="anonymous"
-            className="object-contain"
-            style={{ filter: `drop-shadow(0 ${cq(4)} ${cq(8)} rgba(0,0,0,0.12))` }}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              filter: `drop-shadow(0 ${cq(4)} ${cq(8)} rgba(0,0,0,0.12))`,
+            }}
+            draggable={false}
           />
         </div>
       </div>

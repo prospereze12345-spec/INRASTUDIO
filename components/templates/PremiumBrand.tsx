@@ -14,7 +14,7 @@ import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 import { touchTarget } from "@/lib/responsive";
 
 // ============================================================================
-// CANVAS SCALE (still used for text sizing)
+// CANVAS SCALE
 // ============================================================================
 
 const cq = (n: number) => `calc(var(--ci) * ${n})`;
@@ -518,8 +518,8 @@ function VariantDigitalAgency({
         </section>
 
         {/* ================================================================ */}
-        /* RIGHT PRODUCT IMAGE – FIXED POSITIONING                         */
-        /* ================================================================ */}
+        {/* RIGHT PRODUCT IMAGE – FIXED POSITIONING                         */}
+        {/* ================================================================ */}
 
         <div
           className="absolute right-0 top-1/2 -translate-y-1/2"
@@ -529,7 +529,6 @@ function VariantDigitalAgency({
             right: cq(8),
           }}
         >
-          {/* Image container – relative for badge positioning */}
           <div className="relative w-full h-full">
             {productImage ? (
               <img
