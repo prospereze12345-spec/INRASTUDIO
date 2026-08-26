@@ -1155,7 +1155,7 @@ function EditorContent() {
   const [captions, setCaptions] = useState<Caption[]>([]);
   const [activeTab, setActiveTab] = useState<RsbTab>("design");
   const [activeFormat, setActiveFormat] = useState<FormatId>("ig");
-  const [scale, setScale] = useState<number | null>(null);
+  const [scale, setScale] = useState(1); // initial scale so flyer shows immediately
   const [sheetExpanded, setSheetExpanded] = useState(false);
 
   const [logoOverlay, setLogoOverlay] = useState<{
@@ -1174,15 +1174,6 @@ function EditorContent() {
     bgColor: "#ffd23f",
     transform: { x: 84, y: 16, scale: 1 },
   });
-
-  const [freeTexts, setFreeTexts] = useState<
-    Array<{
-      id: string;
-      text: string;
-      color: string;
-      transform: Transform;
-    }>
-  >([]);
 
   const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(null);
   const [pendingUploads, setPendingUploads] = useState(0);
@@ -1500,27 +1491,6 @@ function EditorContent() {
     };
   }, [activeFormat, sheetExpanded]);
 
-  // Click on canvas to add a new text block (always allowed)
-  const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    // If click is on an overlay, the Movable handles it and stops propagation.
-    // So this only fires when clicking the background.
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    const id = `ft-${Date.now()}`;
-    setFreeTexts(prev => [
-      ...prev,
-      {
-        id,
-        text: "New text",
-        color: "#ffffff",
-        transform: { x, y, scale: 1 },
-      },
-    ]);
-    setSelectedOverlayId(id);
-    setActiveTab("content");
-  }, []);
-
   const TABS: { id: RsbTab; icon: React.ReactNode; label: string }[] = [
     { id: "design", icon: <Palette size={16} />, label: "Design" },
     { id: "content", icon: <ListChecks size={16} />, label: "Content" },
@@ -1575,7 +1545,7 @@ function EditorContent() {
       {/* MAIN AREA */}
       <div className="flex flex-1 overflow-hidden relative">
 
-        {/* CANVAS */}
+        {/* CANVAS - no onClick, no free text blocks */}
         <section className="flex-1 flex flex-col overflow-hidden bg-zinc-950 pb-[52px] md:pb-0">
           <div
             ref={canvasWrapRef}
@@ -1585,9 +1555,7 @@ function EditorContent() {
               backgroundSize: "16px 16px",
               backgroundPosition: "0 0,0 8px,8px -8px,-8px 0",
               cursor: "default",
-              touchAction: "auto",
             }}
-            onClick={handleCanvasClick}
           >
             {/* Flyer container */}
             <div
@@ -1682,54 +1650,6 @@ function EditorContent() {
                   />
                 </Movable>
               )}
-
-              {/* Free Text blocks */}
-              {freeTexts.map((ft) => (
-                <Movable
-                  key={ft.id}
-                  transform={ft.transform}
-                  onChange={(t) =>
-                    setFreeTexts(prev =>
-                      prev.map(item => (item.id === ft.id ? { ...item, transform: t } : item))
-                    )
-                  }
-                  containerRef={flyerNodeRef}
-                  selected={selectedOverlayId === ft.id}
-                  onSelect={() => setSelectedOverlayId(ft.id)}
-                  onDelete={() => setFreeTexts(prev => prev.filter(item => item.id !== ft.id))}
-                  dragHandleOnly
-                  extra={
-                    <div className="absolute top-0 left-full ml-2 p-2 bg-zinc-900 border border-zinc-700 rounded shadow-lg z-50">
-                      <input
-                        type="color"
-                        value={ft.color}
-                        onChange={(e) =>
-                          setFreeTexts(prev =>
-                            prev.map(item =>
-                              item.id === ft.id ? { ...item, color: e.target.value } : item
-                            )
-                          )
-                        }
-                        className="w-6 h-6 p-0 border-0"
-                      />
-                    </div>
-                  }
-                >
-                  <Editable
-                    id={ft.id}
-                    value={ft.text}
-                    onChange={(v) =>
-                      setFreeTexts(prev =>
-                        prev.map(item => (item.id === ft.id ? { ...item, text: v } : item))
-                      )
-                    }
-                    className="text-white font-semibold min-w-[40px]"
-                    style={{ color: ft.color }}
-                    onFocus={() => setSelectedOverlayId(ft.id)}
-                    onBlur={() => { }}
-                  />
-                </Movable>
-              ))}
             </div>
           </div>
 
@@ -1791,22 +1711,6 @@ function EditorContent() {
                   />
                 </div>
               )}
-
-              {freeTexts.map(ft => (
-                <div
-                  key={ft.id}
-                  style={{
-                    position: "absolute",
-                    left: `${ft.transform.x}%`,
-                    top: `${ft.transform.y}%`,
-                    transform: `translate(-50%, -50%) scale(${ft.transform.scale})`,
-                    color: ft.color,
-                    fontWeight: 600,
-                  }}
-                >
-                  {ft.text}
-                </div>
-              ))}
             </div>
           </div>
 
