@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import {
-  useState, useEffect, useLayoutEffect, useRef, useCallback, Suspense, memo,
+  useState, useEffect, useLayoutEffect, useRef, useCallback, Suspense, memo, useReducer, useMemo,
 } from "react";
 import type { PromoVideoProps } from "@/remotion/PromoVideo";
 import dynamic from "next/dynamic";
@@ -13,7 +13,7 @@ import {
   Video, MessageSquare, Check, Copy, Bold, Italic, ListChecks,
   AlignLeft, AlignCenter, AlignRight, Plus, Minus, Package, GripVertical, X,
   UploadCloud, Film, Square, Smartphone, Monitor, Image as ImageIcon, Loader2,
-  ChevronDown,
+  ChevronDown, Undo2, Redo2,
 } from "lucide-react";
 import { loadJobResult, fetchJobById, ApiError } from "@/lib/campaign-api";
 import type { PlayerRef } from "@remotion/player";
@@ -61,7 +61,7 @@ interface JobResult {
     badgeText?: string;
     brand_name?: string;
     brandName?: string;
-    price_text?: string;
+    // price_text removed
     colors?: any;
     phone?: string;
     email?: string;
@@ -79,7 +79,7 @@ interface JobResult {
 }
 
 // ============================================================================
-// TEMPLATE RENDERER (unchanged)
+// TEMPLATE RENDERER (updated)
 // ============================================================================
 const TemplateRenderer = memo(function TemplateRenderer({
   data,
@@ -105,7 +105,7 @@ const TemplateRenderer = memo(function TemplateRenderer({
   onRemoveWhyChooseUs: (index: number) => void;
 }) {
   const shared = {
-    name: data.templateVariant || "Digital Agency", // FIX: passes variant
+    name: data.templateVariant || "Digital Agency",
     headline: data.headline,
     subtext: data.subtext,
     ctaText: data.ctaText,
@@ -115,7 +115,7 @@ const TemplateRenderer = memo(function TemplateRenderer({
     phone: data.phone,
     email: data.email,
     website: data.website,
-    price: data.price,
+    // price removed
     colors: data.colors,
     features: data.features,
     whyChooseUs: data.whyChooseUs,
@@ -155,7 +155,7 @@ const TemplateRenderer = memo(function TemplateRenderer({
 // TYPES
 // ============================================================================
 type Tool = "select" | "text";
-type ColorLayer = "primary" | "secondary" | "tertiary"; // relabelled
+type ColorLayer = "bg" | "accent" | "text"; // renamed
 type RsbTab = "design" | "content" | "video" | "captions";
 type FormatId = typeof SOCIAL_FORMATS[number]["id"];
 
@@ -180,7 +180,7 @@ type FlyerState = {
   ctaText: string;
   ctaVisible: boolean;
   badgeText: string;
-  price: string;
+  // price removed
   brandName: string;
   website: string;
   phone: string;
@@ -200,9 +200,9 @@ type FlyerState = {
     | "Minimal Product"
     | "Premium Brand";
   colors: {
-    primary: string;
-    secondary: string;
-    accent: string;
+    bg: string;      // was primary
+    text: string;    // was secondary
+    accent: string;  // was tertiary
   };
 };
 
@@ -236,7 +236,7 @@ function parseCaptions(raw: BackendCaptions | null | undefined): Caption[] {
     }));
 }
 
-// ==================== NEW COLOUR SWATCHES (30) ====================
+// ==================== COLOUR SWATCHES ====================
 const COLOR_SWATCHES = [
   // Neutrals & metals
   "#0a0a0a", "#1c1c1e", "#f5f5f0", "#e8e2d5", "#c0c0c0", "#8c8c8c",
@@ -253,7 +253,7 @@ const COLOR_SWATCHES = [
   "#ffffff", "#111111", "#f4f1ea",
 ];
 
-// ==================== EXTENDED THEMES ====================
+// ==================== EXTENDED THEMES (updated) ====================
 const TEMPLATE_THEMES = [
   { label: "Gold", bg: "#0a0a0a", accent: "#c9a84c", text: "#ffffff" },
   { label: "Violet", bg: "#0f0a1e", accent: "#a78bfa", text: "#ffffff" },
@@ -274,7 +274,7 @@ const TEMPLATE_THEMES = [
 ];
 
 // ============================================================================
-// EDITABLE COMPONENT
+// EDITABLE COMPONENT (unchanged)
 // ============================================================================
 type EditableProps = {
   id: string;
@@ -404,7 +404,7 @@ function Movable({
     >
       <div
         style={{
-          outline: selected ? "2px dashed #fbbf24" : "none", // amber-400
+          outline: selected ? "2px dashed #ffffff" : "none", // white accent
           outlineOffset: 6,
           borderRadius: 10,
           cursor: dragHandleOnly ? "default" : "grab",
@@ -419,7 +419,7 @@ function Movable({
             <div
               onPointerDown={e => { e.stopPropagation(); beginDrag(e); }}
               title="Drag to move"
-              className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-amber-400
+              className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-white
                          flex items-center justify-center text-black shadow-lg cursor-grab touch-none"
               style={{ touchAction: "none" }}
             >
@@ -440,7 +440,7 @@ function Movable({
           <div
             onPointerDown={beginResize}
             title="Drag to resize"
-            className="absolute -bottom-3 -right-3 w-7 h-7 rounded-full bg-amber-400 border-2 border-zinc-950
+            className="absolute -bottom-3 -right-3 w-7 h-7 rounded-full bg-white border-2 border-zinc-950
                        shadow-lg cursor-nwse-resize touch-none"
             style={{ touchAction: "none" }}
           />
@@ -452,11 +452,11 @@ function Movable({
 }
 
 // ============================================================================
-// DISCOUNT BADGE (unchanged)
+// DISCOUNT BADGE (updated: takes percentage)
 // ============================================================================
 type DiscountBadge = {
   visible: boolean;
-  text: string;
+  percentage: number;      // new: numeric percentage
   subText: string;
   textColor: string;
   bgColor: string;
@@ -465,7 +465,7 @@ type DiscountBadge = {
 
 const DEFAULT_BADGE: DiscountBadge = {
   visible: true,
-  text: "50%",
+  percentage: 50,
   subText: "OFF",
   textColor: "#111111",
   bgColor: "#ffd23f",
@@ -478,15 +478,16 @@ const BURST_CLIP_PATH =
   "25% 98%, 20% 82%, 5% 85%, 8% 68%, 0% 58%, 12% 50%, 0% 42%, 8% 32%, 5% 15%, 20% 18%, 25% 2%, 39% 12%)";
 
 function DiscountBadgeSticker({
-  badge, onChangeText, onChangeSubText, onFocus, onBlur,
+  badge, onChangePercentage, onChangeSubText, onFocus, onBlur,
 }: {
   badge: DiscountBadge;
-  onChangeText: (v: string) => void;
+  onChangePercentage: (v: number) => void;
   onChangeSubText: (v: string) => void;
   onFocus?: (el: HTMLElement) => void;
   onBlur?: () => void;
 }) {
   const SIZE = "calc(var(--ci) * 22)";
+  const displayText = `${badge.percentage}%`;
 
   return (
     <div style={{ width: SIZE, height: SIZE, position: "relative" }}>
@@ -503,19 +504,16 @@ function DiscountBadgeSticker({
         position: "absolute", inset: 0, display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center", gap: 1, padding: "0 8px",
       }}>
-        <Editable
-          id="badge-text"
-          value={badge.text}
-          onChange={onChangeText}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          className="text-center"
+        <div
           style={{
             fontWeight: 900, fontSize: "calc(var(--ci) * 5)", lineHeight: 1, letterSpacing: "-0.03em",
             color: badge.textColor, textShadow: "0 1px 2px rgba(0,0,0,.12)",
-            minWidth: 10,
+            minWidth: 10, textAlign: "center",
           }}
-        />
+          contentEditable={false}
+        >
+          {displayText}
+        </div>
         <Editable
           id="badge-subtext"
           value={badge.subText}
@@ -534,7 +532,7 @@ function DiscountBadgeSticker({
 }
 
 // ============================================================================
-// FLOATING TOOLBAR (unchanged, except we'll anchor it near bottom)
+// FLOATING TOOLBAR (removed color picker, enlarged buttons)
 // ============================================================================
 const MARKETING_FONTS_EXT = [
   { label: "Inter", value: "var(--font-inter), sans-serif" },
@@ -557,7 +555,7 @@ function FontDropdown({ onSelect }: { onSelect: (font: string) => void }) {
       defaultValue=""
       onMouseDown={e => e.stopPropagation()}
       onChange={e => { if (e.target.value) onSelect(e.target.value); e.target.value = ""; }}
-      className="w-8 h-8 rounded-md bg-zinc-800 text-zinc-300 text-[10px] text-center
+      className="w-10 h-10 rounded-md bg-zinc-800 text-zinc-300 text-[11px] text-center
                  border border-zinc-700 touch-manipulation"
       title="Font"
     >
@@ -599,7 +597,7 @@ function FloatingTextToolbar({ onClose }: { onClose: () => void }) {
       exit={{ opacity: 0, x: -8 }}
       transition={{ duration: 0.1 }}
       className="fixed left-2 bottom-[calc(env(safe-area-inset-bottom)+128px+16px)] z-50
-                 flex flex-col items-center gap-1 px-1.5 py-2
+                 flex flex-col items-center gap-1.5 px-2 py-3
                  rounded-2xl border border-zinc-700 bg-zinc-900/95 backdrop-blur-md shadow-2xl
                  max-h-[80vh] overflow-y-auto"
       onMouseDown={e => e.preventDefault()}
@@ -607,38 +605,28 @@ function FloatingTextToolbar({ onClose }: { onClose: () => void }) {
       <button
         onMouseDown={e => e.preventDefault()}
         onClick={onClose}
-        className="w-8 h-8 flex items-center justify-center rounded-md text-zinc-400
+        className="w-10 h-10 flex items-center justify-center rounded-md text-zinc-400
                    hover:bg-zinc-700 hover:text-white transition-colors touch-manipulation mb-1"
       >
-        <X size={13} />
+        <X size={16} />
       </button>
 
-      <FtbBtn active={bold} onClick={() => exec("bold")}><Bold size={13} /></FtbBtn>
-      <FtbBtn active={italic} onClick={() => exec("italic")}><Italic size={13} /></FtbBtn>
+      <FtbBtn active={bold} onClick={() => exec("bold")}><Bold size={16} /></FtbBtn>
+      <FtbBtn active={italic} onClick={() => exec("italic")}><Italic size={16} /></FtbBtn>
 
       <FtbSepV />
 
-      <FtbBtn onClick={() => nudge(1)}><Plus size={11} /></FtbBtn>
-      <span className="text-[10px] font-mono text-zinc-300">{size}</span>
-      <FtbBtn onClick={() => nudge(-1)}><Minus size={11} /></FtbBtn>
+      <FtbBtn onClick={() => nudge(1)}><Plus size={14} /></FtbBtn>
+      <span className="text-[12px] font-mono text-zinc-300 min-w-[24px] text-center">{size}</span>
+      <FtbBtn onClick={() => nudge(-1)}><Minus size={14} /></FtbBtn>
 
       <FtbSepV />
 
       {(["left", "center", "right"] as const).map(a => (
         <FtbBtn key={a} active={align === a} onClick={() => { setAlign(a); exec(`justify${a.charAt(0).toUpperCase() + a.slice(1)}`); }}>
-          {a === "left" ? <AlignLeft size={12} /> : a === "center" ? <AlignCenter size={12} /> : <AlignRight size={12} />}
+          {a === "left" ? <AlignLeft size={14} /> : a === "center" ? <AlignCenter size={14} /> : <AlignRight size={14} />}
         </FtbBtn>
       ))}
-
-      <FtbSepV />
-
-      <input
-        type="color"
-        defaultValue="#ffffff"
-        className="w-7 h-7 rounded-lg cursor-pointer border border-zinc-600 bg-transparent p-0.5"
-        onChange={e => exec("foreColor", e.target.value)}
-        title="Text color"
-      />
 
       <FtbSepV />
 
@@ -650,13 +638,13 @@ function FloatingTextToolbar({ onClose }: { onClose: () => void }) {
 function FtbBtn({ children, active, onClick }: { children: React.ReactNode; active?: boolean; onClick?: () => void }) {
   return (
     <button onMouseDown={e => { e.preventDefault(); onClick?.(); }}
-      className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors shrink-0 touch-manipulation
-        ${active ? "bg-amber-400/20 text-amber-400" : "text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"}`}>
+      className={`w-10 h-10 flex items-center justify-center rounded-md transition-colors shrink-0 touch-manipulation
+        ${active ? "bg-white/20 text-white" : "text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"}`}>
       {children}
     </button>
   );
 }
-function FtbSepV() { return <div className="h-px w-5 bg-zinc-700 my-0.5" />; }
+function FtbSepV() { return <div className="h-px w-6 bg-zinc-700 my-0.5" />; }
 
 // ============================================================================
 // PANELS
@@ -671,16 +659,15 @@ function ToolBtn({ children, active, label, onClick }: {
 }) {
   return (
     <button onClick={onClick} title={label} aria-label={label}
-      className={`w-11 h-11 md:w-9 md:h-9 rounded-lg flex items-center justify-center transition-colors touch-manipulation
+      className={`w-11 h-11 rounded-lg flex items-center justify-center transition-colors touch-manipulation
         ${active
-          ? "bg-amber-400 text-black"
+          ? "bg-white text-black"
           : "text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200"}`}>
       {children}
     </button>
   );
 }
 
-// ======== NEW: TextField component ========
 function TextField({ label, value, onChange, placeholder, type = "text" }: {
   label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string;
 }) {
@@ -692,14 +679,14 @@ function TextField({ label, value, onChange, placeholder, type = "text" }: {
         value={value}
         placeholder={placeholder}
         onChange={e => onChange(e.target.value)}
-        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5
-                   text-[16px] text-zinc-100 focus:outline-none focus:border-amber-400"
+        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-3
+                   text-[16px] text-zinc-100 focus:outline-none focus:border-white"
       />
     </label>
   );
 }
 
-// ======== DesignPanel with format selector ========
+// ======== DesignPanel with format selector, theme, colors, logo, badge ========
 const DesignPanel = memo(function DesignPanel({
   data,
   onUpdate,
@@ -717,30 +704,30 @@ const DesignPanel = memo(function DesignPanel({
   activeFormat: FormatId;
   setActiveFormat: (id: FormatId) => void;
 }) {
-  const [colorLayer, setColorLayer] = useState<ColorLayer>("primary");
+  const [colorLayer, setColorLayer] = useState<ColorLayer>("bg");
   const [activeTheme, setActiveTheme] = useState<number | null>(null);
 
   const applyTheme = (i: number) => {
     setActiveTheme(i);
     const t = TEMPLATE_THEMES[i];
-    onUpdate("colors", { primary: t.bg, secondary: t.text, accent: t.accent });
+    onUpdate("colors", { bg: t.bg, text: t.text, accent: t.accent });
   };
 
   const applyColor = (hex: string) => {
     const map: Record<ColorLayer, keyof typeof data.colors> = {
-      primary: "primary", secondary: "secondary", tertiary: "accent",
+      bg: "bg", text: "text", accent: "accent",
     };
     onUpdate("colors", { ...data.colors, [map[colorLayer]]: hex });
   };
 
   const currentLayerColor =
-    colorLayer === "primary" ? data.colors.primary :
-      colorLayer === "secondary" ? data.colors.secondary :
+    colorLayer === "bg" ? data.colors.bg :
+      colorLayer === "text" ? data.colors.text :
         data.colors.accent;
 
   return (
-    <div className="space-y-5">
-      {/* Format selector moved here */}
+    <div className="space-y-6">
+      {/* Format selector */}
       <div>
         <Label>Format</Label>
         <div className="grid grid-cols-4 gap-1.5">
@@ -748,11 +735,11 @@ const DesignPanel = memo(function DesignPanel({
             const Icon = f.icon;
             return (
               <button key={f.id} onClick={() => setActiveFormat(f.id)}
-                className={`py-2 px-1 rounded-lg border text-center transition-all touch-manipulation text-[10px]
+                className={`py-2.5 px-1 rounded-lg border text-center transition-all touch-manipulation text-[10px]
                   ${activeFormat === f.id
-                    ? "border-amber-400 bg-amber-950/30 text-amber-400"
+                    ? "border-white bg-white/10 text-white"
                     : "border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300"}`}>
-                <Icon size={14} className="mx-auto mb-1" />
+                <Icon size={16} className="mx-auto mb-1" />
                 <div className="font-bold leading-none">{f.label}</div>
                 <div className="text-[8px] text-zinc-600 mt-0.5">{f.ratio}</div>
               </button>
@@ -763,13 +750,14 @@ const DesignPanel = memo(function DesignPanel({
 
       <Divider />
 
+      {/* Themes */}
       <div>
-        <Label>Template theme</Label>
+        <Label>Theme</Label>
         <div className="grid grid-cols-3 gap-2">
           {TEMPLATE_THEMES.map((t, i) => (
             <button key={t.label} onClick={() => applyTheme(i)}
               className={`h-14 rounded-lg overflow-hidden border-2 relative transition-all text-left touch-manipulation
-                ${activeTheme === i ? "border-amber-400" : "border-transparent hover:border-zinc-600"}`}
+                ${activeTheme === i ? "border-white" : "border-transparent hover:border-zinc-600"}`}
               style={{ background: t.bg }}>
               <span style={{
                 position: "absolute", bottom: 5, left: 7,
@@ -783,21 +771,22 @@ const DesignPanel = memo(function DesignPanel({
 
       <Divider />
 
+      {/* Brand colors - renamed */}
       <div>
-        <Label>Brand colors</Label>
+        <Label>Brand colours</Label>
         <div className="flex bg-zinc-900 rounded-lg p-0.5 gap-0.5 mb-3">
-          {(["primary", "secondary", "tertiary"] as ColorLayer[]).map(l => (
+          {(["bg", "text", "accent"] as ColorLayer[]).map(l => (
             <button key={l} onClick={() => setColorLayer(l)}
               className={`flex-1 py-2 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors touch-manipulation
-                ${colorLayer === l ? "bg-amber-400/20 text-amber-400" : "text-zinc-500 hover:text-zinc-300"}`}>
-              {l === "primary" ? "Primary" : l === "secondary" ? "Secondary" : "Tertiary"}
+                ${colorLayer === l ? "bg-white/20 text-white" : "text-zinc-500 hover:text-zinc-300"}`}>
+              {l === "bg" ? "Background" : l === "text" ? "Text" : "Accent"}
             </button>
           ))}
         </div>
         <div className="flex flex-wrap gap-2 mb-3">
           {COLOR_SWATCHES.map(hex => (
             <button key={hex} onClick={() => applyColor(hex)}
-              className="w-7 h-7 md:w-6 md:h-6 rounded-full border-2 hover:scale-110 transition-transform touch-manipulation shrink-0"
+              className="w-8 h-8 rounded-full border-2 hover:scale-110 transition-transform touch-manipulation shrink-0"
               style={{
                 background: hex,
                 borderColor: currentLayerColor === hex ? "white" : "transparent",
@@ -813,30 +802,98 @@ const DesignPanel = memo(function DesignPanel({
           <input type="text" value={currentLayerColor}
             inputMode="text"
             onChange={e => /^#[0-9a-fA-F]{6}$/.test(e.target.value) && applyColor(e.target.value)}
-            className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5
-                       text-[16px] md:text-[12px] font-mono text-zinc-200 focus:outline-none focus:border-amber-500" />
+            className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-3
+                       text-[16px] font-mono text-zinc-200 focus:outline-none focus:border-white" />
         </div>
       </div>
 
       <Divider />
 
+      {/* Logo upload */}
       <div>
         <Label>Logo</Label>
         <label className="flex flex-col items-center gap-1.5 border-[1.5px] border-dashed border-zinc-700
                           rounded-xl p-4 cursor-pointer hover:border-zinc-500 hover:bg-zinc-900/50 transition-all touch-manipulation">
-          <UploadCloud size={18} className="text-zinc-500" />
-          <span className="text-[11px] text-zinc-500 text-center">Upload logo - PNG recommended</span>
+          <UploadCloud size={20} className="text-zinc-500" />
+          <span className="text-[11px] text-zinc-500 text-center">Upload logo – PNG recommended</span>
           <input type="file" accept="image/*" className="hidden"
             onChange={e => { const f = e.target.files?.[0]; if (f) onLogoUpload(f); }} />
         </label>
       </div>
 
       <Divider />
+
+      {/* Badge customisation - new section with percentage and colours */}
+      <div>
+        <Label>Discount Badge</Label>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 cursor-pointer touch-manipulation">
+              <input
+                type="checkbox"
+                checked={badge.visible}
+                onChange={e => onBadgeChange({ ...badge, visible: e.target.checked })}
+                className="w-5 h-5 accent-white"
+              />
+              <span className="text-[13px] text-zinc-300">Show badge</span>
+            </label>
+          </div>
+          <div className="flex items-center gap-3">
+            <label className="flex-1">
+              <span className="text-[11px] text-zinc-500 block mb-1">Discount %</span>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={badge.percentage}
+                onChange={e => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val) && val >= 0 && val <= 100) {
+                    onBadgeChange({ ...badge, percentage: val });
+                  }
+                }}
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-3
+                           text-[16px] text-zinc-100 focus:outline-none focus:border-white"
+              />
+            </label>
+            <label className="flex-1">
+              <span className="text-[11px] text-zinc-500 block mb-1">Sub‑text</span>
+              <input
+                type="text"
+                value={badge.subText}
+                onChange={e => onBadgeChange({ ...badge, subText: e.target.value })}
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-3
+                           text-[16px] text-zinc-100 focus:outline-none focus:border-white"
+              />
+            </label>
+          </div>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2">
+              <span className="text-[11px] text-zinc-500">Text colour</span>
+              <input
+                type="color"
+                value={badge.textColor}
+                onChange={e => onBadgeChange({ ...badge, textColor: e.target.value })}
+                className="w-10 h-10 rounded-lg cursor-pointer border border-zinc-700 bg-zinc-900 p-1"
+              />
+            </label>
+            <label className="flex items-center gap-2">
+              <span className="text-[11px] text-zinc-500">Background</span>
+              <input
+                type="color"
+                value={badge.bgColor}
+                onChange={e => onBadgeChange({ ...badge, bgColor: e.target.value })}
+                className="w-10 h-10 rounded-lg cursor-pointer border border-zinc-700 bg-zinc-900 p-1"
+              />
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
   );
 });
 
-// ======== ContentPanel with editable text fields ========
+// ======== ContentPanel (removed price) ========
 const ContentPanel = memo(function ContentPanel({
   data, onUpdate,
 }: { data: FlyerState; onUpdate: (k: keyof FlyerState, v: any) => void }) {
@@ -846,7 +903,6 @@ const ContentPanel = memo(function ContentPanel({
         <Label>Text</Label>
         <TextField label="Headline" value={data.headline} onChange={v => onUpdate("headline", v)} />
         <TextField label="Subtext" value={data.subtext} onChange={v => onUpdate("subtext", v)} />
-        <TextField label="Price" value={data.price} onChange={v => onUpdate("price", v)} />
         <TextField label="Call to action" value={data.ctaText} onChange={v => onUpdate("ctaText", v)} />
       </div>
 
@@ -879,8 +935,8 @@ function SectionToggle({ title, active, onToggle }: {
                  border border-zinc-800 mb-2 touch-manipulation"
     >
       <span className="text-[13px] text-zinc-200">{title}</span>
-      <span className={`w-9 h-5 rounded-full relative transition-colors ${active ? "bg-amber-400" : "bg-zinc-700"}`}>
-        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${active ? "left-[18px]" : "left-0.5"}`} />
+      <span className={`w-9 h-5 rounded-full relative transition-colors ${active ? "bg-white" : "bg-zinc-700"}`}>
+        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-black transition-all ${active ? "left-[18px]" : "left-0.5"}`} />
       </span>
     </button>
   );
@@ -918,7 +974,7 @@ const VideoPanel = memo(function VideoPanel({
     headline: flyer.headline,
     subtext: flyer.subtext,
     ctaText: flyer.ctaText,
-    price: flyer.price,
+    // price removed
     brandName: flyer.brandName,
     website: flyer.website,
     productImage: flyer.productImage,
@@ -996,9 +1052,9 @@ const VideoPanel = memo(function VideoPanel({
             <button key={f.id} onClick={() => setSelectedFormat(f.id)}
               className={`py-2.5 px-1 rounded-lg border text-center transition-all touch-manipulation
                 ${selectedFormat === f.id
-                  ? "border-amber-400 bg-amber-950/30 text-amber-400"
+                  ? "border-white bg-white/10 text-white"
                   : "border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300"}`}>
-              <Icon size={14} className="mx-auto mb-1" />
+              <Icon size={16} className="mx-auto mb-1" />
               <div className="text-[9px] font-bold leading-none">{f.label}</div>
               <div className="text-[8px] text-zinc-600 mt-0.5">{f.ratio}</div>
             </button>
@@ -1041,7 +1097,7 @@ const VideoPanel = memo(function VideoPanel({
           "Ambient accent light circles",
         ].map(t => (
           <div key={t} className="flex items-center gap-2">
-            <div className="w-1 h-1 rounded-full bg-amber-400 shrink-0" />
+            <div className="w-1 h-1 rounded-full bg-white shrink-0" />
             <span className="text-[10px] text-zinc-400">{t}</span>
           </div>
         ))}
@@ -1056,10 +1112,10 @@ const VideoPanel = memo(function VideoPanel({
         onClick={handleDownload}
         disabled={downloading}
         aria-busy={downloading}
-        className={`w-full py-3.5 md:py-2.5 rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 transition-all duration-200 touch-manipulation
+        className={`w-full py-3.5 rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 transition-all duration-200 touch-manipulation
           ${downloading
             ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-            : "bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-black"
+            : "bg-white hover:bg-zinc-200 active:scale-[0.98] text-black"
           }`}
       >
         {downloading ? (
@@ -1149,8 +1205,8 @@ function ExportDropdown({
       <button
         onClick={() => !isExporting && setOpen(v => !v)}
         disabled={isExporting}
-        className="px-3 sm:px-4 py-2 sm:py-1.5 rounded-lg text-[12px] font-bold bg-amber-400
-                   hover:bg-amber-300 disabled:opacity-60 disabled:cursor-not-allowed
+        className="px-3 sm:px-4 py-2 sm:py-1.5 rounded-lg text-[12px] font-bold bg-white
+                   hover:bg-zinc-200 disabled:opacity-60 disabled:cursor-not-allowed
                    text-black flex items-center gap-1.5 transition-colors touch-manipulation"
       >
         {isExporting ? (
@@ -1184,6 +1240,93 @@ function ExportDropdown({
 }
 
 // ============================================================================
+// UNDO / REDO HOOK
+// ============================================================================
+function useUndoReducer<T>(
+  reducer: (state: T, action: any) => T,
+  initialState: T,
+  maxHistory = 50
+): [T, (action: any) => void, () => void, () => void, boolean, boolean] {
+  const [state, setState] = useState<T>(initialState);
+  const [history, setHistory] = useState<T[]>([initialState]);
+  const [index, setIndex] = useState(0);
+
+  const dispatch = useCallback((action: any) => {
+    const newState = reducer(state, action);
+    // Only record if state changed
+    if (newState === state) return;
+    const newHistory = history.slice(0, index + 1);
+    newHistory.push(newState);
+    if (newHistory.length > maxHistory) newHistory.shift();
+    setHistory(newHistory);
+    setIndex(newHistory.length - 1);
+    setState(newState);
+  }, [state, history, index, reducer, maxHistory]);
+
+  const undo = useCallback(() => {
+    if (index > 0) {
+      setIndex(index - 1);
+      setState(history[index - 1]);
+    }
+  }, [index, history]);
+
+  const redo = useCallback(() => {
+    if (index < history.length - 1) {
+      setIndex(index + 1);
+      setState(history[index + 1]);
+    }
+  }, [index, history]);
+
+  const canUndo = index > 0;
+  const canRedo = index < history.length - 1;
+
+  return [state, dispatch, undo, redo, canUndo, canRedo];
+}
+
+// ============================================================================
+// FLYER STATE REDUCER (for undo/redo)
+// ============================================================================
+type FlyerAction =
+  | { type: "UPDATE"; field: keyof FlyerState; value: any }
+  | { type: "UPDATE_FEATURE"; index: number; value: string }
+  | { type: "ADD_FEATURE" }
+  | { type: "REMOVE_FEATURE"; index: number }
+  | { type: "UPDATE_WHY_CHOOSE"; index: number; value: string }
+  | { type: "ADD_WHY_CHOOSE" }
+  | { type: "REMOVE_WHY_CHOOSE"; index: number }
+  | { type: "SET_STATE"; state: FlyerState };
+
+function flyerReducer(state: FlyerState, action: FlyerAction): FlyerState {
+  switch (action.type) {
+    case "UPDATE":
+      if (!(action.field in state)) return state;
+      return { ...state, [action.field]: action.value };
+    case "UPDATE_FEATURE": {
+      const next = [...state.features];
+      next[action.index] = action.value;
+      return { ...state, features: next };
+    }
+    case "ADD_FEATURE":
+      return { ...state, features: [...state.features, "New feature"] };
+    case "REMOVE_FEATURE":
+      return { ...state, features: state.features.filter((_, i) => i !== action.index) };
+    case "UPDATE_WHY_CHOOSE": {
+      const next = [...state.whyChooseUs];
+      next[action.index] = action.value;
+      return { ...state, whyChooseUs: next };
+    }
+    case "ADD_WHY_CHOOSE":
+      return { ...state, whyChooseUs: [...state.whyChooseUs, "New reason"] };
+    case "REMOVE_WHY_CHOOSE":
+      return { ...state, whyChooseUs: state.whyChooseUs.filter((_, i) => i !== action.index) };
+    case "SET_STATE":
+      return action.state;
+    default:
+      return state;
+  }
+}
+
+// ============================================================================
 // MAIN EDITOR COMPONENT
 // ============================================================================
 const EMPTY_FLYER_STATE: FlyerState = {
@@ -1192,7 +1335,6 @@ const EMPTY_FLYER_STATE: FlyerState = {
   ctaText: "",
   ctaVisible: true,
   badgeText: "",
-  price: "",
   brandName: "",
   phone: "",
   email: "",
@@ -1209,8 +1351,8 @@ const EMPTY_FLYER_STATE: FlyerState = {
   templateVariant: "",
   templateCategory: "Premium Brand",
   colors: {
-    primary: "#0a0a0a",
-    secondary: "#ffffff",
+    bg: "#0a0a0a",
+    text: "#ffffff",
     accent: "#c9a84c",
   },
 };
@@ -1219,7 +1361,6 @@ const VALID_CATEGORIES: FlyerState["templateCategory"][] = [
   "Luxury Product", "Minimal Product", "Premium Brand",
 ];
 
-// Direct download helper (no sharing)
 async function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -1231,9 +1372,7 @@ async function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-// Improved toDataURL with fallback and img.decode
 async function toDataURL(url: string): Promise<string> {
-  // Try fetch with CORS first
   try {
     const res = await fetch(url, { mode: "cors" });
     const blob = await res.blob();
@@ -1244,7 +1383,6 @@ async function toDataURL(url: string): Promise<string> {
       reader.readAsDataURL(blob);
     });
   } catch {
-    // Fallback: canvas with the image element
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = "anonymous";
@@ -1283,7 +1421,7 @@ function EditorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const canvasWrapRef = useRef<HTMLDivElement>(null);
-  const [flyer, setFlyer] = useState<FlyerState>(EMPTY_FLYER_STATE);
+  const [state, dispatch, undo, redo, canUndo, canRedo] = useUndoReducer(flyerReducer, EMPTY_FLYER_STATE);
   const [loading, setLoading] = useState(true);
   const flyerNodeRef = useRef<HTMLDivElement>(null);
   const exportNodeRef = useRef<HTMLDivElement>(null);
@@ -1306,14 +1444,7 @@ function EditorContent() {
     transform: { x: 15, y: 15, scale: 1 },
   });
 
-  const [badgeOverlay, setBadgeOverlay] = useState<DiscountBadge>({
-    visible: true,
-    text: "50%",
-    subText: "OFF",
-    textColor: "#111111",
-    bgColor: "#ffd23f",
-    transform: { x: 84, y: 16, scale: 1 },
-  });
+  const [badgeOverlay, setBadgeOverlay] = useState<DiscountBadge>(DEFAULT_BADGE);
 
   const [freeTexts, setFreeTexts] = useState<
     Array<{
@@ -1328,70 +1459,34 @@ function EditorContent() {
   const [pendingUploads, setPendingUploads] = useState(0);
   const [exportingFormat, setExportingFormat] = useState<"png" | "jpg" | "pdf" | null>(null);
 
-  const update = useCallback(
-    (field: string, value: any) => {
-      setFlyer(prev => {
-        if (!(field in prev)) {
-          console.warn(`Unknown flyer field: ${field}`);
-          return prev;
-        }
-        return {
-          ...prev,
-          [field]: value,
-        };
-      });
-    },
-    []
-  );
+  // Wrappers to use dispatch with proper actions
+  const update = useCallback((field: keyof FlyerState, value: any) => {
+    dispatch({ type: "UPDATE", field, value });
+  }, [dispatch]);
 
   const updateFeature = useCallback((index: number, value: string) => {
-    setFlyer(prev => {
-      const next = [...prev.features];
-      next[index] = value;
-      return { ...prev, features: next };
-    });
-  }, []);
-
-  const updateWhyChooseUs = useCallback(
-    (index: number, value: string) => {
-      setFlyer(prev => {
-        const next = [...prev.whyChooseUs];
-        next[index] = value;
-        return {
-          ...prev,
-          whyChooseUs: next,
-        };
-      });
-    },
-    []
-  );
-
-  const addWhyChooseUs = useCallback(() => {
-    setFlyer(prev => ({
-      ...prev,
-      whyChooseUs: [
-        ...prev.whyChooseUs,
-        "New reason",
-      ],
-    }));
-  }, []);
-
-  const removeWhyChooseUs = useCallback((index: number) => {
-    setFlyer(prev => ({
-      ...prev,
-      whyChooseUs: prev.whyChooseUs.filter(
-        (_, i) => i !== index
-      ),
-    }));
-  }, []);
+    dispatch({ type: "UPDATE_FEATURE", index, value });
+  }, [dispatch]);
 
   const addFeature = useCallback(() => {
-    setFlyer(prev => ({ ...prev, features: [...prev.features, "New feature"] }));
-  }, []);
+    dispatch({ type: "ADD_FEATURE" });
+  }, [dispatch]);
 
   const removeFeature = useCallback((index: number) => {
-    setFlyer(prev => ({ ...prev, features: prev.features.filter((_, i) => i !== index) }));
-  }, []);
+    dispatch({ type: "REMOVE_FEATURE", index });
+  }, [dispatch]);
+
+  const updateWhyChooseUs = useCallback((index: number, value: string) => {
+    dispatch({ type: "UPDATE_WHY_CHOOSE", index, value });
+  }, [dispatch]);
+
+  const addWhyChooseUs = useCallback(() => {
+    dispatch({ type: "ADD_WHY_CHOOSE" });
+  }, [dispatch]);
+
+  const removeWhyChooseUs = useCallback((index: number) => {
+    dispatch({ type: "REMOVE_WHY_CHOOSE", index });
+  }, [dispatch]);
 
   const handleImageUpload = useCallback(
     async (file: File, field: "productImage" | "logoImage") => {
@@ -1422,8 +1517,24 @@ function EditorContent() {
     [update]
   );
 
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [undo, redo]);
+
   // ============================================================================
-  // EXPORT FLYER — fixed for mobile
+  // EXPORT FLYER
   // ============================================================================
   const exportFlyer = useCallback(async (
     format: 'png' | 'jpg' | 'pdf',
@@ -1442,38 +1553,32 @@ function EditorContent() {
     let originalSrcs: string[] = [];
 
     try {
-      // 1. Gather all img elements
       imgEls = Array.from(node.querySelectorAll("img"));
       originalSrcs = imgEls.map(img => img.src);
 
-      // 2. Convert each to data URL with decode() instead of complete check
       await Promise.all(
         imgEls.map(async (img, i) => {
           try {
             const dataUrl = await toDataURL(originalSrcs[i]);
             img.src = dataUrl;
-            // Use decode() for reliable painting on mobile
             try {
               await img.decode();
             } catch {
-              // fallback to onload
               await new Promise<void>((resolve) => {
                 img.onload = () => resolve();
                 img.onerror = () => resolve();
               });
             }
           } catch {
-            // keep original if conversion fails
+            // keep original
           }
         })
       );
 
-      // 3. Extra paint settle with mobile-aware delay
       await new Promise(res => requestAnimationFrame(res));
       const isTouch = typeof window !== "undefined" && matchMedia("(pointer: coarse)").matches;
       await new Promise(res => setTimeout(res, isTouch ? 350 : 100));
 
-      // 4. Capture with html-to-image
       const { toPng, toJpeg } = await import("html-to-image");
       const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
       const snapshotOpts = {
@@ -1500,12 +1605,10 @@ function EditorContent() {
         pdf.addImage(dataUrl, "PNG", 0, 0, fmt.exportW, fmt.exportH);
         blob = pdf.output("blob");
       } else {
-        // png
         const dataUrl = await toPng(node, snapshotOpts);
         blob = await (await fetch(dataUrl)).blob();
       }
 
-      // 5. Direct download
       const ext = format === 'pdf' ? 'pdf' : format;
       const filename = `flyer-${activeFormat}.${ext}`;
       await downloadBlob(blob, filename);
@@ -1514,13 +1617,12 @@ function EditorContent() {
       console.error(err);
       setExportError(err instanceof Error ? err.message : "Export failed.");
     } finally {
-      // Restore original srcs
       imgEls.forEach((img, i) => { img.src = originalSrcs[i]; });
       setExportingFormat(null);
     }
   }, [exportNodeRef, activeFormat, pendingUploads]);
 
-  // -------- LOAD DATA (unchanged) --------
+  // -------- LOAD DATA --------
   useEffect(() => {
     let cancelled = false;
 
@@ -1568,37 +1670,46 @@ function EditorContent() {
       if (result) {
         setJobId(result.job_id || urlJobId || null);
 
-        setFlyer(prev => ({
-          ...prev,
+        const newState: Partial<FlyerState> = {
           ...(result.flyer && {
-            headline: result.flyer.headline || prev.headline,
-            subtext: result.flyer.subheadline || result.flyer.subtext || prev.subtext,
-            ctaText: result.flyer.cta || result.flyer.ctaText || prev.ctaText,
-            ctaVisible: result.flyer.ctaVisible ?? prev.ctaVisible,
-            badgeText: result.flyer.badgeText || prev.badgeText,
-            brandName: result.flyer.brand_name || result.flyer.brandName || prev.brandName,
-            price: result.flyer.price_text || prev.price,
-            colors: result.flyer.colors || prev.colors,
-            phone: result.flyer.phone ?? prev.phone,
-            email: result.flyer.email ?? prev.email,
-            website: result.flyer.website ?? prev.website,
+            headline: result.flyer.headline || "",
+            subtext: result.flyer.subheadline || result.flyer.subtext || "",
+            ctaText: result.flyer.cta || result.flyer.ctaText || "",
+            ctaVisible: result.flyer.ctaVisible ?? true,
+            badgeText: result.flyer.badgeText || "",
+            brandName: result.flyer.brand_name || result.flyer.brandName || "",
+            phone: result.flyer.phone ?? "",
+            email: result.flyer.email ?? "",
+            website: result.flyer.website ?? "",
             features: Array.isArray(result.flyer.features) && result.flyer.features.length > 0
               ? result.flyer.features
               : Array.isArray(result.flyer.feature_highlights) && result.flyer.feature_highlights.length > 0
                 ? result.flyer.feature_highlights
-                : prev.features,
+                : [],
             whyChooseUs: Array.isArray(result.flyer.why_choose_us) && result.flyer.why_choose_us.length > 0
               ? result.flyer.why_choose_us
               : Array.isArray(result.flyer.whyChooseUs) && result.flyer.whyChooseUs.length > 0
                 ? result.flyer.whyChooseUs
-                : prev.whyChooseUs,
+                : [],
           }),
-          productImage: result.png_url || prev.productImage,
-          templateVariant: urlVariant || result.flyer?.name || prev.templateVariant,
+          productImage: result.png_url || "",
+          templateVariant: urlVariant || result.flyer?.name || "",
           templateCategory: urlCategory ||
             (result.template_category as FlyerState["templateCategory"]) ||
-            prev.templateCategory,
-        }));
+            "Premium Brand",
+        };
+
+        // Map colors if present (assume they come as primary/secondary/tertiary)
+        if (result.flyer?.colors) {
+          const old = result.flyer.colors;
+          newState.colors = {
+            bg: old.primary || old.bg || "#0a0a0a",
+            text: old.secondary || old.text || "#ffffff",
+            accent: old.tertiary || old.accent || "#c9a84c",
+          };
+        }
+
+        dispatch({ type: "SET_STATE", state: { ...EMPTY_FLYER_STATE, ...newState } });
 
         if (result.captions) {
           setCaptions(result.captions.map((c) => ({
@@ -1609,20 +1720,20 @@ function EditorContent() {
           })));
         }
       } else if (urlVariant) {
-        setFlyer(prev => ({
-          ...prev,
+        dispatch({ type: "SET_STATE", state: {
+          ...EMPTY_FLYER_STATE,
           templateVariant: urlVariant,
-          templateCategory: urlCategory || prev.templateCategory,
-        }));
+          templateCategory: urlCategory || "Premium Brand",
+        } });
       }
       setLoading(false);
     }
 
     init();
     return () => { cancelled = true; };
-  }, [router, searchParams]);
+  }, [router, searchParams, dispatch]);
 
-  // -------- CANVAS SCALE CALCULATION (unchanged) --------
+  // -------- CANVAS SCALE --------
   useLayoutEffect(() => {
     const recalc = () => {
       if (!canvasWrapRef.current) return;
@@ -1675,8 +1786,8 @@ function EditorContent() {
   }, [activeTool]);
 
   const TOOLS = [
-    { id: "select" as Tool, icon: <Pointer size={16} />, label: "Select (V)" },
-    { id: "text" as Tool, icon: <Type size={16} />, label: "Add text (T)" },
+    { id: "select" as Tool, icon: <Pointer size={18} />, label: "Select (V)" },
+    { id: "text" as Tool, icon: <Type size={18} />, label: "Add text (T)" },
   ];
 
   const TABS: { id: RsbTab; icon: React.ReactNode; label: string }[] = [
@@ -1689,7 +1800,7 @@ function EditorContent() {
   if (loading) {
     return (
       <div className="h-[100dvh] w-screen bg-zinc-950 flex items-center justify-center
-                      text-amber-400 font-mono tracking-widest text-sm">
+                      text-white font-mono tracking-widest text-sm">
         Loading your flyer...
       </div>
     );
@@ -1717,10 +1828,29 @@ function EditorContent() {
           </div>
           <div className="hidden sm:block w-px h-4 bg-zinc-700 shrink-0" />
           <span className="text-[12px] text-zinc-500 truncate min-w-0">
-            {flyer.headline || "Untitled flyer"}
+            {state.headline || "Untitled flyer"}
           </span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Undo / Redo buttons */}
+          <button
+            onClick={undo}
+            disabled={!canUndo}
+            aria-label="Undo (Ctrl+Z)"
+            className="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-400
+                       hover:bg-zinc-800 disabled:opacity-30 transition-colors touch-manipulation"
+          >
+            <Undo2 size={16} />
+          </button>
+          <button
+            onClick={redo}
+            disabled={!canRedo}
+            aria-label="Redo (Ctrl+Shift+Z)"
+            className="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-400
+                       hover:bg-zinc-800 disabled:opacity-30 transition-colors touch-manipulation"
+          >
+            <Redo2 size={16} />
+          </button>
           <ExportDropdown onExport={exportFlyer} exportingFormat={exportingFormat} />
         </div>
       </header>
@@ -1748,7 +1878,7 @@ function EditorContent() {
             }}
             onClick={handleCanvasClick}
           >
-            {/* Flyer container – fixed dimensions + transform scale */}
+            {/* Flyer container */}
             <div
               key={`flyer-${activeFormat}`}
               ref={flyerNodeRef}
@@ -1768,7 +1898,7 @@ function EditorContent() {
               } as React.CSSProperties}
             >
               <TemplateRenderer
-                data={{ ...flyer, logoImage: null, badgeText: "" }}
+                data={{ ...state, logoImage: null, badgeText: "" }}
                 onUpdate={update}
                 onElementFocus={(el) => { setFocusedEl(el); setShowFtb(true); }}
                 onElementBlur={() => setTimeout(() => setShowFtb(false), 150)}
@@ -1836,7 +1966,7 @@ function EditorContent() {
                 >
                   <DiscountBadgeSticker
                     badge={badgeOverlay}
-                    onChangeText={(v) => setBadgeOverlay(prev => ({ ...prev, text: v }))}
+                    onChangePercentage={(p) => setBadgeOverlay(prev => ({ ...prev, percentage: p }))}
                     onChangeSubText={(v) => setBadgeOverlay(prev => ({ ...prev, subText: v }))}
                     onFocus={() => setSelectedOverlayId("badge")}
                     onBlur={() => { }}
@@ -1910,7 +2040,6 @@ function EditorContent() {
           </div>
 
           {/* ====== HIDDEN EXPORT CONTAINER ====== */}
-          {/* NEW: positioned visible but transparent to keep it paintable on mobile */}
           <div
             aria-hidden="true"
             style={{
@@ -1928,7 +2057,7 @@ function EditorContent() {
           >
             <div ref={exportNodeRef} style={{ position: "relative", width: "100%", height: "100%" }}>
               <TemplateRenderer
-                data={{ ...flyer, logoImage: null, badgeText: "" }}
+                data={{ ...state, logoImage: null, badgeText: "" }}
                 onUpdate={() => {}}
                 onElementFocus={() => {}}
                 onElementBlur={() => {}}
@@ -1967,7 +2096,7 @@ function EditorContent() {
                 >
                   <DiscountBadgeSticker
                     badge={badgeOverlay}
-                    onChangeText={() => {}}
+                    onChangePercentage={() => {}}
                     onChangeSubText={() => {}}
                   />
                 </div>
@@ -1996,7 +2125,7 @@ function EditorContent() {
         <aside
           className={`
             fixed md:static inset-x-0 bottom-0 md:inset-auto
-            w-full md:w-[265px] shrink-0
+            w-full md:w-[280px] shrink-0
             bg-[#111113] border-t md:border-t-0 md:border-l border-zinc-800
             flex flex-col z-30
             transition-[height] duration-200 ease-out
@@ -2025,13 +2154,13 @@ function EditorContent() {
                   className={`flex-1 py-3 md:py-2.5 text-[10px] font-bold uppercase tracking-wider
                               border-b-2 transition-colors touch-manipulation flex items-center justify-center gap-1.5
                     ${activeTab === tab.id
-                      ? "text-amber-400 border-amber-400"
+                      ? "text-white border-white"
                       : "text-zinc-600 border-transparent hover:text-zinc-300"}`}>
                   <span className="md:hidden">{tab.icon}</span>
                   {tab.label}
                   {tab.id === "captions" && captions.length > 0 && (
                     <span className="ml-0.5 inline-flex items-center justify-center w-4 h-4
-                                    rounded-full bg-amber-400 text-black text-[8px] font-black">
+                                    rounded-full bg-white text-black text-[8px] font-black">
                       {captions.length}
                     </span>
                   )}
@@ -2059,7 +2188,7 @@ function EditorContent() {
                 exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.1 }}>
                 {activeTab === "design" && (
                   <DesignPanel
-                    data={flyer}
+                    data={state}
                     onUpdate={update}
                     onLogoUpload={(file) => handleImageUpload(file, "logoImage")}
                     badge={badgeOverlay}
@@ -2070,7 +2199,7 @@ function EditorContent() {
                 )}
                 {activeTab === "video" && (
                   <VideoPanel
-                    flyer={flyer}
+                    flyer={state}
                     activeFormatId={activeFormat}
                     jobId={jobId}
                     logoOverlay={logoOverlay}
@@ -2080,7 +2209,7 @@ function EditorContent() {
                 {activeTab === "captions" && (
                   <CaptionsPanel captions={captions} />
                 )}
-                {activeTab === "content" && <ContentPanel data={flyer} onUpdate={update} />}
+                {activeTab === "content" && <ContentPanel data={state} onUpdate={update} />}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -2094,7 +2223,7 @@ export default function FlyerEditor() {
   return (
     <Suspense fallback={
       <div className="h-[100dvh] w-screen bg-zinc-950 flex items-center justify-center
-                      text-amber-400 font-mono tracking-widest text-sm">
+                      text-white font-mono tracking-widest text-sm">
         Loading editor...
       </div>
     }>
