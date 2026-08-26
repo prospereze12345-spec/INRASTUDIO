@@ -6,67 +6,64 @@ import { EditableText } from "@/components/EditableText";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 import { FeatureList, ContactBar, WhyChooseUsList } from "./FlyerContentBlocks";
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   TYPES
+═══════════════════════════════════════════════════════════════════════════ */
+
 export interface LuxuryProductProps {
-  name?: string;
+  name?: string;                       // variant name ("Noir Editorial" | "Atelier Light")
   headline: string;
   subtext?: string;
   ctaText: string;
   productImage: string;
-
-  imageVersion?: string | number;
-
-  logo?: string;
+  imageVersion?: string | number;      // optional cache‑buster
   brandName?: string;
   website?: string;
   phone?: string;
   email?: string;
-  features?: string[];
-  extraText?: string;
-  instagram?: string;
-  tiktok?: string;
   price?: string;
+  features?: string[];
+  whyChooseUs?: string[];
   colors: {
     primary: string;
     secondary: string;
     accent: string;
   };
   editable?: boolean;
+
+  // Update callbacks (all strings)
   onUpdate?: (field: string, value: string) => void;
+
+  // Feature list editing
+  onUpdateFeature?: (index: number, value: string) => void;
+
+  // WhyChooseUs editing
+  onUpdateWhyChooseUs?: (index: number, value: string) => void;
+
+  // Contact editing
+  onUpdatePhone?: (value: string) => void;
+  onUpdateWebsite?: (value: string) => void;
+  onUpdateEmail?: (value: string) => void;
+
+  // Focus/blur
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
-  onUpdateFeature?: (index: number, value: string) => void;
-  onAddFeature?: () => void;
-  onRemoveFeature?: (index: number) => void;
 
-  whyChooseUs?: string[];
-  onUpdateWhyChooseUs?: (index: number, value: string) => void;
-  onAddWhyChooseUs?: () => void;
-  onRemoveWhyChooseUs?: (index: number) => void;
-
+  // Visibility toggles (passed from editor)
   featuresVisible?: boolean;
   whyChooseUsVisible?: boolean;
   phoneVisible?: boolean;
   emailVisible?: boolean;
   websiteVisible?: boolean;
 
-  onRestoreFeatures?: () => void;
-  onRestoreWhyChooseUs?: () => void;
+  // Remove handlers (called when toggling off via ContentPanel)
   onRemovePhone?: () => void;
   onRemoveEmail?: () => void;
   onRemoveWebsite?: () => void;
-  onRestorePhone?: () => void;
-  onRestoreEmail?: () => void;
-  onRestoreWebsite?: () => void;
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   SPACING SCALE
-   `cq()` mirrors the same `--ci` custom-property mechanism used by
-   PremiumBrandTemplate — NOT `vw` (viewport width). `vw` sizes to the
-   browser window, which doesn't shrink with the flyer's on-screen
-   scale, so it broke both the mobile editor view and the export.
-   `--ci` is set by the editor to exportWidth / 100 and inherits down
-   through this component automatically.
+   CANVAS SCALE & HELPERS
 ───────────────────────────────────────────────────────────────── */
 
 const cq = (n: number) => `calc(var(--ci) * ${n})`;
@@ -89,7 +86,7 @@ function hexToRgba(hex: string, alpha: number) {
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   CACHE BUSTING
+   CACHE BUSTING (optional)
 ───────────────────────────────────────────────────────────────── */
 
 function withCacheBust(url?: string, version?: string | number) {
@@ -121,15 +118,7 @@ export function LuxuryProductTemplate(props: LuxuryProductProps) {
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   IMAGE SAFETY WRAPPER
-   `priority` is required here, not optional — this image is rendered
-   inside an offscreen export clone (positioned so it's never in the
-   viewport, by design). Without `priority`, Next.js's default
-   loading="lazy" relies on IntersectionObserver visibility, which
-   never fires for an element that can never scroll into view — so
-   the image simply never loads. This was invisible on some desktop
-   browsers (more generous lazy-load heuristics) but consistently
-   failed on mobile, which is why the bug only showed up there.
+   IMAGE SAFETY WRAPPER (kept for priority/cache)
 ───────────────────────────────────────────────────────────────── */
 
 function SafeImage({
@@ -169,7 +158,7 @@ function SafeImage({
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   FOOTER PANEL
+   FOOTER PANEL (simplified – no restore props)
 ───────────────────────────────────────────────────────────────── */
 
 function ContactFooter({
@@ -201,14 +190,32 @@ function ContactFooter({
 ═══════════════════════════════════════════════════════════════════════════ */
 
 const VariantNoirEditorial = ({
-  headline, subtext, ctaText, productImage, imageVersion, brandName, instagram, price,
-  colors, editable, onUpdate, onFocusEl, onBlurEl, features, phone, email, whyChooseUs,
-  onUpdateFeature, onAddFeature, onRemoveFeature,
-  onUpdateWhyChooseUs, onAddWhyChooseUs, onRemoveWhyChooseUs,
-  featuresVisible, whyChooseUsVisible, phoneVisible, emailVisible, websiteVisible,
-  onRestoreFeatures, onRestoreWhyChooseUs,
-  onRemovePhone, onRemoveEmail, onRemoveWebsite,
-  onRestorePhone, onRestoreEmail, onRestoreWebsite,
+  headline,
+  subtext,
+  ctaText,
+  productImage,
+  imageVersion,
+  brandName,
+  price,
+  colors,
+  editable,
+  onUpdate,
+  onFocusEl,
+  onBlurEl,
+  features,
+  phone,
+  email,
+  whyChooseUs,
+  onUpdateFeature,
+  onUpdateWhyChooseUs,
+  featuresVisible,
+  whyChooseUsVisible,
+  phoneVisible,
+  emailVisible,
+  websiteVisible,
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
   website,
 }: LuxuryProductProps) => {
   const hasFeatures = Array.isArray(features) && features.length > 0;
@@ -220,6 +227,7 @@ const VariantNoirEditorial = ({
       className="@container w-full h-full relative overflow-hidden flex flex-col font-sans aspect-[4/5]"
       style={{ backgroundColor: colors.primary, color: "#fff" }}
     >
+      {/* Background image */}
       <div className="absolute inset-0">
         {bustedBg ? (
           <Image
@@ -243,15 +251,14 @@ const VariantNoirEditorial = ({
         />
       </div>
 
+      {/* Top bar: brand name only */}
       <div className="relative z-10 shrink-0 flex items-center justify-between" style={{ padding: `${space.md} ${space.lg} 0` }}>
         <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
           onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
           className="font-bold uppercase" style={{ fontSize: cq(2), letterSpacing: "0.4em" }} />
-        <EditableText as="p" fieldId="f-instagram" editable={editable} value={instagram ?? ""}
-          onChange={v => onUpdate?.("instagram", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="opacity-60" style={{ fontSize: cq(2) }} />
       </div>
 
+      {/* Headline */}
       <div className="relative z-10 shrink-0" style={{ padding: `${space.md} ${space.lg}` }}>
         <EditableHeadlineLines value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
           onChange={v => onUpdate?.("headline", v)}
@@ -273,6 +280,7 @@ const VariantNoirEditorial = ({
 
       <div className="flex-1 min-h-0" />
 
+      {/* Bottom panel */}
       <div
         className="relative z-10 shrink-0 flex flex-col"
         style={{
@@ -311,24 +319,24 @@ const VariantNoirEditorial = ({
           <div className="grid grid-cols-2" style={{ gap: space.md, color: "#fff" }}>
             {hasFeatures && (
               <FeatureList
-                features={features!.slice(0, 3)} colors={{ ...colors, secondary: "#fff" }} editable={editable}
-                title="FEATURES" onUpdateTitle={(v) => onUpdate?.("featuresTitle", v)}
+                features={features!.slice(0, 3)}
+                colors={{ ...colors, secondary: "#fff" }}
+                editable={editable}
                 onUpdateFeature={onUpdateFeature ?? (() => undefined)}
-                onAddFeature={onAddFeature ?? (() => undefined)}
-                onRemoveFeature={onRemoveFeature ?? (() => undefined)}
-                onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                visible={featuresVisible} onRestoreSection={onRestoreFeatures}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                visible={featuresVisible}
               />
             )}
             {hasWhyChooseUs && (
               <WhyChooseUsList
-                items={whyChooseUs!.slice(0, 3)} colors={{ ...colors, secondary: "#fff" }} editable={editable}
-                title="WHY CHOOSE US" onUpdateTitle={(v) => onUpdate?.("whyChooseUsTitle", v)}
+                items={whyChooseUs!.slice(0, 3)}
+                colors={{ ...colors, secondary: "#fff" }}
+                editable={editable}
                 onUpdate={onUpdateWhyChooseUs ?? (() => undefined)}
-                onAdd={onAddWhyChooseUs ?? (() => undefined)}
-                onRemove={onRemoveWhyChooseUs ?? (() => undefined)}
-                onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                visible={whyChooseUsVisible} onRestoreSection={onRestoreWhyChooseUs}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                visible={whyChooseUsVisible}
               />
             )}
           </div>
@@ -337,13 +345,21 @@ const VariantNoirEditorial = ({
         <ContactFooter
           colors={colors}
           textColor="#fff"
-          phone={phone} website={website} email={email}
+          phone={phone}
+          website={website}
+          email={email}
           editable={editable}
-          onUpdatePhone={v => onUpdate?.("phone", v)} onUpdateWebsite={v => onUpdate?.("website", v)} onUpdateEmail={v => onUpdate?.("email", v)}
-          onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          phoneVisible={phoneVisible} websiteVisible={websiteVisible} emailVisible={emailVisible}
-          onRemovePhone={onRemovePhone} onRemoveWebsite={onRemoveWebsite} onRemoveEmail={onRemoveEmail}
-          onRestorePhone={onRestorePhone} onRestoreWebsite={onRestoreWebsite} onRestoreEmail={onRestoreEmail}
+          onUpdatePhone={v => onUpdate?.("phone", v)}
+          onUpdateWebsite={v => onUpdate?.("website", v)}
+          onUpdateEmail={v => onUpdate?.("email", v)}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          phoneVisible={phoneVisible}
+          websiteVisible={websiteVisible}
+          emailVisible={emailVisible}
+          onRemovePhone={onRemovePhone}
+          onRemoveWebsite={onRemoveWebsite}
+          onRemoveEmail={onRemoveEmail}
         />
       </div>
     </div>
@@ -355,14 +371,32 @@ const VariantNoirEditorial = ({
 ═══════════════════════════════════════════════════════════════════════════ */
 
 const VariantAtelierLight = ({
-  headline, subtext, ctaText, productImage, imageVersion, brandName, price,
-  colors, editable, onUpdate, onFocusEl, onBlurEl, features, phone, email, whyChooseUs,
-  onUpdateFeature, onAddFeature, onRemoveFeature,
-  onUpdateWhyChooseUs, onAddWhyChooseUs, onRemoveWhyChooseUs,
-  featuresVisible, whyChooseUsVisible, phoneVisible, emailVisible, websiteVisible,
-  onRestoreFeatures, onRestoreWhyChooseUs,
-  onRemovePhone, onRemoveEmail, onRemoveWebsite,
-  onRestorePhone, onRestoreEmail, onRestoreWebsite,
+  headline,
+  subtext,
+  ctaText,
+  productImage,
+  imageVersion,
+  brandName,
+  price,
+  colors,
+  editable,
+  onUpdate,
+  onFocusEl,
+  onBlurEl,
+  features,
+  phone,
+  email,
+  whyChooseUs,
+  onUpdateFeature,
+  onUpdateWhyChooseUs,
+  featuresVisible,
+  whyChooseUsVisible,
+  phoneVisible,
+  emailVisible,
+  websiteVisible,
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
   website,
 }: LuxuryProductProps) => {
   const hasFeatures = Array.isArray(features) && features.length > 0;
@@ -373,6 +407,7 @@ const VariantAtelierLight = ({
       className="@container w-full h-full relative overflow-hidden flex flex-col items-center font-sans aspect-[4/5]"
       style={{ backgroundColor: colors.primary, color: colors.secondary }}
     >
+      {/* Brand */}
       <div className="shrink-0 text-center" style={{ paddingTop: space.lg }}>
         <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
           onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
@@ -380,6 +415,7 @@ const VariantAtelierLight = ({
           style={{ fontSize: cq(1.7), letterSpacing: "0.5em" }} />
       </div>
 
+      {/* Product image */}
       <div className="relative shrink-0" style={{ width: "46%", marginTop: space.md }}>
         <div
           className="absolute"
@@ -400,6 +436,7 @@ const VariantAtelierLight = ({
         />
       </div>
 
+      {/* Headline + subtext */}
       <div className="shrink-0 text-center" style={{ marginTop: space.md, padding: `0 ${space.lg}` }}>
         <EditableHeadlineLines value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
           onChange={v => onUpdate?.("headline", v)}
@@ -425,6 +462,7 @@ const VariantAtelierLight = ({
 
       <div className="flex-1 min-h-0" />
 
+      {/* Features / Why Choose Us (side by side) */}
       {(hasFeatures || hasWhyChooseUs) && (
         <div
           className="shrink-0 grid grid-cols-2 text-left w-full"
@@ -437,32 +475,33 @@ const VariantAtelierLight = ({
           <div style={{ borderRight: `1px solid ${hexToRgba(colors.accent, 0.18)}`, paddingRight: space.md }}>
             {hasFeatures && (
               <FeatureList
-                features={features!.slice(0, 3)} colors={colors} editable={editable}
-                title="FEATURES" onUpdateTitle={(v) => onUpdate?.("featuresTitle", v)}
+                features={features!.slice(0, 3)}
+                colors={colors}
+                editable={editable}
                 onUpdateFeature={onUpdateFeature ?? (() => undefined)}
-                onAddFeature={onAddFeature ?? (() => undefined)}
-                onRemoveFeature={onRemoveFeature ?? (() => undefined)}
-                onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                visible={featuresVisible} onRestoreSection={onRestoreFeatures}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                visible={featuresVisible}
               />
             )}
           </div>
           <div>
             {hasWhyChooseUs && (
               <WhyChooseUsList
-                items={whyChooseUs!.slice(0, 3)} colors={colors} editable={editable}
-                title="WHY CHOOSE US" onUpdateTitle={(v) => onUpdate?.("whyChooseUsTitle", v)}
+                items={whyChooseUs!.slice(0, 3)}
+                colors={colors}
+                editable={editable}
                 onUpdate={onUpdateWhyChooseUs ?? (() => undefined)}
-                onAdd={onAddWhyChooseUs ?? (() => undefined)}
-                onRemove={onRemoveWhyChooseUs ?? (() => undefined)}
-                onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                visible={whyChooseUsVisible} onRestoreSection={onRestoreWhyChooseUs}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                visible={whyChooseUsVisible}
               />
             )}
           </div>
         </div>
       )}
 
+      {/* Price + CTA */}
       <div className="shrink-0 flex items-center justify-center" style={{ gap: space.md, padding: `${space.sm} ${space.lg} 0` }}>
         {price !== undefined && price !== "" && (
           <EditableText as="span" fieldId="f-price" editable={editable} value={price}
@@ -481,17 +520,26 @@ const VariantAtelierLight = ({
           }} />
       </div>
 
+      {/* Contact footer */}
       <div className="shrink-0 w-full" style={{ padding: `${space.sm} ${space.lg} ${space.lg}` }}>
         <ContactFooter
           colors={colors}
           textColor={colors.secondary}
-          phone={phone} website={website} email={email}
+          phone={phone}
+          website={website}
+          email={email}
           editable={editable}
-          onUpdatePhone={v => onUpdate?.("phone", v)} onUpdateWebsite={v => onUpdate?.("website", v)} onUpdateEmail={v => onUpdate?.("email", v)}
-          onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          phoneVisible={phoneVisible} websiteVisible={websiteVisible} emailVisible={emailVisible}
-          onRemovePhone={onRemovePhone} onRemoveWebsite={onRemoveWebsite} onRemoveEmail={onRemoveEmail}
-          onRestorePhone={onRestorePhone} onRestoreWebsite={onRestoreWebsite} onRestoreEmail={onRestoreEmail}
+          onUpdatePhone={v => onUpdate?.("phone", v)}
+          onUpdateWebsite={v => onUpdate?.("website", v)}
+          onUpdateEmail={v => onUpdate?.("email", v)}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          phoneVisible={phoneVisible}
+          websiteVisible={websiteVisible}
+          emailVisible={emailVisible}
+          onRemovePhone={onRemovePhone}
+          onRemoveWebsite={onRemoveWebsite}
+          onRemoveEmail={onRemoveEmail}
         />
       </div>
     </div>

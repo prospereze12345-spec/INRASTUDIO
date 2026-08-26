@@ -47,7 +47,7 @@ import { SleekFlyerTemplate as MinimalProductTemplate } from "@/components/templ
 import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
 
 // ============================================================================
-// LOCAL TYPE: JobResult (matches API response, includes ctaVisible)
+// LOCAL TYPE: JobResult
 // ============================================================================
 interface JobResult {
   job_id?: string;
@@ -105,6 +105,7 @@ const TemplateRenderer = memo(function TemplateRenderer({
   onRemoveWhyChooseUs: (index: number) => void;
 }) {
   const shared = {
+    name: data.templateVariant || "Digital Agency", // FIX: passes variant
     headline: data.headline,
     subtext: data.subtext,
     ctaText: data.ctaText,
@@ -154,8 +155,9 @@ const TemplateRenderer = memo(function TemplateRenderer({
 // TYPES
 // ============================================================================
 type Tool = "select" | "text";
-type ColorLayer = "bg" | "accent" | "text";
+type ColorLayer = "primary" | "secondary" | "tertiary"; // relabelled
 type RsbTab = "design" | "content" | "video" | "captions";
+type FormatId = typeof SOCIAL_FORMATS[number]["id"];
 
 type BackendCaptions = {
   instagram?: string;
@@ -183,7 +185,6 @@ type FlyerState = {
   website: string;
   phone: string;
   email: string;
-  address: string;
   features: string[];
   whyChooseUs: string[];
   featuresVisible?: boolean;
@@ -191,7 +192,6 @@ type FlyerState = {
   phoneVisible: boolean;
   emailVisible: boolean;
   websiteVisible: boolean;
-  addressVisible: boolean;
   productImage: string;
   logoImage: string | null;
   templateVariant: string;
@@ -215,7 +215,6 @@ const SOCIAL_FORMATS = [
   { id: "story", label: "Story", icon: Smartphone, ratio: "9:16", rw: 9, rh: 16, fps: 30, durationS: 15, exportW: 1080, exportH: 1920 },
   { id: "tiktok", label: "TikTok", icon: Film, ratio: "9:16", rw: 9, rh: 16, fps: 30, durationS: 12, exportW: 1080, exportH: 1920 },
 ] as const;
-type FormatId = typeof SOCIAL_FORMATS[number]["id"];
 
 const PLATFORM_META: { key: keyof BackendCaptions; label: string; color: string }[] = [
   { key: "instagram", label: "Instagram", color: "text-pink-400" },
@@ -237,6 +236,24 @@ function parseCaptions(raw: BackendCaptions | null | undefined): Caption[] {
     }));
 }
 
+// ==================== NEW COLOUR SWATCHES (30) ====================
+const COLOR_SWATCHES = [
+  // Neutrals & metals
+  "#0a0a0a", "#1c1c1e", "#f5f5f0", "#e8e2d5", "#c0c0c0", "#8c8c8c",
+  "#d4af37", "#b08d57", "#e5c07b", "#b76e79",
+  // Blues & indigos
+  "#1a237e", "#283593", "#003153", "#0f4c81", "#4682b4",
+  // Greens
+  "#014421", "#0b6e4f", "#4a5d43", "#2e4600",
+  // Reds & warms
+  "#7b1e3a", "#9a2a2a", "#c1440e", "#e07a5f", "#d94f70",
+  // Purples & pinks
+  "#5b2a86", "#6a0572", "#a78bfa",
+  // Basics
+  "#ffffff", "#111111", "#f4f1ea",
+];
+
+// ==================== EXTENDED THEMES ====================
 const TEMPLATE_THEMES = [
   { label: "Gold", bg: "#0a0a0a", accent: "#c9a84c", text: "#ffffff" },
   { label: "Violet", bg: "#0f0a1e", accent: "#a78bfa", text: "#ffffff" },
@@ -248,13 +265,12 @@ const TEMPLATE_THEMES = [
   { label: "Paper", bg: "#fafafa", accent: "#111111", text: "#111111" },
   { label: "Terracotta", bg: "#2b1810", accent: "#e07a5f", text: "#f4ede4" },
   { label: "Sage", bg: "#f0f2ea", accent: "#4a5d43", text: "#1f2417" },
-];
-
-const COLOR_SWATCHES = [
-  "#000000", "#1d1d1f", "#ffffff", "#f5f5f7", "#78716c", "#64748b",
-  "#0071e3", "#4285f4", "#ea4335", "#fbbc05", "#34a853", "#ff3b30",
-  "#ff0000", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899",
-  "#e07a5f", "#c9a84c", "#4a5d43", "#a78bfa", "#fca5a5",
+  // NEW
+  { label: "Silver", bg: "#1c1c1e", accent: "#c0c0c0", text: "#ffffff" },
+  { label: "Indigo", bg: "#0d0f2b", accent: "#5c6bc0", text: "#ffffff" },
+  { label: "Rose Gold", bg: "#2a1a1d", accent: "#b76e79", text: "#f5ece7" },
+  { label: "Burgundy", bg: "#1a0510", accent: "#7b1e3a", text: "#f4ede4" },
+  { label: "Forest", bg: "#0a1f14", accent: "#4a8b6f", text: "#eaf3ec" },
 ];
 
 // ============================================================================
@@ -304,7 +320,7 @@ function Editable({
 }
 
 // ============================================================================
-// MOVABLE / OVERLAY
+// MOVABLE / OVERLAY (unchanged)
 // ============================================================================
 type Transform = { x: number; y: number; scale: number };
 
@@ -388,7 +404,7 @@ function Movable({
     >
       <div
         style={{
-          outline: selected ? "2px dashed #22d3ee" : "none",
+          outline: selected ? "2px dashed #fbbf24" : "none", // amber-400
           outlineOffset: 6,
           borderRadius: 10,
           cursor: dragHandleOnly ? "default" : "grab",
@@ -403,7 +419,7 @@ function Movable({
             <div
               onPointerDown={e => { e.stopPropagation(); beginDrag(e); }}
               title="Drag to move"
-              className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-cyan-400
+              className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-amber-400
                          flex items-center justify-center text-black shadow-lg cursor-grab touch-none"
               style={{ touchAction: "none" }}
             >
@@ -424,7 +440,7 @@ function Movable({
           <div
             onPointerDown={beginResize}
             title="Drag to resize"
-            className="absolute -bottom-3 -right-3 w-7 h-7 rounded-full bg-cyan-400 border-2 border-zinc-950
+            className="absolute -bottom-3 -right-3 w-7 h-7 rounded-full bg-amber-400 border-2 border-zinc-950
                        shadow-lg cursor-nwse-resize touch-none"
             style={{ touchAction: "none" }}
           />
@@ -436,7 +452,7 @@ function Movable({
 }
 
 // ============================================================================
-// DISCOUNT BADGE
+// DISCOUNT BADGE (unchanged)
 // ============================================================================
 type DiscountBadge = {
   visible: boolean;
@@ -518,7 +534,7 @@ function DiscountBadgeSticker({
 }
 
 // ============================================================================
-// FLOATING TOOLBAR
+// FLOATING TOOLBAR (unchanged, except we'll anchor it near bottom)
 // ============================================================================
 const MARKETING_FONTS_EXT = [
   { label: "Inter", value: "var(--font-inter), sans-serif" },
@@ -582,7 +598,8 @@ function FloatingTextToolbar({ onClose }: { onClose: () => void }) {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -8 }}
       transition={{ duration: 0.1 }}
-      className="fixed left-2 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-1 px-1.5 py-2
+      className="fixed left-2 bottom-[calc(env(safe-area-inset-bottom)+128px+16px)] z-50
+                 flex flex-col items-center gap-1 px-1.5 py-2
                  rounded-2xl border border-zinc-700 bg-zinc-900/95 backdrop-blur-md shadow-2xl
                  max-h-[80vh] overflow-y-auto"
       onMouseDown={e => e.preventDefault()}
@@ -634,7 +651,7 @@ function FtbBtn({ children, active, onClick }: { children: React.ReactNode; acti
   return (
     <button onMouseDown={e => { e.preventDefault(); onClick?.(); }}
       className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors shrink-0 touch-manipulation
-        ${active ? "bg-cyan-400/20 text-cyan-400" : "text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"}`}>
+        ${active ? "bg-amber-400/20 text-amber-400" : "text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"}`}>
       {children}
     </button>
   );
@@ -656,21 +673,51 @@ function ToolBtn({ children, active, label, onClick }: {
     <button onClick={onClick} title={label} aria-label={label}
       className={`w-11 h-11 md:w-9 md:h-9 rounded-lg flex items-center justify-center transition-colors touch-manipulation
         ${active
-          ? "bg-cyan-400 text-black"
+          ? "bg-amber-400 text-black"
           : "text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200"}`}>
       {children}
     </button>
   );
 }
 
-const DesignPanel = memo(function DesignPanel({ data, onUpdate, onLogoUpload, badge, onBadgeChange }: {
+// ======== NEW: TextField component ========
+function TextField({ label, value, onChange, placeholder, type = "text" }: {
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string;
+}) {
+  return (
+    <label className="block mb-3">
+      <span className="text-[11px] text-zinc-500 mb-1 block">{label}</span>
+      <input
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        onChange={e => onChange(e.target.value)}
+        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5
+                   text-[16px] text-zinc-100 focus:outline-none focus:border-amber-400"
+      />
+    </label>
+  );
+}
+
+// ======== DesignPanel with format selector ========
+const DesignPanel = memo(function DesignPanel({
+  data,
+  onUpdate,
+  onLogoUpload,
+  badge,
+  onBadgeChange,
+  activeFormat,
+  setActiveFormat,
+}: {
   data: FlyerState;
   onUpdate: (k: keyof FlyerState, v: any) => void;
   onLogoUpload: (file: File) => void;
   badge: DiscountBadge;
   onBadgeChange: (b: DiscountBadge) => void;
+  activeFormat: FormatId;
+  setActiveFormat: (id: FormatId) => void;
 }) {
-  const [colorLayer, setColorLayer] = useState<ColorLayer>("accent");
+  const [colorLayer, setColorLayer] = useState<ColorLayer>("primary");
   const [activeTheme, setActiveTheme] = useState<number | null>(null);
 
   const applyTheme = (i: number) => {
@@ -681,25 +728,48 @@ const DesignPanel = memo(function DesignPanel({ data, onUpdate, onLogoUpload, ba
 
   const applyColor = (hex: string) => {
     const map: Record<ColorLayer, keyof typeof data.colors> = {
-      bg: "primary", accent: "accent", text: "secondary",
+      primary: "primary", secondary: "secondary", tertiary: "accent",
     };
     onUpdate("colors", { ...data.colors, [map[colorLayer]]: hex });
   };
 
   const currentLayerColor =
-    colorLayer === "bg" ? data.colors.primary :
-      colorLayer === "accent" ? data.colors.accent :
-        data.colors.secondary;
+    colorLayer === "primary" ? data.colors.primary :
+      colorLayer === "secondary" ? data.colors.secondary :
+        data.colors.accent;
 
   return (
     <div className="space-y-5">
+      {/* Format selector moved here */}
+      <div>
+        <Label>Format</Label>
+        <div className="grid grid-cols-4 gap-1.5">
+          {SOCIAL_FORMATS.map(f => {
+            const Icon = f.icon;
+            return (
+              <button key={f.id} onClick={() => setActiveFormat(f.id)}
+                className={`py-2 px-1 rounded-lg border text-center transition-all touch-manipulation text-[10px]
+                  ${activeFormat === f.id
+                    ? "border-amber-400 bg-amber-950/30 text-amber-400"
+                    : "border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300"}`}>
+                <Icon size={14} className="mx-auto mb-1" />
+                <div className="font-bold leading-none">{f.label}</div>
+                <div className="text-[8px] text-zinc-600 mt-0.5">{f.ratio}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <Divider />
+
       <div>
         <Label>Template theme</Label>
         <div className="grid grid-cols-3 gap-2">
           {TEMPLATE_THEMES.map((t, i) => (
             <button key={t.label} onClick={() => applyTheme(i)}
               className={`h-14 rounded-lg overflow-hidden border-2 relative transition-all text-left touch-manipulation
-                ${activeTheme === i ? "border-cyan-400" : "border-transparent hover:border-zinc-600"}`}
+                ${activeTheme === i ? "border-amber-400" : "border-transparent hover:border-zinc-600"}`}
               style={{ background: t.bg }}>
               <span style={{
                 position: "absolute", bottom: 5, left: 7,
@@ -716,11 +786,11 @@ const DesignPanel = memo(function DesignPanel({ data, onUpdate, onLogoUpload, ba
       <div>
         <Label>Brand colors</Label>
         <div className="flex bg-zinc-900 rounded-lg p-0.5 gap-0.5 mb-3">
-          {(["bg", "accent", "text"] as ColorLayer[]).map(l => (
+          {(["primary", "secondary", "tertiary"] as ColorLayer[]).map(l => (
             <button key={l} onClick={() => setColorLayer(l)}
               className={`flex-1 py-2 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors touch-manipulation
-                ${colorLayer === l ? "bg-cyan-400/20 text-cyan-400" : "text-zinc-500 hover:text-zinc-300"}`}>
-              {l === "bg" ? "BG" : l === "accent" ? "Accent" : "Text"}
+                ${colorLayer === l ? "bg-amber-400/20 text-amber-400" : "text-zinc-500 hover:text-zinc-300"}`}>
+              {l === "primary" ? "Primary" : l === "secondary" ? "Secondary" : "Tertiary"}
             </button>
           ))}
         </div>
@@ -744,7 +814,7 @@ const DesignPanel = memo(function DesignPanel({ data, onUpdate, onLogoUpload, ba
             inputMode="text"
             onChange={e => /^#[0-9a-fA-F]{6}$/.test(e.target.value) && applyColor(e.target.value)}
             className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5
-                       text-[16px] md:text-[12px] font-mono text-zinc-200 focus:outline-none focus:border-cyan-500" />
+                       text-[16px] md:text-[12px] font-mono text-zinc-200 focus:outline-none focus:border-amber-500" />
         </div>
       </div>
 
@@ -766,11 +836,22 @@ const DesignPanel = memo(function DesignPanel({ data, onUpdate, onLogoUpload, ba
   );
 });
 
+// ======== ContentPanel with editable text fields ========
 const ContentPanel = memo(function ContentPanel({
   data, onUpdate,
 }: { data: FlyerState; onUpdate: (k: keyof FlyerState, v: any) => void }) {
   return (
     <div className="space-y-5">
+      <div>
+        <Label>Text</Label>
+        <TextField label="Headline" value={data.headline} onChange={v => onUpdate("headline", v)} />
+        <TextField label="Subtext" value={data.subtext} onChange={v => onUpdate("subtext", v)} />
+        <TextField label="Price" value={data.price} onChange={v => onUpdate("price", v)} />
+        <TextField label="Call to action" value={data.ctaText} onChange={v => onUpdate("ctaText", v)} />
+      </div>
+
+      <Divider />
+
       <div>
         <Label>Sections</Label>
         <SectionToggle title="Features" active={data.featuresVisible ?? true} onToggle={v => onUpdate("featuresVisible", v)} />
@@ -798,13 +879,14 @@ function SectionToggle({ title, active, onToggle }: {
                  border border-zinc-800 mb-2 touch-manipulation"
     >
       <span className="text-[13px] text-zinc-200">{title}</span>
-      <span className={`w-9 h-5 rounded-full relative transition-colors ${active ? "bg-cyan-400" : "bg-zinc-700"}`}>
+      <span className={`w-9 h-5 rounded-full relative transition-colors ${active ? "bg-amber-400" : "bg-zinc-700"}`}>
         <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${active ? "left-[18px]" : "left-0.5"}`} />
       </span>
     </button>
   );
 }
 
+// ======== VideoPanel (unchanged except colour) ========
 interface VideoPanelProps {
   flyer: FlyerState;
   activeFormatId: FormatId;
@@ -813,9 +895,6 @@ interface VideoPanelProps {
   badgeOverlay: DiscountBadge;
 }
 
-// ============================================================================
-// VIDEO PANEL — with polling and direct download
-// ============================================================================
 const VideoPanel = memo(function VideoPanel({
   flyer,
   activeFormatId,
@@ -827,7 +906,6 @@ const VideoPanel = memo(function VideoPanel({
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const playerRef = useRef<PlayerRef>(null);
 
   const fmt = SOCIAL_FORMATS.find(f => f.id === selectedFormat)!;
   const BASE = 1080;
@@ -918,7 +996,7 @@ const VideoPanel = memo(function VideoPanel({
             <button key={f.id} onClick={() => setSelectedFormat(f.id)}
               className={`py-2.5 px-1 rounded-lg border text-center transition-all touch-manipulation
                 ${selectedFormat === f.id
-                  ? "border-cyan-400 bg-cyan-950/30 text-cyan-400"
+                  ? "border-amber-400 bg-amber-950/30 text-amber-400"
                   : "border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300"}`}>
               <Icon size={14} className="mx-auto mb-1" />
               <div className="text-[9px] font-bold leading-none">{f.label}</div>
@@ -934,7 +1012,6 @@ const VideoPanel = memo(function VideoPanel({
       <div className="rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950"
         style={{ aspectRatio: `${fmt.rw}/${fmt.rh}`, maxHeight: 260 }}>
         <Player
-          ref={playerRef}
           component={PromoVideo as unknown as React.ComponentType<Record<string, unknown>>}
           inputProps={promoProps}
           durationInFrames={durationInFrames}
@@ -964,7 +1041,7 @@ const VideoPanel = memo(function VideoPanel({
           "Ambient accent light circles",
         ].map(t => (
           <div key={t} className="flex items-center gap-2">
-            <div className="w-1 h-1 rounded-full bg-cyan-400 shrink-0" />
+            <div className="w-1 h-1 rounded-full bg-amber-400 shrink-0" />
             <span className="text-[10px] text-zinc-400">{t}</span>
           </div>
         ))}
@@ -982,7 +1059,7 @@ const VideoPanel = memo(function VideoPanel({
         className={`w-full py-3.5 md:py-2.5 rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 transition-all duration-200 touch-manipulation
           ${downloading
             ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-            : "bg-cyan-400 hover:bg-cyan-300 active:scale-[0.98] text-black"
+            : "bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-black"
           }`}
       >
         {downloading ? (
@@ -1001,6 +1078,7 @@ const VideoPanel = memo(function VideoPanel({
   );
 });
 
+// ======== CaptionsPanel (unchanged) ========
 const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Caption[] }) {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -1054,7 +1132,7 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
 });
 
 // ============================================================================
-// EXPORT DROPDOWN (replaces modal)
+// EXPORT DROPDOWN (unchanged)
 // ============================================================================
 function ExportDropdown({
   onExport,
@@ -1071,8 +1149,8 @@ function ExportDropdown({
       <button
         onClick={() => !isExporting && setOpen(v => !v)}
         disabled={isExporting}
-        className="px-3 sm:px-4 py-2 sm:py-1.5 rounded-lg text-[12px] font-bold bg-cyan-400
-                   hover:bg-cyan-300 disabled:opacity-60 disabled:cursor-not-allowed
+        className="px-3 sm:px-4 py-2 sm:py-1.5 rounded-lg text-[12px] font-bold bg-amber-400
+                   hover:bg-amber-300 disabled:opacity-60 disabled:cursor-not-allowed
                    text-black flex items-center gap-1.5 transition-colors touch-manipulation"
       >
         {isExporting ? (
@@ -1119,7 +1197,6 @@ const EMPTY_FLYER_STATE: FlyerState = {
   phone: "",
   email: "",
   website: "",
-  address: "",
   features: [],
   whyChooseUs: [],
   featuresVisible: true,
@@ -1127,7 +1204,6 @@ const EMPTY_FLYER_STATE: FlyerState = {
   phoneVisible: true,
   emailVisible: true,
   websiteVisible: true,
-  addressVisible: true,
   productImage: "",
   logoImage: null,
   templateVariant: "",
@@ -1155,7 +1231,7 @@ async function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-// Improved toDataURL with fallback
+// Improved toDataURL with fallback and img.decode
 async function toDataURL(url: string): Promise<string> {
   // Try fetch with CORS first
   try {
@@ -1210,7 +1286,7 @@ function EditorContent() {
   const [flyer, setFlyer] = useState<FlyerState>(EMPTY_FLYER_STATE);
   const [loading, setLoading] = useState(true);
   const flyerNodeRef = useRef<HTMLDivElement>(null);
-  const exportNodeRef = useRef<HTMLDivElement>(null); 
+  const exportNodeRef = useRef<HTMLDivElement>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [captions, setCaptions] = useState<Caption[]>([]);
@@ -1347,7 +1423,7 @@ function EditorContent() {
   );
 
   // ============================================================================
-  // EXPORT FLYER — fully implemented with direct download
+  // EXPORT FLYER — fixed for mobile
   // ============================================================================
   const exportFlyer = useCallback(async (
     format: 'png' | 'jpg' | 'pdf',
@@ -1370,27 +1446,32 @@ function EditorContent() {
       imgEls = Array.from(node.querySelectorAll("img"));
       originalSrcs = imgEls.map(img => img.src);
 
-      // 2. Convert each to data URL with fallback and wait for them to load
+      // 2. Convert each to data URL with decode() instead of complete check
       await Promise.all(
         imgEls.map(async (img, i) => {
           try {
             const dataUrl = await toDataURL(originalSrcs[i]);
             img.src = dataUrl;
-            // Wait for the new data URL to load
-            if (img.complete) return;
-            await new Promise<void>((resolve) => {
-              img.onload = () => resolve();
-              img.onerror = () => resolve();
-            });
+            // Use decode() for reliable painting on mobile
+            try {
+              await img.decode();
+            } catch {
+              // fallback to onload
+              await new Promise<void>((resolve) => {
+                img.onload = () => resolve();
+                img.onerror = () => resolve();
+              });
+            }
           } catch {
-            // Keep original src if conversion fails (better than blank)
+            // keep original if conversion fails
           }
         })
       );
 
-      // 3. Extra wait for layout and paint
+      // 3. Extra paint settle with mobile-aware delay
       await new Promise(res => requestAnimationFrame(res));
-      await new Promise(res => setTimeout(res, 100));
+      const isTouch = typeof window !== "undefined" && matchMedia("(pointer: coarse)").matches;
+      await new Promise(res => setTimeout(res, isTouch ? 350 : 100));
 
       // 4. Capture with html-to-image
       const { toPng, toJpeg } = await import("html-to-image");
@@ -1424,7 +1505,7 @@ function EditorContent() {
         blob = await (await fetch(dataUrl)).blob();
       }
 
-      // 5. Direct download (no share)
+      // 5. Direct download
       const ext = format === 'pdf' ? 'pdf' : format;
       const filename = `flyer-${activeFormat}.${ext}`;
       await downloadBlob(blob, filename);
@@ -1439,7 +1520,7 @@ function EditorContent() {
     }
   }, [exportNodeRef, activeFormat, pendingUploads]);
 
-  // -------- LOAD DATA --------
+  // -------- LOAD DATA (unchanged) --------
   useEffect(() => {
     let cancelled = false;
 
@@ -1501,7 +1582,6 @@ function EditorContent() {
             phone: result.flyer.phone ?? prev.phone,
             email: result.flyer.email ?? prev.email,
             website: result.flyer.website ?? prev.website,
-            address: result.flyer.address ?? prev.address,
             features: Array.isArray(result.flyer.features) && result.flyer.features.length > 0
               ? result.flyer.features
               : Array.isArray(result.flyer.feature_highlights) && result.flyer.feature_highlights.length > 0
@@ -1542,7 +1622,7 @@ function EditorContent() {
     return () => { cancelled = true; };
   }, [router, searchParams]);
 
-  // -------- CANVAS SCALE CALCULATION --------
+  // -------- CANVAS SCALE CALCULATION (unchanged) --------
   useLayoutEffect(() => {
     const recalc = () => {
       if (!canvasWrapRef.current) return;
@@ -1609,7 +1689,7 @@ function EditorContent() {
   if (loading) {
     return (
       <div className="h-[100dvh] w-screen bg-zinc-950 flex items-center justify-center
-                      text-cyan-400 font-mono tracking-widest text-sm">
+                      text-amber-400 font-mono tracking-widest text-sm">
         Loading your flyer...
       </div>
     );
@@ -1654,22 +1734,7 @@ function EditorContent() {
       {/* MAIN AREA */}
       <div className="flex flex-1 overflow-hidden relative">
 
-        <aside className="hidden md:flex w-[52px] shrink-0 bg-[#111113] border-r border-zinc-800
-                          flex-col items-center py-3 gap-1 z-20">
-          {TOOLS.map(t => (
-            <ToolBtn key={t.id} active={activeTool === t.id} label={t.label}
-              onClick={() => setActiveTool(t.id)}>
-              {t.icon}
-            </ToolBtn>
-          ))}
-          <div className="w-7 h-px bg-zinc-800 my-1.5" />
-          {TABS.map(t => (
-            <ToolBtn key={t.id} label={t.label} active={activeTab === t.id} onClick={() => setActiveTab(t.id)}>
-              {t.icon}
-            </ToolBtn>
-          ))}
-        </aside>
-
+        {/* ====== CANVAS ====== */}
         <section className="flex-1 flex flex-col overflow-hidden bg-zinc-950 pb-[112px] md:pb-0">
           <div
             ref={canvasWrapRef}
@@ -1844,16 +1909,19 @@ function EditorContent() {
             </AnimatePresence>
           </div>
 
-          {/* Hidden export clone — off-screen, full size */}
+          {/* ====== HIDDEN EXPORT CONTAINER ====== */}
+          {/* NEW: positioned visible but transparent to keep it paintable on mobile */}
           <div
             aria-hidden="true"
             style={{
               position: "fixed",
-              left: "-9999px",
               top: 0,
+              left: 0,
               width: currentFormat.exportW,
               height: currentFormat.exportH,
+              opacity: 0.01,
               pointerEvents: "none",
+              zIndex: -1,
               ["--ci" as any]: `${currentFormat.exportW / 100}px`,
               ["--cb" as any]: `${currentFormat.exportH / 100}px`,
             } as React.CSSProperties}
@@ -1922,30 +1990,9 @@ function EditorContent() {
               ))}
             </div>
           </div>
-
-          {/* Format bar */}
-          <div className="h-12 shrink-0 bg-[#111113] border-t border-zinc-800
-                          flex items-center gap-1.5 px-4 overflow-x-auto
-                          md:justify-center [&::-webkit-scrollbar]:hidden">
-            <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-wider mr-2 shrink-0">Format</span>
-            {SOCIAL_FORMATS.map(f => {
-              const Icon = f.icon;
-              return (
-                <button key={f.id} onClick={() => setActiveFormat(f.id)}
-                  className={`flex items-center gap-1.5 px-3 py-2 md:py-1 rounded-full text-[11px] font-semibold
-                              border transition-all shrink-0 touch-manipulation
-                    ${activeFormat === f.id
-                      ? "border-cyan-400 bg-cyan-400/10 text-cyan-400"
-                      : "border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300"}`}>
-                  <Icon size={11} />
-                  {f.label}
-                </button>
-              );
-            })}
-          </div>
         </section>
 
-        {/* Right Sidebar */}
+        {/* ====== RIGHT/BOTTOM SHEET ====== */}
         <aside
           className={`
             fixed md:static inset-x-0 bottom-0 md:inset-auto
@@ -1958,43 +2005,48 @@ function EditorContent() {
           `}
           style={{ paddingBottom: sheetExpanded ? 0 : "env(safe-area-inset-bottom)" }}
         >
-          <div className="md:hidden flex flex-col items-center pt-2 pb-1.5 shrink-0"
-            onClick={() => setSheetExpanded(v => !v)}>
-            <div className="w-9 h-1 rounded-full bg-zinc-700 mb-2" />
-            <div className="flex items-center gap-1 px-3 flex-wrap justify-center">
+          {/* ====== SHEET HEADER (tools + tabs) ====== */}
+          <div className="flex items-center border-b border-zinc-800 shrink-0 gap-1 px-2 h-12 md:h-auto">
+            {/* Tools */}
+            <div className="flex items-center gap-0.5">
               {TOOLS.map(t => (
                 <ToolBtn key={t.id} active={activeTool === t.id} label={t.label}
-                  onClick={(e) => { e?.stopPropagation?.(); setActiveTool(t.id); }}>
+                  onClick={() => setActiveTool(t.id)}>
                   {t.icon}
                 </ToolBtn>
               ))}
               <div className="w-px h-6 bg-zinc-800 mx-1" />
-              <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">
-                {sheetExpanded ? "Drag down to collapse" : "Drag up for more"}
-              </span>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex flex-1">
+              {TABS.map(tab => (
+                <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSheetExpanded(true); }}
+                  className={`flex-1 py-3 md:py-2.5 text-[10px] font-bold uppercase tracking-wider
+                              border-b-2 transition-colors touch-manipulation flex items-center justify-center gap-1.5
+                    ${activeTab === tab.id
+                      ? "text-amber-400 border-amber-400"
+                      : "text-zinc-600 border-transparent hover:text-zinc-300"}`}>
+                  <span className="md:hidden">{tab.icon}</span>
+                  {tab.label}
+                  {tab.id === "captions" && captions.length > 0 && (
+                    <span className="ml-0.5 inline-flex items-center justify-center w-4 h-4
+                                    rounded-full bg-amber-400 text-black text-[8px] font-black">
+                      {captions.length}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Drag handle (mobile only) */}
+            <div className="md:hidden flex items-center justify-center w-8 h-8"
+              onClick={() => setSheetExpanded(v => !v)}>
+              <div className="w-9 h-1 rounded-full bg-zinc-700" />
             </div>
           </div>
 
-          <div className="flex border-b border-zinc-800 shrink-0">
-            {TABS.map(tab => (
-              <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSheetExpanded(true); }}
-                className={`flex-1 py-3 md:py-2.5 text-[10px] font-bold uppercase tracking-wider
-                            border-b-2 transition-colors touch-manipulation flex items-center justify-center gap-1.5
-                  ${activeTab === tab.id
-                    ? "text-cyan-400 border-cyan-400"
-                    : "text-zinc-600 border-transparent hover:text-zinc-300"}`}>
-                <span className="md:hidden">{tab.icon}</span>
-                {tab.label}
-                {tab.id === "captions" && captions.length > 0 && (
-                  <span className="ml-0.5 inline-flex items-center justify-center w-4 h-4
-                                  rounded-full bg-cyan-400 text-black text-[8px] font-black">
-                    {captions.length}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-
+          {/* ====== PANEL CONTENT ====== */}
           <div className={`flex-1 overflow-y-auto p-4 overscroll-contain
                           [&::-webkit-scrollbar]:w-1
                           [&::-webkit-scrollbar-thumb]:bg-zinc-700
@@ -2012,6 +2064,8 @@ function EditorContent() {
                     onLogoUpload={(file) => handleImageUpload(file, "logoImage")}
                     badge={badgeOverlay}
                     onBadgeChange={setBadgeOverlay}
+                    activeFormat={activeFormat}
+                    setActiveFormat={setActiveFormat}
                   />
                 )}
                 {activeTab === "video" && (
@@ -2040,7 +2094,7 @@ export default function FlyerEditor() {
   return (
     <Suspense fallback={
       <div className="h-[100dvh] w-screen bg-zinc-950 flex items-center justify-center
-                      text-cyan-400 font-mono tracking-widest text-sm">
+                      text-amber-400 font-mono tracking-widest text-sm">
         Loading editor...
       </div>
     }>
