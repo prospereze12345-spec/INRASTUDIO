@@ -120,16 +120,16 @@ function useDeferredVideo(shouldConsider: boolean) {
   useEffect(() => {
     if (!shouldConsider) return;
 
+    // Only skip video for an explicit Data Saver setting the person turned on
+    // themselves — not for effectiveType, which DevTools throttling and
+    // ordinary variable mobile signal also trigger, and which was making the
+    // video disappear far more often than intended.
     const connection = (navigator as any).connection;
-    const dataConscious =
-      connection?.saveData === true ||
-      ["slow-2g", "2g", "3g"].includes(connection?.effectiveType);
-
-    if (dataConscious) return; // stay on the static image entirely
+    if (connection?.saveData === true) return; // stay on the static image
 
     const idle =
       (window as any).requestIdleCallback ??
-      ((cb: () => void) => setTimeout(cb, 1200));
+      ((cb: () => void) => setTimeout(cb, 300));
 
     const id = idle(() => setCanLoad(true));
     return () => {
@@ -142,6 +142,31 @@ function useDeferredVideo(shouldConsider: boolean) {
   }, [shouldConsider]);
 
   return canLoad;
+}
+
+function FadeInVideo({
+  src,
+  poster,
+  className = "",
+}: {
+  src: string;
+  poster: string;
+  className?: string;
+}) {
+  const [ready, setReady] = useState(false);
+  return (
+    <video
+      src={src}
+      autoPlay
+      muted
+      loop
+      playsInline
+      preload="metadata"
+      poster={poster}
+      onCanPlay={() => setReady(true)}
+      className={`${className} transition-opacity duration-500 ${ready ? "opacity-100" : "opacity-0"}`}
+    />
+  );
 }
 
 function LazyReveal({
@@ -212,24 +237,20 @@ function FlyerHero({ activeIndex, captions }: { activeIndex: number; captions: C
           </div>
 
           <div className="relative col-span-1 aspect-square overflow-hidden bg-[#E7E1CF]">
-            {canLoadVideo ? (
-              <video
+            {/* Static frame is always in the DOM so there's never a blank gap
+               while the video decides whether to load. */}
+            <Image
+              src="/images/flyer.png"
+              alt="Preview frame of the promo video"
+              fill
+              sizes="(max-width: 640px) 45vw, 210px"
+              className="object-contain p-2"
+            />
+            {canLoadVideo && (
+              <FadeInVideo
                 src="/videos/promo-tiktok (2).mp4"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="none"
                 poster="/images/flyer.png"
-                className="h-full w-full object-contain p-2"
-              />
-            ) : (
-              <Image
-                src="/images/flyer.png"
-                alt="Preview frame of the promo video"
-                fill
-                sizes="(max-width: 640px) 45vw, 210px"
-                className="object-contain p-2"
+                className="absolute inset-0 h-full w-full object-contain p-2"
               />
             )}
             <span className="absolute bottom-1.5 right-1.5 flex items-center gap-1 bg-[#15130F] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-[#F2EEE2]">
@@ -461,17 +482,6 @@ function HowItWorks() {
             </div>
           ))}
         </div>
-
-        <div className="mt-16 flex justify-center">
-          <Image
-            src="/images/flyer.png"
-            alt="Product photo turned into a finished flyer"
-            width={420}
-            height={520}
-            loading="lazy"
-            className="h-auto w-full max-w-[380px] object-contain"
-          />
-        </div>
       </div>
     </section>
   );
@@ -489,27 +499,18 @@ function VideoCard({ src, poster }: { src: string; poster: string }) {
 
 function DeferredVideoTile({ inView, src, poster }: { inView: boolean; src: string; poster: string }) {
   const canLoad = useDeferredVideo(inView);
-  if (!canLoad) {
-    return (
+  return (
+    <>
       <img
         src={poster}
         alt="Preview frame of the promo video"
-        className="h-full w-full object-contain p-4"
+        className="absolute inset-0 h-full w-full object-contain p-4"
         loading="lazy"
       />
-    );
-  }
-  return (
-    <video
-      src={src}
-      autoPlay
-      muted
-      loop
-      playsInline
-      preload="none"
-      poster={poster}
-      className="h-full w-full object-contain p-4"
-    />
+      {canLoad && (
+        <FadeInVideo src={src} poster={poster} className="absolute inset-0 h-full w-full object-contain p-4" />
+      )}
+    </>
   );
 }
 
@@ -757,9 +758,10 @@ function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-16 pb-20 lg:flex-row">
         <div className="max-w-2xl flex-1">
           <h2 className="text-3xl leading-snug tracking-tight text-[#F2EEE2] md:text-4xl">
-            We print flyers, not marketing plans.
+            We're software, not a design agency.
             <br />
-            If you've got a product photo, you've already got a campaign.
+            Give it one photo and it hands back a flyer, five captions and a
+            video — no brief, no back-and-forth.
           </h2>
         </div>
 
