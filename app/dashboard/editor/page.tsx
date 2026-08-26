@@ -142,7 +142,7 @@ const TemplateRenderer = memo(function TemplateRenderer({
     default:
       return <LuxuryProductTemplate {...shared} />;
   }
-});
+}
 
 // ============================================================================
 // TYPES
@@ -242,11 +242,21 @@ const TEMPLATE_THEMES = [
   { label: "Sage", bg: "#f0f2ea", accent: "#4a5d43", text: "#1f2417" },
 ];
 
+// ===== RESTORED ORIGINAL 30-COLOR SWATCH SET =====
 const COLOR_SWATCHES = [
-  "#000000", "#1d1d1f", "#ffffff", "#f5f5f7", "#78716c", "#64748b",
-  "#0071e3", "#4285f4", "#ea4335", "#fbbc05", "#34a853", "#ff3b30",
-  "#ff0000", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899",
-  "#e07a5f", "#c9a84c", "#4a5d43", "#a78bfa", "#fca5a5",
+  // Neutrals & metals
+  "#0a0a0a", "#1c1c1e", "#f5f5f0", "#e8e2d5", "#c0c0c0", "#8c8c8c",
+  "#d4af37", "#b08d57", "#e5c07b", "#b76e79",
+  // Blues & indigos
+  "#1a237e", "#283593", "#003153", "#0f4c81", "#4682b4",
+  // Greens
+  "#014421", "#0b6e4f", "#4a5d43", "#2e4600",
+  // Reds & warms
+  "#7b1e3a", "#9a2a2a", "#c1440e", "#e07a5f", "#d94f70",
+  // Purples & pinks
+  "#5b2a86", "#6a0572", "#a78bfa",
+  // Basics
+  "#ffffff", "#111111", "#f4f1ea",
 ];
 
 // ============================================================================
