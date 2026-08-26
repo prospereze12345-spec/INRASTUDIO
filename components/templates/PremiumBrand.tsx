@@ -21,7 +21,7 @@ import { touchTarget } from "@/lib/responsive";
 const cq = (n: number) => `calc(var(--ci) * ${n})`;
 
 // ============================================================================
-// TYPES
+// TYPES – updated: colors use bg/text/accent, price removed
 // ============================================================================
 
 export interface PremiumBrandProps {
@@ -34,12 +34,12 @@ export interface PremiumBrandProps {
   productImage: string;
   brandName?: string;
   website?: string;
-  price?: string;
+  // price removed
   phone?: string;
   email?: string;
   colors: {
-    primary: string;
-    secondary: string;
+    bg: string;      // was primary
+    text: string;    // was secondary
     accent: string;
   };
   editable?: boolean;
@@ -95,7 +95,7 @@ export function PremiumBrandTemplate(props: PremiumBrandProps) {
 }
 
 // ============================================================================
-// CTA
+// CTA (updated colors)
 // ============================================================================
 
 interface SmartCTAProps {
@@ -129,7 +129,7 @@ function SmartCTA({
         lineHeight: 1.2,
         maxWidth: "100%",
         backgroundColor: colors.accent,
-        color: colors.primary,
+        color: colors.bg, // was primary
         boxShadow: `0 ${cq(0.6)} ${cq(2)} ${hexToRgba(colors.accent, 0.2)}`,
       }}
     >
@@ -138,7 +138,7 @@ function SmartCTA({
         style={{
           width: cq(3.5),
           height: cq(3.5),
-          backgroundColor: colors.primary,
+          backgroundColor: colors.bg, // was primary
           color: colors.accent,
         }}
       >
@@ -164,7 +164,7 @@ function SmartCTA({
 }
 
 // ============================================================================
-// VARIANT: DIGITAL AGENCY
+// VARIANT: DIGITAL AGENCY – updated colors and removed price
 // ============================================================================
 
 function VariantDigitalAgency({
@@ -175,7 +175,7 @@ function VariantDigitalAgency({
   badgeText,
   productImage,
   website,
-  price,
+  // price removed
   phone,
   email,
   colors,
@@ -207,8 +207,8 @@ function VariantDigitalAgency({
     <div
       className="@container relative flex h-full w-full aspect-[4/5] flex-col overflow-hidden font-sans"
       style={{
-        backgroundColor: colors.primary,
-        color: colors.secondary,
+        backgroundColor: colors.bg,
+        color: colors.text,
       }}
     >
       {/* Background grain */}
@@ -316,19 +316,7 @@ function VariantDigitalAgency({
               className="flex shrink-0 items-center"
               style={{ gap: cq(2), marginTop: cq(3.5), minHeight: cq(7) }}
             >
-              {price && (
-                <EditableText
-                  as="p"
-                  fieldId="f-price"
-                  editable={editable}
-                  value={price}
-                  onChange={(value) => onUpdate?.("price", value)}
-                  onFocusEl={onFocusEl}
-                  onBlurEl={onBlurEl}
-                  className="shrink-0 font-bold tracking-tight"
-                  style={{ color: colors.accent, fontSize: cq(4) }}
-                />
-              )}
+              {/* Price removed */}
               <SmartCTA
                 value={ctaText}
                 editable={editable}
@@ -360,11 +348,11 @@ function VariantDigitalAgency({
             <div
               className="w-full h-full flex items-center justify-center rounded-lg"
               style={{
-                backgroundColor: hexToRgba(colors.secondary, 0.08),
-                border: `1px dashed ${hexToRgba(colors.secondary, 0.15)}`,
+                backgroundColor: hexToRgba(colors.text, 0.08),
+                border: `1px dashed ${hexToRgba(colors.text, 0.15)}`,
               }}
             >
-              <span className="text-[11px] font-medium opacity-30" style={{ color: colors.secondary }}>
+              <span className="text-[11px] font-medium opacity-30" style={{ color: colors.text }}>
                 No image
               </span>
             </div>
@@ -378,7 +366,7 @@ function VariantDigitalAgency({
                 width: cq(8),
                 height: cq(8),
                 backgroundColor: colors.accent,
-                color: colors.primary,
+                color: colors.bg,
                 fontSize: cq(2.2),
                 boxShadow: `0 ${cq(0.5)} ${cq(1.5)} ${hexToRgba(colors.accent, 0.3)}`,
               }}
@@ -401,8 +389,8 @@ function VariantDigitalAgency({
             paddingLeft: cq(2.5),
             paddingRight: cq(2.5),
             borderRadius: cq(1.5),
-            backgroundColor: colors.primary,
-            border: `1px solid ${hexToRgba(colors.secondary, 0.08)}`,
+            backgroundColor: colors.bg,
+            border: `1px solid ${hexToRgba(colors.text, 0.08)}`,
           }}
         >
           <ContactBar
@@ -410,7 +398,7 @@ function VariantDigitalAgency({
             website={website}
             email={email}
             accentColor={colors.accent}
-            textColor={colors.secondary}
+            textColor={colors.text}
             editable={editable}
             onUpdatePhone={(value) => onUpdate?.("phone", value)}
             onUpdateWebsite={(value) => onUpdate?.("website", value)}
@@ -431,7 +419,7 @@ function VariantDigitalAgency({
 }
 
 // ============================================================================
-// VARIANT: PREMIUM GOLD
+// VARIANT: PREMIUM GOLD – updated colors and removed price
 // ============================================================================
 
 function VariantPremiumGold({
@@ -441,8 +429,8 @@ function VariantPremiumGold({
   ctaVisible = true,
   website,
   productImage,
-  price,
   badgeText,
+  // price removed
   phone,
   email,
   colors,
@@ -474,8 +462,8 @@ function VariantPremiumGold({
     <div
       className="@container relative flex h-full w-full aspect-[4/5] flex-col overflow-hidden font-serif"
       style={{
-        backgroundColor: colors.primary,
-        color: colors.secondary,
+        backgroundColor: colors.bg,
+        color: colors.text,
       }}
     >
       {/* Border */}
@@ -566,11 +554,11 @@ function VariantPremiumGold({
             <div
               className="w-full h-full flex items-center justify-center rounded-lg"
               style={{
-                backgroundColor: hexToRgba(colors.secondary, 0.08),
-                border: `1px dashed ${hexToRgba(colors.secondary, 0.15)}`,
+                backgroundColor: hexToRgba(colors.text, 0.08),
+                border: `1px dashed ${hexToRgba(colors.text, 0.15)}`,
               }}
             >
-              <span className="text-[11px] font-medium opacity-30" style={{ color: colors.secondary }}>
+              <span className="text-[11px] font-medium opacity-30" style={{ color: colors.text }}>
                 No image
               </span>
             </div>
@@ -584,7 +572,7 @@ function VariantPremiumGold({
                 width: cq(7),
                 height: cq(7),
                 backgroundColor: colors.accent,
-                color: colors.primary,
+                color: colors.bg,
                 fontSize: cq(2),
                 boxShadow: `0 ${cq(0.5)} ${cq(1.5)} ${hexToRgba(colors.accent, 0.25)}`,
               }}
@@ -634,19 +622,7 @@ function VariantPremiumGold({
 
           <div className="flex items-end justify-between gap-4">
             <div className="max-w-[55%] min-w-0">
-              {price && (
-                <EditableText
-                  as="p"
-                  fieldId="f-price"
-                  editable={editable}
-                  value={price}
-                  onChange={(value) => onUpdate?.("price", value)}
-                  onFocusEl={onFocusEl}
-                  onBlurEl={onBlurEl}
-                  className="font-medium leading-none"
-                  style={{ color: colors.accent, fontSize: cq(4.5) }}
-                />
-              )}
+              {/* Price removed */}
               <EditableText
                 as="p"
                 fieldId="f-sub"
@@ -681,8 +657,8 @@ function VariantPremiumGold({
                 paddingLeft: cq(2),
                 paddingRight: cq(2),
                 borderRadius: cq(1.5),
-                backgroundColor: colors.primary,
-                border: `1px solid ${hexToRgba(colors.secondary, 0.08)}`,
+                backgroundColor: colors.bg,
+                border: `1px solid ${hexToRgba(colors.text, 0.08)}`,
               }}
             >
               <ContactBar
@@ -690,7 +666,7 @@ function VariantPremiumGold({
                 website={website}
                 email={email}
                 accentColor={colors.accent}
-                textColor={colors.secondary}
+                textColor={colors.text}
                 editable={editable}
                 onUpdatePhone={(value) => onUpdate?.("phone", value)}
                 onUpdateWebsite={(value) => onUpdate?.("website", value)}

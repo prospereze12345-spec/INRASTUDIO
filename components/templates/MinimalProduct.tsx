@@ -7,7 +7,7 @@ import { FeatureList, ContactBar, WhyChooseUsList } from "./FlyerContentBlocks";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   TYPES
+   TYPES – updated to use bg/text/accent, removed price
 ═══════════════════════════════════════════════════════════════════════════ */
 
 export interface SleekFlyerProps {
@@ -19,14 +19,14 @@ export interface SleekFlyerProps {
   productImage: string;
   brandName?: string;
   website?: string;
-  price?: string;
+  // price removed
   features?: string[];
   whyChooseUs?: string[];
   phone?: string;
   email?: string;
   colors: {
-    primary: string;
-    secondary: string;
+    bg: string;      // was primary
+    text: string;    // was secondary
     accent: string;
   };
   editable?: boolean;
@@ -90,7 +90,7 @@ export function SleekFlyerTemplate(props: SleekFlyerProps) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   1. MONO SPLIT
+   1. MONO SPLIT – updated colors and removed price
 ═══════════════════════════════════════════════════════════════════════════ */
 
 const VariantMonoSplit = ({
@@ -99,9 +99,9 @@ const VariantMonoSplit = ({
   ctaText,
   productImage,
   brandName,
-  price,
+  // price removed
   features,
-  whyChooseUs,           // <-- ADDED
+  whyChooseUs,
   phone,
   email,
   colors,
@@ -130,7 +130,7 @@ const VariantMonoSplit = ({
   return (
     <div
       className="@container w-full h-full relative overflow-hidden flex flex-row font-sans"
-      style={{ backgroundColor: colors.primary, color: colors.secondary }}
+      style={{ backgroundColor: colors.bg, color: colors.text }}
     >
       {/* ── Product image ─────────────────────────────────────────────── */}
 
@@ -148,13 +148,13 @@ const VariantMonoSplit = ({
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `linear-gradient(to right, transparent 60%, ${hexToRgba(colors.primary, 0.8)} 100%)`,
+            background: `linear-gradient(to right, transparent 60%, ${hexToRgba(colors.bg, 0.8)} 100%)`,
           }}
         />
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            boxShadow: `inset 0 0 ${cq(6)} ${hexToRgba(colors.primary, 0.18)}`,
+            boxShadow: `inset 0 0 ${cq(6)} ${hexToRgba(colors.bg, 0.18)}`,
           }}
         />
       </div>
@@ -166,7 +166,7 @@ const VariantMonoSplit = ({
         style={{
           width: "45%",
           height: "100%",
-          backgroundColor: colors.primary,
+          backgroundColor: colors.bg,
           padding: `${cq(7)} ${cq(6)} ${cq(7)} ${cq(5)}`,
         }}
       >
@@ -186,7 +186,7 @@ const VariantMonoSplit = ({
               letterSpacing: "0.22em",
               textTransform: "uppercase",
               opacity: 0.45,
-              color: colors.secondary,
+              color: colors.text,
             }}
           />
 
@@ -219,7 +219,7 @@ const VariantMonoSplit = ({
               fontWeight: 800,
               lineHeight: 0.92,
               letterSpacing: "-0.03em",
-              color: colors.secondary,
+              color: colors.text,
               margin: 0,
               fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif",
             }}
@@ -250,7 +250,7 @@ const VariantMonoSplit = ({
               style={{
                 fontSize: cq(2.6),
                 lineHeight: 1.5,
-                color: colors.secondary,
+                color: colors.text,
                 opacity: 0.55,
                 margin: 0,
                 maxWidth: "28ch",
@@ -283,25 +283,7 @@ const VariantMonoSplit = ({
             />
           )}
 
-          {price !== undefined && price !== "" && (
-            <div style={{ display: "inline-flex", alignItems: "baseline", gap: cq(0.8), marginTop: cq(1) }}>
-              <EditableText
-                as="span"
-                fieldId="f-price"
-                editable={editable}
-                value={price}
-                onChange={(value) => onUpdate?.("price", value)}
-                onFocusEl={onFocusEl}
-                onBlurEl={onBlurEl}
-                style={{
-                  fontSize: cq(7),
-                  fontWeight: 700,
-                  letterSpacing: "-0.04em",
-                  color: colors.secondary,
-                }}
-              />
-            </div>
-          )}
+          {/* Price removed */}
         </div>
 
         {/* Bottom actions */}
@@ -311,8 +293,8 @@ const VariantMonoSplit = ({
               display: "inline-flex",
               alignItems: "center",
               gap: cq(2),
-              backgroundColor: colors.secondary,
-              color: colors.primary,
+              backgroundColor: colors.text,
+              color: colors.bg,
               padding: `${cq(2.2)} ${cq(4)}`,
               borderRadius: "100px",
               fontSize: cq(2.4),
@@ -347,7 +329,7 @@ const VariantMonoSplit = ({
               website={website}
               email={email}
               accentColor={colors.accent}
-              textColor={colors.secondary}
+              textColor={colors.text}
               editable={editable}
               onUpdatePhone={onUpdatePhone}
               onUpdateWebsite={onUpdateWebsite}
@@ -369,7 +351,7 @@ const VariantMonoSplit = ({
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   2. KŌAN
+   2. KŌAN – updated colors and removed price
 ═══════════════════════════════════════════════════════════════════════════ */
 
 const VariantKoan = ({
@@ -379,9 +361,9 @@ const VariantKoan = ({
   ctaText,
   productImage,
   brandName,
-  price,
+  // price removed
   features,
-  whyChooseUs,           // <-- ADDED
+  whyChooseUs,
   phone,
   email,
   colors,
@@ -410,7 +392,7 @@ const VariantKoan = ({
   return (
     <div
       className="@container w-full h-full relative overflow-hidden flex flex-col items-center font-sans"
-      style={{ backgroundColor: colors.primary, color: colors.secondary }}
+      style={{ backgroundColor: colors.bg, color: colors.text }}
     >
       {/* Brand */}
       <div style={{ padding: `${cq(5)} 0 0`, textAlign: "center", zIndex: 10, flexShrink: 0 }}>
@@ -427,7 +409,7 @@ const VariantKoan = ({
             fontWeight: 700,
             letterSpacing: "0.3em",
             textTransform: "uppercase",
-            color: colors.secondary,
+            color: colors.text,
             opacity: 0.4,
           }}
         />
@@ -445,7 +427,7 @@ const VariantKoan = ({
           style={{
             fontSize: cq(2.4),
             fontStyle: "italic",
-            color: colors.secondary,
+            color: colors.text,
             opacity: 0.35,
             margin: `${cq(2)} 0 0`,
             letterSpacing: "0.04em",
@@ -463,7 +445,7 @@ const VariantKoan = ({
             width: cq(70),
             height: cq(70),
             borderRadius: "50%",
-            border: `${cq(0.12)} solid ${colors.secondary}`,
+            border: `${cq(0.12)} solid ${colors.text}`,
             opacity: 0.08,
             zIndex: 2,
           }}
@@ -514,7 +496,7 @@ const VariantKoan = ({
             fontWeight: 700,
             letterSpacing: "-0.03em",
             lineHeight: 0.95,
-            color: colors.secondary,
+            color: colors.text,
             margin: 0,
             fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif",
           }}
@@ -545,7 +527,7 @@ const VariantKoan = ({
             style={{
               fontSize: cq(2.4),
               lineHeight: 1.5,
-              color: colors.secondary,
+              color: colors.text,
               opacity: 0.45,
               margin: 0,
               fontWeight: 400,
@@ -582,18 +564,7 @@ const VariantKoan = ({
         )}
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: cq(4), marginTop: cq(0.5), flexWrap: "wrap" }}>
-          {price !== undefined && price !== "" && (
-            <EditableText
-              as="span"
-              fieldId="f-price"
-              editable={editable}
-              value={price}
-              onChange={(value) => onUpdate?.("price", value)}
-              onFocusEl={onFocusEl}
-              onBlurEl={onBlurEl}
-              style={{ fontSize: cq(4), fontWeight: 700, color: colors.accent, letterSpacing: "-0.02em" }}
-            />
-          )}
+          {/* Price removed */}
 
           <EditableText
             as="div"
@@ -604,13 +575,13 @@ const VariantKoan = ({
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             style={{
-              border: `${cq(0.12)} solid ${colors.secondary}`,
+              border: `${cq(0.12)} solid ${colors.text}`,
               padding: `${cq(1.6)} ${cq(4.5)}`,
               borderRadius: "100px",
               fontSize: cq(2.2),
               fontWeight: 500,
               letterSpacing: "0.06em",
-              color: colors.secondary,
+              color: colors.text,
               opacity: 0.75,
               minHeight: "44px",
               display: "inline-flex",
@@ -625,7 +596,7 @@ const VariantKoan = ({
             website={website}
             email={email}
             accentColor={colors.accent}
-            textColor={colors.secondary}
+            textColor={colors.text}
             editable={editable}
             onUpdatePhone={onUpdatePhone}
             onUpdateWebsite={onUpdateWebsite}

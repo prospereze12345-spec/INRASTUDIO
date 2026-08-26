@@ -22,6 +22,15 @@ import { SleekFlyerTemplate as MinimalProductTemplate } from "@/components/templ
 import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
 import { LUXURY_VARIATIONS, MINIMAL_PRODUCT_VARIATIONS, PREMIUM_BRAND_VARIATIONS } from "@/lib/template-data";
 
+// Helper to map old color keys to new ones
+function mapColors(colors: { primary: string; secondary: string; accent: string }) {
+  return {
+    bg: colors.primary,
+    text: colors.secondary,
+    accent: colors.accent,
+  };
+}
+
 function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   return (
     <>
@@ -53,15 +62,12 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
           <Link href="/dashboard/templates" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 text-white font-medium transition-colors">
             <LayoutTemplate className="w-5 h-5 text-cyan-400" /> Templates
           </Link>
-          
-          
         </div>
 
         <div className="p-4 border-t border-white/5">
           <Link href="/pricing" className="flex items-center gap-3 px-4 py-3 mb-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-transparent hover:bg-amber-500/20 text-amber-400 font-medium transition-colors border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]">
             <Crown className="w-5 h-5" /> Upgrade to Pro
           </Link>
-          
         </div>
       </motion.aside>
     </>
@@ -69,7 +75,6 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 }
 
 const TEMPLATE_CATEGORIES = [
-  
   {
     title: "Luxury Product",
     description: "Best for perfume sellers, skincare brands, jewelry sellers, luxury fashion, and watches.",
@@ -112,7 +117,6 @@ export default function TemplatesPage() {
 
   return (
     <>
-      {/* Global touch‑action fix + overflow prevention */}
       <style>{`
         button, a, label, [role="button"] {
           touch-action: manipulation;
@@ -124,7 +128,6 @@ export default function TemplatesPage() {
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <main className="flex-1 lg:ml-64 relative min-h-screen w-full max-w-full overflow-x-hidden">
-          {/* Mobile header — only logo, no text */}
           <header className="lg:hidden flex items-center justify-between p-4 border-b border-white/5 bg-[#0a1128]/80 backdrop-blur-md sticky top-0 z-30">
             <Logo className="w-8 h-8 rounded-md" />
             <button onClick={() => setSidebarOpen(true)} className="p-3 -m-3 text-slate-300">
@@ -148,16 +151,21 @@ export default function TemplatesPage() {
                 <Sparkles className="w-5 h-5 text-cyan-400 shrink-0" />
                 <h2 className="text-lg sm:text-xl font-display font-semibold text-white tracking-tight">Most Used Templates</h2>
               </div>
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-2xl">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-2xl">
                 {[
                   { name: "Digital Agency", category: "Premium Brand", templateType: PremiumBrandTemplate, data: PREMIUM_BRAND_VARIATIONS.find(v => v.name === "Digital Agency")! },
                   { name: "Black Gold", category: "Luxury Product", templateType: LuxuryProductTemplate, data: LUXURY_VARIATIONS.find(v => v.name === "Black Gold")! }
                 ].map((item, i) => {
                   const TemplateComp = item.templateType as any;
+                  const mappedColors = mapColors(item.data.colors);
                   return (
                     <div key={item.name} className="group relative rounded-2xl overflow-hidden bg-white/5 border border-white/10 aspect-[4/5] cursor-pointer hover:border-cyan-400/50 transition-colors shadow-lg">
                       <div className="w-full h-full pointer-events-none select-none relative">
-                        <TemplateComp {...item.data} productImage={campaignImage || item.data.productImage} />
+                        <TemplateComp 
+                          {...item.data} 
+                          colors={mappedColors}
+                          productImage={campaignImage || item.data.productImage} 
+                        />
                       </div>
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 sm:p-6 z-[60]">
                         <button 
@@ -185,18 +193,31 @@ export default function TemplatesPage() {
                   </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-3xl">
-                    {category.templates.map((templateName, idx) => (
-                      <div key={templateName} className="group relative rounded-2xl overflow-hidden bg-white/5 border border-white/5 aspect-[4/5] cursor-pointer hover:border-white/20 transition-colors">
-                        {category.title === "Luxury Product"  || category.title === "Minimal Product" || category.title === "Premium Brand" ? (
+                    {category.templates.map((templateName, idx) => {
+                      let variation;
+                      let TemplateComp;
+                      if (category.title === "Luxury Product") {
+                        variation = LUXURY_VARIATIONS[idx];
+                        TemplateComp = LuxuryProductTemplate;
+                      } else if (category.title === "Minimal Product") {
+                        variation = MINIMAL_PRODUCT_VARIATIONS[idx];
+                        TemplateComp = MinimalProductTemplate;
+                      } else if (category.title === "Premium Brand") {
+                        variation = PREMIUM_BRAND_VARIATIONS[idx];
+                        TemplateComp = PremiumBrandTemplate;
+                      } else {
+                        return null;
+                      }
+                      if (!variation) return null;
+                      const mappedColors = mapColors(variation.colors);
+                      return (
+                        <div key={templateName} className="group relative rounded-2xl overflow-hidden bg-white/5 border border-white/5 aspect-[4/5] cursor-pointer hover:border-white/20 transition-colors">
                           <div className="w-full h-full pointer-events-none select-none relative">
-                            {category.title === "Luxury Product" ? (
-                              <LuxuryProductTemplate {...LUXURY_VARIATIONS[idx]} productImage={campaignImage || LUXURY_VARIATIONS[idx].productImage} />
-                            
-                            ) : category.title === "Minimal Product" ? (
-                              <MinimalProductTemplate {...MINIMAL_PRODUCT_VARIATIONS[idx]} productImage={campaignImage || MINIMAL_PRODUCT_VARIATIONS[idx].productImage} />
-                            ) : category.title === "Premium Brand" ? (
-                              <PremiumBrandTemplate {...PREMIUM_BRAND_VARIATIONS[idx]} productImage={campaignImage || PREMIUM_BRAND_VARIATIONS[idx].productImage} />
-                            ) : null}
+                            <TemplateComp 
+                              {...variation} 
+                              colors={mappedColors}
+                              productImage={campaignImage || variation.productImage} 
+                            />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 sm:p-6 z-[60]">
                               <button 
                                 onClick={() => handleUseTemplate(templateName, category.title)} 
@@ -206,32 +227,9 @@ export default function TemplatesPage() {
                               </button>
                             </div>
                           </div>
-                        ) : (
-                          <>
-                            <Image 
-                              src={campaignImage || `https://picsum.photos/seed/${category.title.replace(/\s+/g, '')}${idx}/400/500`} 
-                              alt={templateName} 
-                              unoptimized
-                              fill 
-                              className="object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-500 scale-100 group-hover:scale-105" 
-                              referrerPolicy="no-referrer" 
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#0a1128] via-transparent to-transparent opacity-80" />
-                            <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                <h3 className="text-white font-medium text-sm mb-1 break-words">{templateName}</h3>
-                                <button 
-                                  onClick={() => handleUseTemplate(templateName, category.title)} 
-                                  className="block text-center text-xs font-semibold text-[#0a1128] hover:bg-cyan-300 w-full mt-2 bg-cyan-400 rounded-lg py-2 min-h-[44px] touch-manipulation"
-                                >
-                                  Use Template
-                                </button>
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    ))}
+                        </div>
+                      );
+                    })}
                   </div>
                 </section>
               ))}
@@ -243,5 +241,3 @@ export default function TemplatesPage() {
     </>
   );
 }
-
-

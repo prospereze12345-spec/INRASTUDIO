@@ -7,7 +7,7 @@ import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 import { FeatureList, ContactBar, WhyChooseUsList } from "./FlyerContentBlocks";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   TYPES
+   TYPES – updated to match editor's FlyerState colors
 ═══════════════════════════════════════════════════════════════════════════ */
 
 export interface LuxuryProductProps {
@@ -21,13 +21,13 @@ export interface LuxuryProductProps {
   website?: string;
   phone?: string;
   email?: string;
-  price?: string;
+  // price removed
   features?: string[];
   whyChooseUs?: string[];
   colors: {
-    primary: string;
-    secondary: string;
-    accent: string;
+    bg: string;       // was primary
+    text: string;     // was secondary
+    accent: string;   // unchanged
   };
   editable?: boolean;
 
@@ -49,14 +49,14 @@ export interface LuxuryProductProps {
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
 
-  // Visibility toggles (passed from editor)
+  // Visibility toggles
   featuresVisible?: boolean;
   whyChooseUsVisible?: boolean;
   phoneVisible?: boolean;
   emailVisible?: boolean;
   websiteVisible?: boolean;
 
-  // Remove handlers (called when toggling off via ContentPanel)
+  // Remove handlers
   onRemovePhone?: () => void;
   onRemoveEmail?: () => void;
   onRemoveWebsite?: () => void;
@@ -86,7 +86,7 @@ function hexToRgba(hex: string, alpha: number) {
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   CACHE BUSTING (optional)
+   CACHE BUSTING
 ───────────────────────────────────────────────────────────────── */
 
 function withCacheBust(url?: string, version?: string | number) {
@@ -118,7 +118,7 @@ export function LuxuryProductTemplate(props: LuxuryProductProps) {
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   IMAGE SAFETY WRAPPER (kept for priority/cache)
+   IMAGE SAFETY WRAPPER
 ───────────────────────────────────────────────────────────────── */
 
 function SafeImage({
@@ -158,7 +158,7 @@ function SafeImage({
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   FOOTER PANEL (simplified – no restore props)
+   FOOTER PANEL (simplified – uses new color keys)
 ───────────────────────────────────────────────────────────────── */
 
 function ContactFooter({
@@ -186,7 +186,7 @@ function ContactFooter({
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   1. NOIR EDITORIAL
+   1. NOIR EDITORIAL – updated to use colors.bg, .text, .accent, no price
 ═══════════════════════════════════════════════════════════════════════════ */
 
 const VariantNoirEditorial = ({
@@ -196,7 +196,7 @@ const VariantNoirEditorial = ({
   productImage,
   imageVersion,
   brandName,
-  price,
+  // price removed
   colors,
   editable,
   onUpdate,
@@ -225,7 +225,7 @@ const VariantNoirEditorial = ({
   return (
     <div
       className="@container w-full h-full relative overflow-hidden flex flex-col font-sans aspect-[4/5]"
-      style={{ backgroundColor: colors.primary, color: "#fff" }}
+      style={{ backgroundColor: colors.bg, color: "#fff" }}
     >
       {/* Background image */}
       <div className="absolute inset-0">
@@ -241,7 +241,7 @@ const VariantNoirEditorial = ({
             className="object-cover object-center"
           />
         ) : (
-          <div className="absolute inset-0" style={{ backgroundColor: colors.secondary }} />
+          <div className="absolute inset-0" style={{ backgroundColor: colors.text }} />
         )}
         <div
           className="absolute inset-0"
@@ -293,14 +293,10 @@ const VariantNoirEditorial = ({
       >
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
-            {price !== undefined && price !== "" && (
-              <EditableText as="p" fieldId="f-price" editable={editable} value={price}
-                onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                className="font-black" style={{ fontSize: cq(4), color: colors.accent }} />
-            )}
+            {/* Price removed */}
             <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext ?? ""}
               onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-              className="opacity-70" style={{ fontSize: cq(1.8), marginTop: space.xs }} />
+              className="opacity-70" style={{ fontSize: cq(1.8) }} />
           </div>
 
           <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
@@ -310,7 +306,7 @@ const VariantNoirEditorial = ({
               minHeight: "44px", display: "inline-flex", alignItems: "center",
               paddingLeft: cq(3.6), paddingRight: cq(3.6),
               fontSize: cq(1.9), letterSpacing: "0.08em",
-              backgroundColor: colors.accent, color: colors.primary,
+              backgroundColor: colors.accent, color: colors.bg,
               borderRadius: "100px",
             }} />
         </div>
@@ -320,7 +316,7 @@ const VariantNoirEditorial = ({
             {hasFeatures && (
               <FeatureList
                 features={features!.slice(0, 3)}
-                colors={{ ...colors, secondary: "#fff" }}
+                colors={{ ...colors, text: "#fff" }} // override text color for list items
                 editable={editable}
                 onUpdateFeature={onUpdateFeature ?? (() => undefined)}
                 onFocusEl={onFocusEl}
@@ -331,7 +327,7 @@ const VariantNoirEditorial = ({
             {hasWhyChooseUs && (
               <WhyChooseUsList
                 items={whyChooseUs!.slice(0, 3)}
-                colors={{ ...colors, secondary: "#fff" }}
+                colors={{ ...colors, text: "#fff" }}
                 editable={editable}
                 onUpdate={onUpdateWhyChooseUs ?? (() => undefined)}
                 onFocusEl={onFocusEl}
@@ -367,7 +363,7 @@ const VariantNoirEditorial = ({
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   2. ATELIER LIGHT
+   2. ATELIER LIGHT – updated similarly
 ═══════════════════════════════════════════════════════════════════════════ */
 
 const VariantAtelierLight = ({
@@ -377,7 +373,7 @@ const VariantAtelierLight = ({
   productImage,
   imageVersion,
   brandName,
-  price,
+  // price removed
   colors,
   editable,
   onUpdate,
@@ -405,7 +401,7 @@ const VariantAtelierLight = ({
   return (
     <div
       className="@container w-full h-full relative overflow-hidden flex flex-col items-center font-sans aspect-[4/5]"
-      style={{ backgroundColor: colors.primary, color: colors.secondary }}
+      style={{ backgroundColor: colors.bg, color: colors.text }}
     >
       {/* Brand */}
       <div className="shrink-0 text-center" style={{ paddingTop: space.lg }}>
@@ -445,7 +441,7 @@ const VariantAtelierLight = ({
               className="font-black leading-[0.92] tracking-tight"
               style={{
                 fontSize: i === 0 ? cq(5) : cq(3.6),
-                color: i === 1 ? colors.accent : colors.secondary,
+                color: i === 1 ? colors.accent : colors.text,
                 opacity: i === 1 ? 0.85 : 1,
               }}
             >
@@ -501,19 +497,14 @@ const VariantAtelierLight = ({
         </div>
       )}
 
-      {/* Price + CTA */}
+      {/* Price removed – only CTA remains */}
       <div className="shrink-0 flex items-center justify-center" style={{ gap: space.md, padding: `${space.sm} ${space.lg} 0` }}>
-        {price !== undefined && price !== "" && (
-          <EditableText as="span" fieldId="f-price" editable={editable} value={price}
-            onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="font-black" style={{ fontSize: cq(3), color: colors.accent }} />
-        )}
         <EditableText as="span" fieldId="f-cta" editable={editable} value={ctaText}
           onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
           className="font-semibold uppercase"
           style={{
             fontSize: cq(1.7), letterSpacing: "0.1em",
-            color: colors.secondary,
+            color: colors.text,
             textDecoration: "underline",
             textUnderlineOffset: "4px",
             textDecorationColor: colors.accent,
@@ -524,7 +515,7 @@ const VariantAtelierLight = ({
       <div className="shrink-0 w-full" style={{ padding: `${space.sm} ${space.lg} ${space.lg}` }}>
         <ContactFooter
           colors={colors}
-          textColor={colors.secondary}
+          textColor={colors.text}
           phone={phone}
           website={website}
           email={email}

@@ -1460,9 +1460,10 @@ function EditorContent() {
   const [exportingFormat, setExportingFormat] = useState<"png" | "jpg" | "pdf" | null>(null);
 
   // Wrappers to use dispatch with proper actions
-  const update = useCallback((field: keyof FlyerState, value: any) => {
-    dispatch({ type: "UPDATE", field, value });
-  }, [dispatch]);
+  const update = useCallback((field: string, value: any) => {
+  // We know we only call this with valid FlyerState keys
+  dispatch({ type: "UPDATE", field: field as keyof FlyerState, value });
+}, [dispatch]);
 
   const updateFeature = useCallback((index: number, value: string) => {
     dispatch({ type: "UPDATE_FEATURE", index, value });

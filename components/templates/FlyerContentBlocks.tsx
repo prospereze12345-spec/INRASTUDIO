@@ -1,19 +1,19 @@
 ﻿"use client";
 
 import React from "react";
-import { Globe, Mail, Phone, Plus } from "lucide-react";
+import { Globe, Mail, Phone } from "lucide-react";
 import { EditableText } from "@/components/EditableText";
 
 const cq = (n: number) => `calc(var(--ci) * ${n})`;
 
 // ============================================================================
-// TYPES
+// TYPES – updated to match the new colour system
 // ============================================================================
 
 export type FlyerColors = {
-  primary: string;
-  secondary: string;
-  accent: string;
+  bg: string;      // was primary
+  text: string;    // was secondary
+  accent: string;  // unchanged
 };
 
 export type SharedBlockProps = {
