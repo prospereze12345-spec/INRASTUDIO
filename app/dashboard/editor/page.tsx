@@ -1080,7 +1080,7 @@ const VALID_CATEGORIES: FlyerState["templateCategory"][] = [
   "Luxury Product", "Minimal Product", "Premium Brand",
 ];
 
-// ---------- EXPORT HELPERS (switched to html2canvas) ----------
+// ---------- EXPORT HELPERS (uses html-to-image) ----------
 async function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -1269,7 +1269,7 @@ function EditorContent() {
     [update]
   );
 
-  // ---------- EXPORT FLYER (using html2canvas) ----------
+  // ---------- EXPORT FLYER (using html-to-image, no oklch error) ----------
   const exportFlyer = useCallback(async (
     format: 'png' | 'jpg' | 'pdf',
   ) => {
@@ -1287,7 +1287,7 @@ function EditorContent() {
     let originalSrcs: string[] = [];
 
     try {
-      // 1. Convert all images to data URLs to avoid CORS issues
+      // 1. Convert all images to data URLs
       imgEls = Array.from(node.querySelectorAll("img"));
       originalSrcs = imgEls.map(img => img.src);
 
@@ -1307,56 +1307,50 @@ function EditorContent() {
         })
       );
 
-      // 2. Give the DOM time to settle
+      // 2. Extra paint delay for mobile
       await new Promise(res => requestAnimationFrame(res));
       await new Promise(res => setTimeout(res, 300));
 
-      // 3. Use html2canvas (more reliable on mobile)
-      const html2canvas = (await import('html2canvas')).default;
+      // 3. Import html-to-image
+      const { toPng, toJpeg } = await import("html-to-image");
       const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
-      const canvas = await html2canvas(node, {
-        scale: 1,
-        useCORS: true,
-        backgroundColor: '#ffffff',
+      const snapshotOpts = {
+        pixelRatio: 1,
+        cacheBust: true,
         width: fmt.exportW,
         height: fmt.exportH,
-        logging: false,
-        allowTaint: false,
-        // onclone ensures images are loaded
-      });
+        useCORS: true,
+        skipAutoScale: true,
+        backgroundColor: '#ffffff',
+      };
 
-      // 4. Convert to blob
-      const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
-      const quality = format === 'jpg' ? 0.95 : undefined;
-      const blob = await new Promise<Blob>((resolve) => {
-        canvas.toBlob((b) => resolve(b!), mimeType, quality);
-      });
-
-      // 5. Download
-      const ext = format === 'pdf' ? 'pdf' : format;
-      const filename = `flyer-${activeFormat}.${ext}`;
-
-      if (format === 'pdf') {
-        // For PDF, we need to use jsPDF with the canvas data URL
-        const dataUrl = canvas.toDataURL('image/png');
+      let blob: Blob;
+      if (format === 'jpg') {
+        const dataUrl = await toJpeg(node, { ...snapshotOpts, quality: 0.95 });
+        blob = await (await fetch(dataUrl)).blob();
+      } else if (format === 'pdf') {
         const { default: jsPDF } = await import('jspdf');
+        const dataUrl = await toPng(node, snapshotOpts);
         const pdf = new jsPDF({
           orientation: fmt.exportW > fmt.exportH ? "landscape" : "portrait",
           unit: "px",
           format: [fmt.exportW, fmt.exportH],
         });
         pdf.addImage(dataUrl, "PNG", 0, 0, fmt.exportW, fmt.exportH);
-        const pdfBlob = pdf.output("blob");
-        await downloadBlob(pdfBlob, filename);
+        blob = pdf.output("blob");
       } else {
-        await downloadBlob(blob, filename);
+        const dataUrl = await toPng(node, snapshotOpts);
+        blob = await (await fetch(dataUrl)).blob();
       }
+
+      const ext = format === 'pdf' ? 'pdf' : format;
+      const filename = `flyer-${activeFormat}.${ext}`;
+      await downloadBlob(blob, filename);
 
     } catch (err) {
       console.error(err);
       setExportError(err instanceof Error ? err.message : "Export failed.");
     } finally {
-      // Restore original srcs
       imgEls.forEach((img, i) => { img.src = originalSrcs[i]; });
       setExportingFormat(null);
     }
@@ -1495,7 +1489,7 @@ function EditorContent() {
     };
   }, [activeFormat, sheetExpanded]);
 
-  // ---------- NO free-text state or handlers ----------
+  // ---------- No free-text state or handlers ----------
 
   const TABS: { id: RsbTab; icon: React.ReactNode; label: string }[] = [
     { id: "design", icon: <Palette size={16} />, label: "Design" },
@@ -1551,7 +1545,7 @@ function EditorContent() {
       {/* MAIN AREA */}
       <div className="flex flex-1 overflow-hidden relative">
 
-        {/* CANVAS – no click handler, no free text */}
+        {/* CANVAS */}
         <section className="flex-1 flex flex-col overflow-hidden bg-zinc-950 pb-[52px] md:pb-0">
           <div
             ref={canvasWrapRef}
