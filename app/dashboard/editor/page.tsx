@@ -260,7 +260,7 @@ const COLOR_SWATCHES = [
 ];
 
 // ============================================================================
-// EDITABLE COMPONENT
+// EDITABLE COMPONENT (kept for badge)
 // ============================================================================
 type EditableProps = {
   id: string;
@@ -306,7 +306,7 @@ function Editable({
 }
 
 // ============================================================================
-// MOVABLE / OVERLAY
+// MOVABLE / OVERLAY (only for logo and badge)
 // ============================================================================
 type Transform = { x: number; y: number; scale: number };
 
@@ -520,7 +520,7 @@ function DiscountBadgeSticker({
 }
 
 // ============================================================================
-// PANELS
+// PANEL COMPONENTS
 // ============================================================================
 function Label({ children }: { children: React.ReactNode }) {
   return <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">{children}</p>;
@@ -569,12 +569,16 @@ const DesignPanel = memo(function DesignPanel({
   onLogoUpload,
   badge,
   onBadgeChange,
+  activeFormat,
+  setActiveFormat,
 }: {
   data: FlyerState;
   onUpdate: (k: keyof FlyerState, v: any) => void;
   onLogoUpload: (file: File) => void;
   badge: DiscountBadge;
   onBadgeChange: (b: DiscountBadge) => void;
+  activeFormat: FormatId;
+  setActiveFormat: (id: FormatId) => void;
 }) {
   const [colorLayer, setColorLayer] = useState<"bg" | "accent" | "text">("accent");
   const [activeTheme, setActiveTheme] = useState<number | null>(null);
@@ -1086,6 +1090,7 @@ const VALID_CATEGORIES: FlyerState["templateCategory"][] = [
   "Luxury Product", "Minimal Product", "Premium Brand",
 ];
 
+// ---------- EXPORT HELPERS (improved for mobile) ----------
 async function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -1098,6 +1103,7 @@ async function downloadBlob(blob: Blob, filename: string) {
 }
 
 async function toDataURL(url: string): Promise<string> {
+  // Try fetch with CORS first
   try {
     const res = await fetch(url, { mode: "cors" });
     const blob = await res.blob();
@@ -1108,6 +1114,7 @@ async function toDataURL(url: string): Promise<string> {
       reader.readAsDataURL(blob);
     });
   } catch {
+    // Fallback: canvas with image element
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = "anonymous";
@@ -1142,6 +1149,7 @@ async function uploadAsset(file: File): Promise<string> {
   return data.url as string;
 }
 
+// ---------- Main Editor ----------
 function EditorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1273,9 +1281,7 @@ function EditorContent() {
     [update]
   );
 
-  // ============================================================================
-  // EXPORT FLYER — fully implemented with direct download
-  // ============================================================================
+  // ---------- EXPORT FLYER (improved for mobile) ----------
   const exportFlyer = useCallback(async (
     format: 'png' | 'jpg' | 'pdf',
   ) => {
@@ -1293,6 +1299,7 @@ function EditorContent() {
     let originalSrcs: string[] = [];
 
     try {
+      // 1. Convert all images in the export node to data URLs
       imgEls = Array.from(node.querySelectorAll("img"));
       originalSrcs = imgEls.map(img => img.src);
 
@@ -1301,20 +1308,23 @@ function EditorContent() {
           try {
             const dataUrl = await toDataURL(originalSrcs[i]);
             img.src = dataUrl;
+            // Wait for the new data URL to load
             if (img.complete) return;
             await new Promise<void>((resolve) => {
               img.onload = () => resolve();
               img.onerror = () => resolve();
             });
           } catch {
-            // Keep original
+            // Keep original if conversion fails (should not happen with data URLs)
           }
         })
       );
 
+      // 2. Force a reflow and extra paint for mobile
       await new Promise(res => requestAnimationFrame(res));
-      await new Promise(res => setTimeout(res, 100));
+      await new Promise(res => setTimeout(res, 300));
 
+      // 3. Use html-to-image with conservative options
       const { toPng, toJpeg } = await import("html-to-image");
       const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
       const snapshotOpts = {
@@ -1324,11 +1334,12 @@ function EditorContent() {
         height: fmt.exportH,
         useCORS: true,
         skipAutoScale: true,
+        backgroundColor: '#ffffff',
       };
 
       let blob: Blob;
       if (format === 'jpg') {
-        const dataUrl = await toJpeg(node, { ...snapshotOpts, quality: 0.95, backgroundColor: '#ffffff' });
+        const dataUrl = await toJpeg(node, { ...snapshotOpts, quality: 0.95 });
         blob = await (await fetch(dataUrl)).blob();
       } else if (format === 'pdf') {
         const { default: jsPDF } = await import('jspdf');
@@ -1341,10 +1352,12 @@ function EditorContent() {
         pdf.addImage(dataUrl, "PNG", 0, 0, fmt.exportW, fmt.exportH);
         blob = pdf.output("blob");
       } else {
+        // png
         const dataUrl = await toPng(node, snapshotOpts);
         blob = await (await fetch(dataUrl)).blob();
       }
 
+      // 4. Direct download
       const ext = format === 'pdf' ? 'pdf' : format;
       const filename = `flyer-${activeFormat}.${ext}`;
       await downloadBlob(blob, filename);
@@ -1353,12 +1366,13 @@ function EditorContent() {
       console.error(err);
       setExportError(err instanceof Error ? err.message : "Export failed.");
     } finally {
+      // Restore original srcs
       imgEls.forEach((img, i) => { img.src = originalSrcs[i]; });
       setExportingFormat(null);
     }
   }, [exportNodeRef, activeFormat, pendingUploads]);
 
-  // -------- LOAD DATA --------
+  // ---------- LOAD DATA ----------
   useEffect(() => {
     let cancelled = false;
 
@@ -1461,7 +1475,7 @@ function EditorContent() {
     return () => { cancelled = true; };
   }, [router, searchParams]);
 
-  // -------- CANVAS SCALE CALCULATION --------
+  // ---------- CANVAS SCALE CALCULATION ----------
   useLayoutEffect(() => {
     const recalc = () => {
       if (!canvasWrapRef.current) return;
@@ -1545,7 +1559,7 @@ function EditorContent() {
       {/* MAIN AREA */}
       <div className="flex flex-1 overflow-hidden relative">
 
-        {/* CANVAS - no onClick, no free text blocks */}
+        {/* CANVAS (no format bar) */}
         <section className="flex-1 flex flex-col overflow-hidden bg-zinc-950 pb-[52px] md:pb-0">
           <div
             ref={canvasWrapRef}
@@ -1653,16 +1667,18 @@ function EditorContent() {
             </div>
           </div>
 
-          {/* Hidden export clone — off-screen, full size */}
+          {/* Hidden export clone – now with opacity:0 and pointer-events:none for mobile compat */}
           <div
             aria-hidden="true"
             style={{
               position: "fixed",
-              left: "-9999px",
               top: 0,
+              left: 0,
               width: currentFormat.exportW,
               height: currentFormat.exportH,
+              opacity: 0,
               pointerEvents: "none",
+              zIndex: -1,
               ["--ci" as any]: `${currentFormat.exportW / 100}px`,
               ["--cb" as any]: `${currentFormat.exportH / 100}px`,
             } as React.CSSProperties}
@@ -1713,30 +1729,9 @@ function EditorContent() {
               )}
             </div>
           </div>
-
-          {/* Format bar */}
-          <div className="h-12 shrink-0 bg-[#111113] border-t border-zinc-800
-                          flex items-center gap-1.5 px-4 overflow-x-auto
-                          md:justify-center [&::-webkit-scrollbar]:hidden">
-            <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-wider mr-2 shrink-0">Format</span>
-            {SOCIAL_FORMATS.map(f => {
-              const Icon = f.icon;
-              return (
-                <button key={f.id} onClick={() => setActiveFormat(f.id)}
-                  className={`flex items-center gap-1.5 px-3 py-2 md:py-1 rounded-full text-[11px] font-semibold
-                              border transition-all shrink-0 touch-manipulation
-                    ${activeFormat === f.id
-                      ? "border-cyan-400 bg-cyan-400/10 text-cyan-400"
-                      : "border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300"}`}>
-                  <Icon size={11} />
-                  {f.label}
-                </button>
-              );
-            })}
-          </div>
         </section>
 
-        {/* Bottom Sheet (no tools, only tabs + content) */}
+        {/* BOTTOM PANEL – with format selector at the top */}
         <aside
           className={`
             fixed md:static inset-x-0 bottom-0 md:inset-auto
@@ -1756,6 +1751,27 @@ function EditorContent() {
             <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">
               {sheetExpanded ? "Drag down to collapse" : "Drag up for more"}
             </span>
+          </div>
+
+          {/* Format selector (always visible, top of panel) */}
+          <div className="border-b border-zinc-800 px-3 py-2 shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-1.5 items-center justify-start">
+              <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-wider mr-1 shrink-0">Format</span>
+              {SOCIAL_FORMATS.map(f => {
+                const Icon = f.icon;
+                return (
+                  <button key={f.id} onClick={() => setActiveFormat(f.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold
+                                border transition-all shrink-0 touch-manipulation
+                      ${activeFormat === f.id
+                        ? "border-cyan-400 bg-cyan-400/10 text-cyan-400"
+                        : "border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300"}`}>
+                    <Icon size={11} />
+                    {f.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Tabs row */}
@@ -1797,6 +1813,8 @@ function EditorContent() {
                     onLogoUpload={(file) => handleImageUpload(file, "logoImage")}
                     badge={badgeOverlay}
                     onBadgeChange={setBadgeOverlay}
+                    activeFormat={activeFormat}
+                    setActiveFormat={setActiveFormat}
                   />
                 )}
                 {activeTab === "video" && (
