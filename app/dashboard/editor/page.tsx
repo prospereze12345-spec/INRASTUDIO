@@ -1722,10 +1722,7 @@ function EditorContent() {
               ))}
             </div>
 
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900/80 border border-zinc-700
-                            rounded-full px-4 py-1.5 text-[11px] text-zinc-300 pointer-events-none text-center max-w-[90vw]">
-              Tap the flyer to add a text block
-            </div>
+            {/* The hint was here – removed completely */}
           </div>
 
           {/* Hidden export clone — off-screen, full size */}
