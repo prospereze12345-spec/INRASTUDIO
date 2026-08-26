@@ -1,66 +1,79 @@
 "use client";
 
 import { EditableText } from "@/components/EditableText";
+
 import React from "react";
 import Image from "next/image";
 import { FeatureList, ContactBar, WhyChooseUsList } from "./FlyerContentBlocks";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   TYPES – updated to use bg/text/accent, removed price
+   TYPES
 ═══════════════════════════════════════════════════════════════════════════ */
 
 export interface SleekFlyerProps {
   name?: string;
   headline: string;
-  subtext?: string;
+  subheadline?: string;
   tagline?: string;
   ctaText: string;
   productImage: string;
   brandName?: string;
   website?: string;
-  // price removed
+  price?: string;
+  badge?: string;
   features?: string[];
-  whyChooseUs?: string[];
   phone?: string;
   email?: string;
   colors: {
-    bg: string;      // was primary
-    text: string;    // was secondary
+    primary: string;
+    secondary: string;
     accent: string;
   };
   editable?: boolean;
-
-  // Update callbacks
   onUpdate?: (field: string, value: string) => void;
   onUpdateFeature?: (index: number, value: string) => void;
-  onUpdateWhyChooseUs?: (index: number, value: string) => void;
+  onAddFeature?: () => void;
+  onRemoveFeature?: (index: number) => void;
   onUpdatePhone?: (value: string) => void;
   onUpdateWebsite?: (value: string) => void;
   onUpdateEmail?: (value: string) => void;
-
-  // Focus/blur
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
-
-  // Visibility toggles
+  whyChooseUs?: string[];
+  onUpdateWhyChooseUs?: (index: number, value: string) => void;
+  onAddWhyChooseUs?: () => void;
+  onRemoveWhyChooseUs?: (index: number) => void;
   featuresVisible?: boolean;
   whyChooseUsVisible?: boolean;
   phoneVisible?: boolean;
   emailVisible?: boolean;
   websiteVisible?: boolean;
-
-  // Remove handlers
+  onRestoreFeatures?: () => void;
+  onRestoreWhyChooseUs?: () => void;
   onRemovePhone?: () => void;
   onRemoveEmail?: () => void;
   onRemoveWebsite?: () => void;
+  onRestorePhone?: () => void;
+  onRestoreEmail?: () => void;
+  onRestoreWebsite?: () => void;
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   CANVAS SCALE & HELPERS
+   CANVAS SCALE
+   Same mechanism as PremiumBrandTemplate: `--ci` is a real numeric
+   CSS custom property (set by the editor to exportWidth / 100),
+   not the `cqi` container-query unit. `cqi` isn't reliably resolved
+   by html-to-image when it serializes the DOM for export, so every
+   size in this file must route through this helper instead of using
+   raw `cqi`/`vw` values.
 ───────────────────────────────────────────────────────────────── */
 
 const cq = (n: number) => `calc(var(--ci) * ${n})`;
+
+/* ─────────────────────────────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────────────────────────────── */
 
 function hexToRgba(hex: string, alpha: number) {
   if (!hex) return `rgba(0,0,0,${alpha})`;
@@ -71,10 +84,6 @@ function hexToRgba(hex: string, alpha: number) {
   const b = parseInt(value.slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
-
-/* ─────────────────────────────────────────────────────────────────
-   ENTRY
-───────────────────────────────────────────────────────────────── */
 
 export function SleekFlyerTemplate(props: SleekFlyerProps) {
   const { name = "Mono Split" } = props;
@@ -90,25 +99,29 @@ export function SleekFlyerTemplate(props: SleekFlyerProps) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   1. MONO SPLIT – updated colors and removed price
+   1. MONO SPLIT
 ═══════════════════════════════════════════════════════════════════════════ */
 
 const VariantMonoSplit = ({
   headline,
-  subtext,
+  subheadline,
   ctaText,
   productImage,
   brandName,
-  // price removed
+  price,
   features,
-  whyChooseUs,
   phone,
   email,
   colors,
   editable,
   onUpdate,
   onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
+  whyChooseUs,
   onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
   onUpdateWebsite,
   onUpdateEmail,
   onUpdatePhone,
@@ -118,9 +131,14 @@ const VariantMonoSplit = ({
   phoneVisible,
   emailVisible,
   websiteVisible,
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
   onRemovePhone,
   onRemoveEmail,
   onRemoveWebsite,
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
   onFocusEl,
   onBlurEl,
 }: SleekFlyerProps) => {
@@ -130,7 +148,7 @@ const VariantMonoSplit = ({
   return (
     <div
       className="@container w-full h-full relative overflow-hidden flex flex-row font-sans"
-      style={{ backgroundColor: colors.bg, color: colors.text }}
+      style={{ backgroundColor: colors.primary, color: colors.secondary }}
     >
       {/* ── Product image ─────────────────────────────────────────────── */}
 
@@ -145,16 +163,19 @@ const VariantMonoSplit = ({
           className="object-cover object-center"
         />
 
+        {/* Fade into the content panel */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `linear-gradient(to right, transparent 60%, ${hexToRgba(colors.bg, 0.8)} 100%)`,
+            background: `linear-gradient(to right, transparent 60%, ${hexToRgba(colors.primary, 0.8)} 100%)`,
           }}
         />
+
+        {/* Grounding vignette so the photo reads as a designed shot, not a raw crop */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            boxShadow: `inset 0 0 ${cq(6)} ${hexToRgba(colors.bg, 0.18)}`,
+            boxShadow: `inset 0 0 ${cq(6)} ${hexToRgba(colors.primary, 0.18)}`,
           }}
         />
       </div>
@@ -166,7 +187,7 @@ const VariantMonoSplit = ({
         style={{
           width: "45%",
           height: "100%",
-          backgroundColor: colors.bg,
+          backgroundColor: colors.primary,
           padding: `${cq(7)} ${cq(6)} ${cq(7)} ${cq(5)}`,
         }}
       >
@@ -186,7 +207,7 @@ const VariantMonoSplit = ({
               letterSpacing: "0.22em",
               textTransform: "uppercase",
               opacity: 0.45,
-              color: colors.text,
+              color: colors.secondary,
             }}
           />
 
@@ -219,7 +240,7 @@ const VariantMonoSplit = ({
               fontWeight: 800,
               lineHeight: 0.92,
               letterSpacing: "-0.03em",
-              color: colors.text,
+              color: colors.secondary,
               margin: 0,
               fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif",
             }}
@@ -238,19 +259,19 @@ const VariantMonoSplit = ({
             />
           </h1>
 
-          {subtext !== undefined && (
+          {subheadline !== undefined && (
             <EditableText
               as="p"
               fieldId="f-sub"
               editable={editable}
-              value={subtext}
+              value={subheadline}
               onChange={(value) => onUpdate?.("subtext", value)}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               style={{
                 fontSize: cq(2.6),
                 lineHeight: 1.5,
-                color: colors.text,
+                color: colors.secondary,
                 opacity: 0.55,
                 margin: 0,
                 maxWidth: "28ch",
@@ -264,10 +285,15 @@ const VariantMonoSplit = ({
               features={features!.slice(0, 3)}
               colors={colors}
               editable={editable}
+              title="FEATURES"
+              onUpdateTitle={(value) => onUpdate?.("featuresTitle", value)}
               onUpdateFeature={onUpdateFeature ?? (() => undefined)}
+              onAddFeature={onAddFeature ?? (() => undefined)}
+              onRemoveFeature={onRemoveFeature ?? (() => undefined)}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               visible={featuresVisible}
+              onRestoreSection={onRestoreFeatures}
             />
           )}
 
@@ -276,14 +302,37 @@ const VariantMonoSplit = ({
               items={whyChooseUs!.slice(0, 3)}
               colors={colors}
               editable={editable}
+              title="WHY CHOOSE US"
+              onUpdateTitle={(value) => onUpdate?.("whyChooseUsTitle", value)}
               onUpdate={onUpdateWhyChooseUs ?? (() => undefined)}
+              onAdd={onAddWhyChooseUs ?? (() => undefined)}
+              onRemove={onRemoveWhyChooseUs ?? (() => undefined)}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               visible={whyChooseUsVisible}
+              onRestoreSection={onRestoreWhyChooseUs}
             />
           )}
 
-          {/* Price removed */}
+          {price !== undefined && price !== "" && (
+            <div style={{ display: "inline-flex", alignItems: "baseline", gap: cq(0.8), marginTop: cq(1) }}>
+              <EditableText
+                as="span"
+                fieldId="f-price"
+                editable={editable}
+                value={price}
+                onChange={(value) => onUpdate?.("price", value)}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                style={{
+                  fontSize: cq(7),
+                  fontWeight: 700,
+                  letterSpacing: "-0.04em",
+                  color: colors.secondary,
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Bottom actions */}
@@ -293,8 +342,8 @@ const VariantMonoSplit = ({
               display: "inline-flex",
               alignItems: "center",
               gap: cq(2),
-              backgroundColor: colors.text,
-              color: colors.bg,
+              backgroundColor: colors.secondary,
+              color: colors.primary,
               padding: `${cq(2.2)} ${cq(4)}`,
               borderRadius: "100px",
               fontSize: cq(2.4),
@@ -318,6 +367,8 @@ const VariantMonoSplit = ({
             </svg>
           </div>
 
+          {/* Contact — framed with a top divider + tint so it reads as a real
+              info bar, not fine print trailing off the bottom of the layout. */}
           <div
             style={{
               borderTop: `1px solid ${hexToRgba(colors.accent, 0.18)}`,
@@ -329,7 +380,7 @@ const VariantMonoSplit = ({
               website={website}
               email={email}
               accentColor={colors.accent}
-              textColor={colors.text}
+              textColor={colors.secondary}
               editable={editable}
               onUpdatePhone={onUpdatePhone}
               onUpdateWebsite={onUpdateWebsite}
@@ -342,6 +393,9 @@ const VariantMonoSplit = ({
               onRemovePhone={onRemovePhone}
               onRemoveWebsite={onRemoveWebsite}
               onRemoveEmail={onRemoveEmail}
+              onRestorePhone={onRestorePhone}
+              onRestoreWebsite={onRestoreWebsite}
+              onRestoreEmail={onRestoreEmail}
             />
           </div>
         </div>
@@ -351,26 +405,30 @@ const VariantMonoSplit = ({
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   2. KŌAN – updated colors and removed price
+   2. KŌAN
 ═══════════════════════════════════════════════════════════════════════════ */
 
 const VariantKoan = ({
   headline,
-  subtext,
+  subheadline,
   tagline,
   ctaText,
   productImage,
   brandName,
-  // price removed
+  price,
   features,
-  whyChooseUs,
   phone,
   email,
   colors,
   editable,
   onUpdate,
   onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
+  whyChooseUs,
   onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
   onUpdatePhone,
   onUpdateWebsite,
   onUpdateEmail,
@@ -380,9 +438,14 @@ const VariantKoan = ({
   phoneVisible,
   emailVisible,
   websiteVisible,
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
   onRemovePhone,
   onRemoveEmail,
   onRemoveWebsite,
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
   onFocusEl,
   onBlurEl,
 }: SleekFlyerProps) => {
@@ -392,7 +455,7 @@ const VariantKoan = ({
   return (
     <div
       className="@container w-full h-full relative overflow-hidden flex flex-col items-center font-sans"
-      style={{ backgroundColor: colors.bg, color: colors.text }}
+      style={{ backgroundColor: colors.primary, color: colors.secondary }}
     >
       {/* Brand */}
       <div style={{ padding: `${cq(5)} 0 0`, textAlign: "center", zIndex: 10, flexShrink: 0 }}>
@@ -409,7 +472,7 @@ const VariantKoan = ({
             fontWeight: 700,
             letterSpacing: "0.3em",
             textTransform: "uppercase",
-            color: colors.text,
+            color: colors.secondary,
             opacity: 0.4,
           }}
         />
@@ -427,7 +490,7 @@ const VariantKoan = ({
           style={{
             fontSize: cq(2.4),
             fontStyle: "italic",
-            color: colors.text,
+            color: colors.secondary,
             opacity: 0.35,
             margin: `${cq(2)} 0 0`,
             letterSpacing: "0.04em",
@@ -445,7 +508,7 @@ const VariantKoan = ({
             width: cq(70),
             height: cq(70),
             borderRadius: "50%",
-            border: `${cq(0.12)} solid ${colors.text}`,
+            border: `${cq(0.12)} solid ${colors.secondary}`,
             opacity: 0.08,
             zIndex: 2,
           }}
@@ -496,7 +559,7 @@ const VariantKoan = ({
             fontWeight: 700,
             letterSpacing: "-0.03em",
             lineHeight: 0.95,
-            color: colors.text,
+            color: colors.secondary,
             margin: 0,
             fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif",
           }}
@@ -515,19 +578,19 @@ const VariantKoan = ({
           />
         </h1>
 
-        {subtext !== undefined && (
+        {subheadline !== undefined && (
           <EditableText
             as="p"
             fieldId="f-sub"
             editable={editable}
-            value={subtext}
+            value={subheadline}
             onChange={(value) => onUpdate?.("subtext", value)}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             style={{
               fontSize: cq(2.4),
               lineHeight: 1.5,
-              color: colors.text,
+              color: colors.secondary,
               opacity: 0.45,
               margin: 0,
               fontWeight: 400,
@@ -543,10 +606,15 @@ const VariantKoan = ({
                 features={features!.slice(0, 3)}
                 colors={colors}
                 editable={editable}
+                title="FEATURES"
+                onUpdateTitle={(value) => onUpdate?.("featuresTitle", value)}
                 onUpdateFeature={onUpdateFeature ?? (() => undefined)}
+                onAddFeature={onAddFeature ?? (() => undefined)}
+                onRemoveFeature={onRemoveFeature ?? (() => undefined)}
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
                 visible={featuresVisible}
+                onRestoreSection={onRestoreFeatures}
               />
             )}
             {hasWhyChooseUs && (
@@ -554,17 +622,33 @@ const VariantKoan = ({
                 items={whyChooseUs!.slice(0, 3)}
                 colors={colors}
                 editable={editable}
+                title="WHY CHOOSE US"
+                onUpdateTitle={(value) => onUpdate?.("whyChooseUsTitle", value)}
                 onUpdate={onUpdateWhyChooseUs ?? (() => undefined)}
+                onAdd={onAddWhyChooseUs ?? (() => undefined)}
+                onRemove={onRemoveWhyChooseUs ?? (() => undefined)}
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
                 visible={whyChooseUsVisible}
+                onRestoreSection={onRestoreWhyChooseUs}
               />
             )}
           </div>
         )}
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: cq(4), marginTop: cq(0.5), flexWrap: "wrap" }}>
-          {/* Price removed */}
+          {price !== undefined && price !== "" && (
+            <EditableText
+              as="span"
+              fieldId="f-price"
+              editable={editable}
+              value={price}
+              onChange={(value) => onUpdate?.("price", value)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              style={{ fontSize: cq(4), fontWeight: 700, color: colors.accent, letterSpacing: "-0.02em" }}
+            />
+          )}
 
           <EditableText
             as="div"
@@ -575,13 +659,13 @@ const VariantKoan = ({
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             style={{
-              border: `${cq(0.12)} solid ${colors.text}`,
+              border: `${cq(0.12)} solid ${colors.secondary}`,
               padding: `${cq(1.6)} ${cq(4.5)}`,
               borderRadius: "100px",
               fontSize: cq(2.2),
               fontWeight: 500,
               letterSpacing: "0.06em",
-              color: colors.text,
+              color: colors.secondary,
               opacity: 0.75,
               minHeight: "44px",
               display: "inline-flex",
@@ -590,13 +674,14 @@ const VariantKoan = ({
           />
         </div>
 
+        {/* Contact — framed with a top divider + tint, matching Mono Split */}
         <div style={{ width: "100%", borderTop: `1px solid ${hexToRgba(colors.accent, 0.18)}`, paddingTop: cq(2.5) }}>
           <ContactBar
             phone={phone}
             website={website}
             email={email}
             accentColor={colors.accent}
-            textColor={colors.text}
+            textColor={colors.secondary}
             editable={editable}
             onUpdatePhone={onUpdatePhone}
             onUpdateWebsite={onUpdateWebsite}
@@ -609,6 +694,9 @@ const VariantKoan = ({
             onRemovePhone={onRemovePhone}
             onRemoveWebsite={onRemoveWebsite}
             onRemoveEmail={onRemoveEmail}
+            onRestorePhone={onRestorePhone}
+            onRestoreWebsite={onRestoreWebsite}
+            onRestoreEmail={onRestoreEmail}
           />
         </div>
       </div>
