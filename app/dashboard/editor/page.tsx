@@ -1093,6 +1093,7 @@ async function downloadBlob(blob: Blob, filename: string) {
 }
 
 async function toDataURL(url: string): Promise<string> {
+  // First try fetch with CORS
   try {
     const res = await fetch(url, { mode: "cors" });
     const blob = await res.blob();
@@ -1103,6 +1104,7 @@ async function toDataURL(url: string): Promise<string> {
       reader.readAsDataURL(blob);
     });
   } catch {
+    // Fallback to canvas
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = "anonymous";
@@ -1269,7 +1271,7 @@ function EditorContent() {
     [update]
   );
 
-  // ---------- EXPORT FLYER (fixed for mobile) ----------
+  // ---------- EXPORT FLYER (BULLETPROOF FOR MOBILE) ----------
   const exportFlyer = useCallback(async (
     format: 'png' | 'jpg' | 'pdf',
   ) => {
@@ -1287,37 +1289,40 @@ function EditorContent() {
     let originalSrcs: string[] = [];
 
     try {
-      // 1. Ensure all images in the export node have crossOrigin set
+      // 1. Get all images inside the export node
       imgEls = Array.from(node.querySelectorAll("img"));
-      imgEls.forEach(img => {
-        if (img.src && !img.src.startsWith('data:')) {
-          img.crossOrigin = "anonymous";
-        }
-      });
-
-      // 2. Convert all images to data URLs
       originalSrcs = imgEls.map(img => img.src);
-      await Promise.all(
-        imgEls.map(async (img, i) => {
-          try {
-            const dataUrl = await toDataURL(originalSrcs[i]);
-            img.src = dataUrl;
-            if (img.complete) return;
+
+      // 2. Ensure crossOrigin is set and convert to data URLs
+      for (let i = 0; i < imgEls.length; i++) {
+        const img = imgEls[i];
+        try {
+          // Set crossOrigin for all external images
+          if (img.src && !img.src.startsWith('data:')) {
+            img.crossOrigin = "anonymous";
+          }
+          const dataUrl = await toDataURL(img.src);
+          img.src = dataUrl;
+          // Wait for the image to load the new data URL
+          if (img.complete) {
+            // If already complete, ensure it's decoded
+            await img.decode();
+          } else {
             await new Promise<void>((resolve) => {
               img.onload = () => resolve();
               img.onerror = () => resolve();
             });
-          } catch {
-            // keep original
           }
-        })
-      );
+        } catch {
+          // If conversion fails, keep original src
+        }
+      }
 
-      // 3. Extra paint delay for mobile (500ms)
+      // 3. Force reflow and extra paint delay for mobile
       await new Promise(res => requestAnimationFrame(res));
       await new Promise(res => setTimeout(res, 500));
 
-      // 4. Use html-to-image
+      // 4. Capture using html-to-image
       const { toPng, toJpeg } = await import("html-to-image");
       const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
       const snapshotOpts = {
@@ -1357,6 +1362,7 @@ function EditorContent() {
       console.error(err);
       setExportError(err instanceof Error ? err.message : "Export failed.");
     } finally {
+      // Restore original srcs
       imgEls.forEach((img, i) => { img.src = originalSrcs[i]; });
       setExportingFormat(null);
     }
@@ -1606,6 +1612,7 @@ function EditorContent() {
                   <img
                     src={logoOverlay.image}
                     alt="Logo"
+                    crossOrigin="anonymous"
                     style={{
                       width: "calc(var(--ci) * 20)",
                       height: "calc(var(--ci) * 20)",
@@ -1659,7 +1666,7 @@ function EditorContent() {
             </div>
           </div>
 
-          {/* Hidden export clone – visible off-screen (better for mobile) */}
+          {/* Hidden export clone – OFFScreen (visible) */}
           <div
             aria-hidden="true"
             style={{
@@ -1724,7 +1731,7 @@ function EditorContent() {
           </div>
         </section>
 
-        {/* BOTTOM PANEL – with format selector at the top */}
+        {/* BOTTOM PANEL */}
         <aside
           className={`
             fixed md:static inset-x-0 bottom-0 md:inset-auto
@@ -1737,7 +1744,6 @@ function EditorContent() {
           `}
           style={{ paddingBottom: sheetExpanded ? 0 : "env(safe-area-inset-bottom)" }}
         >
-          {/* Mobile handle */}
           <div className="md:hidden flex flex-col items-center pt-2 pb-1.5 shrink-0"
             onClick={() => setSheetExpanded(v => !v)}>
             <div className="w-9 h-1 rounded-full bg-zinc-700 mb-2" />
@@ -1746,7 +1752,7 @@ function EditorContent() {
             </span>
           </div>
 
-          {/* Format selector – always visible */}
+          {/* Format selector */}
           <div className="border-b border-zinc-800 px-3 py-2 shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden">
             <div className="flex gap-1.5 items-center justify-start">
               <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-wider mr-1 shrink-0">Format</span>
@@ -1767,7 +1773,7 @@ function EditorContent() {
             </div>
           </div>
 
-          {/* Tabs row */}
+          {/* Tabs */}
           <div className="flex border-b border-zinc-800 shrink-0">
             {TABS.map(tab => (
               <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSheetExpanded(true); }}
@@ -1788,7 +1794,7 @@ function EditorContent() {
             ))}
           </div>
 
-          {/* Panel content */}
+          {/* Content */}
           <div className={`flex-1 overflow-y-auto p-4 overscroll-contain
                           [&::-webkit-scrollbar]:w-1
                           [&::-webkit-scrollbar-thumb]:bg-zinc-700
