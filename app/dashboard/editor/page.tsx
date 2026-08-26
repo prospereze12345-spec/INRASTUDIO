@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import {
-  useState, useEffect, useLayoutEffect, useRef, useCallback, Suspense, memo, useReducer, useMemo,
+  useState, useEffect, useLayoutEffect, useRef, useCallback, Suspense, memo,
 } from "react";
 import type { PromoVideoProps } from "@/remotion/PromoVideo";
 import dynamic from "next/dynamic";
@@ -61,7 +61,6 @@ interface JobResult {
     badgeText?: string;
     brand_name?: string;
     brandName?: string;
-    // price_text removed
     colors?: any;
     phone?: string;
     email?: string;
@@ -79,7 +78,7 @@ interface JobResult {
 }
 
 // ============================================================================
-// TEMPLATE RENDERER (updated)
+// TEMPLATE RENDERER
 // ============================================================================
 const TemplateRenderer = memo(function TemplateRenderer({
   data,
@@ -115,8 +114,7 @@ const TemplateRenderer = memo(function TemplateRenderer({
     phone: data.phone,
     email: data.email,
     website: data.website,
-    // price removed
-    colors: data.colors,
+    colors: data.colors, // new shape: bg, text, accent
     features: data.features,
     whyChooseUs: data.whyChooseUs,
     featuresVisible: data.featuresVisible,
@@ -155,7 +153,7 @@ const TemplateRenderer = memo(function TemplateRenderer({
 // TYPES
 // ============================================================================
 type Tool = "select" | "text";
-type ColorLayer = "bg" | "accent" | "text"; // renamed
+type ColorLayer = "bg" | "accent" | "text";
 type RsbTab = "design" | "content" | "video" | "captions";
 type FormatId = typeof SOCIAL_FORMATS[number]["id"];
 
@@ -180,7 +178,6 @@ type FlyerState = {
   ctaText: string;
   ctaVisible: boolean;
   badgeText: string;
-  // price removed
   brandName: string;
   website: string;
   phone: string;
@@ -200,9 +197,9 @@ type FlyerState = {
     | "Minimal Product"
     | "Premium Brand";
   colors: {
-    bg: string;      // was primary
-    text: string;    // was secondary
-    accent: string;  // was tertiary
+    bg: string;
+    text: string;
+    accent: string;
   };
 };
 
@@ -236,24 +233,16 @@ function parseCaptions(raw: BackendCaptions | null | undefined): Caption[] {
     }));
 }
 
-// ==================== COLOUR SWATCHES ====================
 const COLOR_SWATCHES = [
-  // Neutrals & metals
   "#0a0a0a", "#1c1c1e", "#f5f5f0", "#e8e2d5", "#c0c0c0", "#8c8c8c",
   "#d4af37", "#b08d57", "#e5c07b", "#b76e79",
-  // Blues & indigos
   "#1a237e", "#283593", "#003153", "#0f4c81", "#4682b4",
-  // Greens
   "#014421", "#0b6e4f", "#4a5d43", "#2e4600",
-  // Reds & warms
   "#7b1e3a", "#9a2a2a", "#c1440e", "#e07a5f", "#d94f70",
-  // Purples & pinks
   "#5b2a86", "#6a0572", "#a78bfa",
-  // Basics
   "#ffffff", "#111111", "#f4f1ea",
 ];
 
-// ==================== EXTENDED THEMES (updated) ====================
 const TEMPLATE_THEMES = [
   { label: "Gold", bg: "#0a0a0a", accent: "#c9a84c", text: "#ffffff" },
   { label: "Violet", bg: "#0f0a1e", accent: "#a78bfa", text: "#ffffff" },
@@ -265,7 +254,6 @@ const TEMPLATE_THEMES = [
   { label: "Paper", bg: "#fafafa", accent: "#111111", text: "#111111" },
   { label: "Terracotta", bg: "#2b1810", accent: "#e07a5f", text: "#f4ede4" },
   { label: "Sage", bg: "#f0f2ea", accent: "#4a5d43", text: "#1f2417" },
-  // NEW
   { label: "Silver", bg: "#1c1c1e", accent: "#c0c0c0", text: "#ffffff" },
   { label: "Indigo", bg: "#0d0f2b", accent: "#5c6bc0", text: "#ffffff" },
   { label: "Rose Gold", bg: "#2a1a1d", accent: "#b76e79", text: "#f5ece7" },
@@ -274,7 +262,7 @@ const TEMPLATE_THEMES = [
 ];
 
 // ============================================================================
-// EDITABLE COMPONENT (unchanged)
+// EDITABLE COMPONENT
 // ============================================================================
 type EditableProps = {
   id: string;
@@ -320,7 +308,7 @@ function Editable({
 }
 
 // ============================================================================
-// MOVABLE / OVERLAY (unchanged)
+// MOVABLE
 // ============================================================================
 type Transform = { x: number; y: number; scale: number };
 
@@ -404,7 +392,7 @@ function Movable({
     >
       <div
         style={{
-          outline: selected ? "2px dashed #ffffff" : "none", // white accent
+          outline: selected ? "2px dashed #ffffff" : "none",
           outlineOffset: 6,
           borderRadius: 10,
           cursor: dragHandleOnly ? "default" : "grab",
@@ -452,11 +440,11 @@ function Movable({
 }
 
 // ============================================================================
-// DISCOUNT BADGE (updated: takes percentage)
+// DISCOUNT BADGE
 // ============================================================================
 type DiscountBadge = {
   visible: boolean;
-  percentage: number;      // new: numeric percentage
+  percentage: number;
   subText: string;
   textColor: string;
   bgColor: string;
@@ -532,7 +520,7 @@ function DiscountBadgeSticker({
 }
 
 // ============================================================================
-// FLOATING TOOLBAR (removed color picker, enlarged buttons)
+// FLOATING TOOLBAR
 // ============================================================================
 const MARKETING_FONTS_EXT = [
   { label: "Inter", value: "var(--font-inter), sans-serif" },
@@ -686,7 +674,7 @@ function TextField({ label, value, onChange, placeholder, type = "text" }: {
   );
 }
 
-// ======== DesignPanel with format selector, theme, colors, logo, badge ========
+// ======== DesignPanel ========
 const DesignPanel = memo(function DesignPanel({
   data,
   onUpdate,
@@ -727,7 +715,6 @@ const DesignPanel = memo(function DesignPanel({
 
   return (
     <div className="space-y-6">
-      {/* Format selector */}
       <div>
         <Label>Format</Label>
         <div className="grid grid-cols-4 gap-1.5">
@@ -750,7 +737,6 @@ const DesignPanel = memo(function DesignPanel({
 
       <Divider />
 
-      {/* Themes */}
       <div>
         <Label>Theme</Label>
         <div className="grid grid-cols-3 gap-2">
@@ -771,7 +757,6 @@ const DesignPanel = memo(function DesignPanel({
 
       <Divider />
 
-      {/* Brand colors - renamed */}
       <div>
         <Label>Brand colours</Label>
         <div className="flex bg-zinc-900 rounded-lg p-0.5 gap-0.5 mb-3">
@@ -809,7 +794,6 @@ const DesignPanel = memo(function DesignPanel({
 
       <Divider />
 
-      {/* Logo upload */}
       <div>
         <Label>Logo</Label>
         <label className="flex flex-col items-center gap-1.5 border-[1.5px] border-dashed border-zinc-700
@@ -823,7 +807,6 @@ const DesignPanel = memo(function DesignPanel({
 
       <Divider />
 
-      {/* Badge customisation - new section with percentage and colours */}
       <div>
         <Label>Discount Badge</Label>
         <div className="space-y-3">
@@ -893,7 +876,7 @@ const DesignPanel = memo(function DesignPanel({
   );
 });
 
-// ======== ContentPanel (removed price) ========
+// ======== ContentPanel ========
 const ContentPanel = memo(function ContentPanel({
   data, onUpdate,
 }: { data: FlyerState; onUpdate: (k: keyof FlyerState, v: any) => void }) {
@@ -942,7 +925,7 @@ function SectionToggle({ title, active, onToggle }: {
   );
 }
 
-// ======== VideoPanel (unchanged except colour) ========
+// ======== VideoPanel – FIXED ========
 interface VideoPanelProps {
   flyer: FlyerState;
   activeFormatId: FormatId;
@@ -970,17 +953,31 @@ const VideoPanel = memo(function VideoPanel({
   const COMP_H = isWide ? Math.round(BASE * (fmt.rh / fmt.rw)) : BASE;
   const durationInFrames = fmt.fps * fmt.durationS;
 
+  // Map new colors to the old shape that PromoVideo expects
+  const videoColors = {
+    primary: flyer.colors.bg,
+    secondary: flyer.colors.text,
+    accent: flyer.colors.accent,
+  };
+
+  // Map badge to the shape the video expects (text = percentage + '%')
+  const videoBadge = badgeOverlay.visible ? {
+    text: `${badgeOverlay.percentage}%`,
+    subText: badgeOverlay.subText,
+    textColor: badgeOverlay.textColor,
+    bgColor: badgeOverlay.bgColor,
+  } : null;
+
   const promoProps = {
     headline: flyer.headline,
     subtext: flyer.subtext,
     ctaText: flyer.ctaText,
-    // price removed
     brandName: flyer.brandName,
     website: flyer.website,
     productImage: flyer.productImage,
-    colors: flyer.colors,
+    colors: videoColors,
     logoImage: logoOverlay.image,
-    badge: badgeOverlay.visible ? badgeOverlay : null,
+    badge: videoBadge,
   };
 
   const POLL_INTERVAL_MS = 3000;
@@ -1134,7 +1131,7 @@ const VideoPanel = memo(function VideoPanel({
   );
 });
 
-// ======== CaptionsPanel (unchanged) ========
+// ======== CaptionsPanel ========
 const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Caption[] }) {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -1188,7 +1185,7 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
 });
 
 // ============================================================================
-// EXPORT DROPDOWN (unchanged)
+// EXPORT DROPDOWN
 // ============================================================================
 function ExportDropdown({
   onExport,
@@ -1253,7 +1250,6 @@ function useUndoReducer<T>(
 
   const dispatch = useCallback((action: any) => {
     const newState = reducer(state, action);
-    // Only record if state changed
     if (newState === state) return;
     const newHistory = history.slice(0, index + 1);
     newHistory.push(newState);
@@ -1284,7 +1280,7 @@ function useUndoReducer<T>(
 }
 
 // ============================================================================
-// FLYER STATE REDUCER (for undo/redo)
+// FLYER STATE REDUCER
 // ============================================================================
 type FlyerAction =
   | { type: "UPDATE"; field: keyof FlyerState; value: any }
@@ -1327,7 +1323,7 @@ function flyerReducer(state: FlyerState, action: FlyerAction): FlyerState {
 }
 
 // ============================================================================
-// MAIN EDITOR COMPONENT
+// MAIN EDITOR
 // ============================================================================
 const EMPTY_FLYER_STATE: FlyerState = {
   headline: "",
@@ -1459,11 +1455,10 @@ function EditorContent() {
   const [pendingUploads, setPendingUploads] = useState(0);
   const [exportingFormat, setExportingFormat] = useState<"png" | "jpg" | "pdf" | null>(null);
 
-  // Wrappers to use dispatch with proper actions
+  // FIX: update function accepts string and casts to keyof
   const update = useCallback((field: string, value: any) => {
-  // We know we only call this with valid FlyerState keys
-  dispatch({ type: "UPDATE", field: field as keyof FlyerState, value });
-}, [dispatch]);
+    dispatch({ type: "UPDATE", field: field as keyof FlyerState, value });
+  }, [dispatch]);
 
   const updateFeature = useCallback((index: number, value: string) => {
     dispatch({ type: "UPDATE_FEATURE", index, value });
@@ -1518,7 +1513,7 @@ function EditorContent() {
     [update]
   );
 
-  // Keyboard shortcuts for undo/redo
+  // Keyboard shortcuts
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
@@ -1535,7 +1530,7 @@ function EditorContent() {
   }, [undo, redo]);
 
   // ============================================================================
-  // EXPORT FLYER
+  // EXPORT
   // ============================================================================
   const exportFlyer = useCallback(async (
     format: 'png' | 'jpg' | 'pdf',
@@ -1700,7 +1695,6 @@ function EditorContent() {
             "Premium Brand",
         };
 
-        // Map colors if present (assume they come as primary/secondary/tertiary)
         if (result.flyer?.colors) {
           const old = result.flyer.colors;
           newState.colors = {
@@ -1833,7 +1827,6 @@ function EditorContent() {
           </span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Undo / Redo buttons */}
           <button
             onClick={undo}
             disabled={!canUndo}
@@ -1879,7 +1872,6 @@ function EditorContent() {
             }}
             onClick={handleCanvasClick}
           >
-            {/* Flyer container */}
             <div
               key={`flyer-${activeFormat}`}
               ref={flyerNodeRef}
@@ -1911,7 +1903,6 @@ function EditorContent() {
                 onRemoveWhyChooseUs={removeWhyChooseUs}
               />
 
-              {/* Logo */}
               {logoOverlay.image && (
                 <Movable
                   transform={logoOverlay.transform}
@@ -1934,7 +1925,6 @@ function EditorContent() {
                 </Movable>
               )}
 
-              {/* Discount Badge */}
               {badgeOverlay.visible && (
                 <Movable
                   transform={badgeOverlay.transform}
@@ -1975,7 +1965,6 @@ function EditorContent() {
                 </Movable>
               )}
 
-              {/* Free Text blocks */}
               {freeTexts.map((ft) => (
                 <Movable
                   key={ft.id}
@@ -2023,7 +2012,6 @@ function EditorContent() {
                 </Movable>
               ))}
 
-              {/* Floating text toolbar */}
               <AnimatePresence>
                 {showFtb && focusedEl && <FloatingTextToolbar onClose={() => setShowFtb(false)} />}
               </AnimatePresence>
@@ -2135,9 +2123,8 @@ function EditorContent() {
           `}
           style={{ paddingBottom: sheetExpanded ? 0 : "env(safe-area-inset-bottom)" }}
         >
-          {/* ====== SHEET HEADER (tools + tabs) ====== */}
+          {/* ====== SHEET HEADER ====== */}
           <div className="flex items-center border-b border-zinc-800 shrink-0 gap-1 px-2 h-12 md:h-auto">
-            {/* Tools */}
             <div className="flex items-center gap-0.5">
               {TOOLS.map(t => (
                 <ToolBtn key={t.id} active={activeTool === t.id} label={t.label}
@@ -2148,7 +2135,6 @@ function EditorContent() {
               <div className="w-px h-6 bg-zinc-800 mx-1" />
             </div>
 
-            {/* Tabs */}
             <div className="flex flex-1">
               {TABS.map(tab => (
                 <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSheetExpanded(true); }}
@@ -2169,7 +2155,6 @@ function EditorContent() {
               ))}
             </div>
 
-            {/* Drag handle (mobile only) */}
             <div className="md:hidden flex items-center justify-center w-8 h-8"
               onClick={() => setSheetExpanded(v => !v)}>
               <div className="w-9 h-1 rounded-full bg-zinc-700" />
