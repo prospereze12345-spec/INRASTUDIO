@@ -13,7 +13,7 @@ import {
   Video, MessageSquare, Check, Copy, Bold, Italic, ListChecks,
   AlignLeft, AlignCenter, AlignRight, Plus, Minus, Package, GripVertical, X,
   UploadCloud, Film, Square, Smartphone, Monitor, Image as ImageIcon, Loader2,
-  ChevronDown,
+  ChevronDown, ChevronUp,
 } from "lucide-react";
 import { loadJobResult, fetchJobById, ApiError } from "@/lib/campaign-api";
 import type { PlayerRef } from "@remotion/player";
@@ -238,18 +238,12 @@ function parseCaptions(raw: BackendCaptions | null | undefined): Caption[] {
 
 // ==================== COLOUR SWATCHES (30) ====================
 const COLOR_SWATCHES = [
-  // Neutrals & metals
   "#0a0a0a", "#1c1c1e", "#f5f5f0", "#e8e2d5", "#c0c0c0", "#8c8c8c",
   "#d4af37", "#b08d57", "#e5c07b", "#b76e79",
-  // Blues & indigos
   "#1a237e", "#283593", "#003153", "#0f4c81", "#4682b4",
-  // Greens
   "#014421", "#0b6e4f", "#4a5d43", "#2e4600",
-  // Reds & warms
   "#7b1e3a", "#9a2a2a", "#c1440e", "#e07a5f", "#d94f70",
-  // Purples & pinks
   "#5b2a86", "#6a0572", "#a78bfa",
-  // Basics
   "#ffffff", "#111111", "#f4f1ea",
 ];
 
@@ -533,132 +527,7 @@ function DiscountBadgeSticker({
 }
 
 // ============================================================================
-// FLOATING TOOLBAR
-// ============================================================================
-const MARKETING_FONTS_EXT = [
-  { label: "Inter", value: "var(--font-inter), sans-serif" },
-  { label: "Bebas Neue", value: "var(--font-bebas), sans-serif" },
-  { label: "Playfair Display", value: "var(--font-playfair), serif" },
-  { label: "Poppins", value: "var(--font-poppins), sans-serif" },
-  { label: "Archivo Black", value: "var(--font-archivo), sans-serif" },
-  { label: "Roboto", value: "var(--font-roboto), sans-serif" },
-  { label: "Montserrat", value: "var(--font-montserrat), sans-serif" },
-  { label: "Oswald", value: "var(--font-oswald), sans-serif" },
-  { label: "Raleway", value: "var(--font-raleway), sans-serif" },
-  { label: "Lato", value: "var(--font-lato), sans-serif" },
-  { label: "Merriweather", value: "var(--font-merriweather), serif" },
-  { label: "Nunito", value: "var(--font-nunito), sans-serif" },
-];
-
-function FontDropdown({ onSelect }: { onSelect: (font: string) => void }) {
-  return (
-    <select
-      defaultValue=""
-      onMouseDown={e => e.stopPropagation()}
-      onChange={e => { if (e.target.value) onSelect(e.target.value); e.target.value = ""; }}
-      className="w-8 h-8 rounded-md bg-zinc-800 text-zinc-300 text-[10px] text-center
-                 border border-zinc-700 touch-manipulation"
-      title="Font"
-    >
-      <option value="" disabled>Aa</option>
-      {MARKETING_FONTS_EXT.map(f => (
-        <option key={f.label} value={f.value} style={{ fontFamily: f.value }}>{f.label}</option>
-      ))}
-    </select>
-  );
-}
-
-function FloatingTextToolbar({ onClose }: { onClose: () => void }) {
-  const [bold, setBold] = useState(false);
-  const [italic, setItalic] = useState(false);
-  const [align, setAlign] = useState<"left" | "center" | "right">("left");
-  const [size, setSize] = useState(16);
-
-  const exec = (cmd: string, val?: string) => {
-    document.execCommand(cmd, false, val);
-    setBold(document.queryCommandState("bold"));
-    setItalic(document.queryCommandState("italic"));
-  };
-
-  const nudge = (d: number) => {
-    const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return;
-    const el = sel.getRangeAt(0).commonAncestorContainer.parentElement;
-    if (!el) return;
-    const cur = parseFloat(getComputedStyle(el).fontSize) || 16;
-    const next = Math.max(8, Math.min(96, cur + d * 2));
-    el.style.fontSize = `${next}px`;
-    setSize(Math.round(next));
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -8 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -8 }}
-      transition={{ duration: 0.1 }}
-      className="fixed left-2 bottom-[calc(env(safe-area-inset-bottom)+128px+16px)] z-50
-                 flex flex-col items-center gap-1 px-1.5 py-2
-                 rounded-2xl border border-zinc-700 bg-zinc-900/95 backdrop-blur-md shadow-2xl
-                 max-h-[80vh] overflow-y-auto"
-      onMouseDown={e => e.preventDefault()}
-    >
-      <button
-        onMouseDown={e => e.preventDefault()}
-        onClick={onClose}
-        className="w-8 h-8 flex items-center justify-center rounded-md text-zinc-400
-                   hover:bg-zinc-700 hover:text-white transition-colors touch-manipulation mb-1"
-      >
-        <X size={13} />
-      </button>
-
-      <FtbBtn active={bold} onClick={() => exec("bold")}><Bold size={13} /></FtbBtn>
-      <FtbBtn active={italic} onClick={() => exec("italic")}><Italic size={13} /></FtbBtn>
-
-      <FtbSepV />
-
-      <FtbBtn onClick={() => nudge(1)}><Plus size={11} /></FtbBtn>
-      <span className="text-[10px] font-mono text-zinc-300">{size}</span>
-      <FtbBtn onClick={() => nudge(-1)}><Minus size={11} /></FtbBtn>
-
-      <FtbSepV />
-
-      {(["left", "center", "right"] as const).map(a => (
-        <FtbBtn key={a} active={align === a} onClick={() => { setAlign(a); exec(`justify${a.charAt(0).toUpperCase() + a.slice(1)}`); }}>
-          {a === "left" ? <AlignLeft size={12} /> : a === "center" ? <AlignCenter size={12} /> : <AlignRight size={12} />}
-        </FtbBtn>
-      ))}
-
-      <FtbSepV />
-
-      <input
-        type="color"
-        defaultValue="#ffffff"
-        className="w-7 h-7 rounded-lg cursor-pointer border border-zinc-600 bg-transparent p-0.5"
-        onChange={e => exec("foreColor", e.target.value)}
-        title="Text color"
-      />
-
-      <FtbSepV />
-
-      <FontDropdown onSelect={(font) => exec("fontName", font)} />
-    </motion.div>
-  );
-}
-
-function FtbBtn({ children, active, onClick }: { children: React.ReactNode; active?: boolean; onClick?: () => void }) {
-  return (
-    <button onMouseDown={e => { e.preventDefault(); onClick?.(); }}
-      className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors shrink-0 touch-manipulation
-        ${active ? "bg-white/20 text-white" : "text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"}`}>
-      {children}
-    </button>
-  );
-}
-function FtbSepV() { return <div className="h-px w-5 bg-zinc-700 my-0.5" />; }
-
-// ============================================================================
-// PANELS
+// PANEL COMPONENTS
 // ============================================================================
 function Label({ children }: { children: React.ReactNode }) {
   return <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">{children}</p>;
@@ -679,7 +548,6 @@ function ToolBtn({ children, active, label, onClick }: {
   );
 }
 
-// ======== TextField ========
 function TextField({ label, value, onChange, placeholder, type = "text" }: {
   label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string;
 }) {
@@ -695,6 +563,23 @@ function TextField({ label, value, onChange, placeholder, type = "text" }: {
                    text-[16px] text-zinc-100 focus:outline-none focus:border-white"
       />
     </label>
+  );
+}
+
+function SectionToggle({ title, active, onToggle }: {
+  title: string; active: boolean; onToggle: (v: boolean) => void;
+}) {
+  return (
+    <button
+      onClick={() => onToggle(!active)}
+      className="w-full flex items-center justify-between px-3 py-3 rounded-lg bg-zinc-900
+                 border border-zinc-800 mb-2 touch-manipulation"
+    >
+      <span className="text-[13px] text-zinc-200">{title}</span>
+      <span className={`w-9 h-5 rounded-full relative transition-colors ${active ? "bg-white" : "bg-zinc-700"}`}>
+        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-black transition-all ${active ? "left-[18px]" : "left-0.5"}`} />
+      </span>
+    </button>
   );
 }
 
@@ -834,17 +719,32 @@ const DesignPanel = memo(function DesignPanel({
   );
 });
 
-// ======== ContentPanel – removed price, added badge controls ========
+// ======== ContentPanel – now includes discount badge and text properties ========
 const ContentPanel = memo(function ContentPanel({
-  data, onUpdate, badge, onBadgeChange,
+  data,
+  onUpdate,
+  badge,
+  onBadgeChange,
+  selectedTextId,
+  freeTexts,
+  onUpdateFreeText,
+  onDeleteFreeText,
 }: {
-  data: FlyerState; onUpdate: (k: keyof FlyerState, v: any) => void;
-  badge: DiscountBadge; onBadgeChange: (b: DiscountBadge) => void;
+  data: FlyerState;
+  onUpdate: (k: keyof FlyerState, v: any) => void;
+  badge: DiscountBadge;
+  onBadgeChange: (b: DiscountBadge) => void;
+  selectedTextId: string | null;
+  freeTexts: Array<{ id: string; text: string; color: string; transform: Transform }>;
+  onUpdateFreeText: (id: string, updates: Partial<{ text: string; color: string; transform: Transform }>) => void;
+  onDeleteFreeText: (id: string) => void;
 }) {
+  const selectedText = freeTexts.find(ft => ft.id === selectedTextId);
+
   return (
     <div className="space-y-5">
       <div>
-        <Label>Text</Label>
+        <Label>Main Text</Label>
         <TextField label="Headline" value={data.headline} onChange={v => onUpdate("headline", v)} />
         <TextField label="Subtext" value={data.subtext} onChange={v => onUpdate("subtext", v)} />
         <TextField label="Call to action" value={data.ctaText} onChange={v => onUpdate("ctaText", v)} />
@@ -914,26 +814,68 @@ const ContentPanel = memo(function ContentPanel({
           </div>
         </div>
       </div>
+
+      <Divider />
+
+      {/* Text Properties Editor - shows when a free text is selected */}
+      {selectedText && (
+        <div>
+          <Label>Selected Text</Label>
+          <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-3 space-y-3">
+            <TextField
+              label="Text content"
+              value={selectedText.text}
+              onChange={v => onUpdateFreeText(selectedText.id, { text: v })}
+            />
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <Label>Color</Label>
+                <input
+                  type="color"
+                  value={selectedText.color}
+                  onChange={e => onUpdateFreeText(selectedText.id, { color: e.target.value })}
+                  className="w-full h-10 rounded-lg cursor-pointer border border-zinc-700 bg-zinc-900 p-1"
+                />
+              </div>
+              <div className="flex-1">
+                <Label>Size</Label>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      const newScale = Math.max(0.4, selectedText.transform.scale - 0.1);
+                      onUpdateFreeText(selectedText.id, { transform: { ...selectedText.transform, scale: newScale } });
+                    }}
+                    className="w-8 h-8 rounded-lg bg-zinc-800 text-white flex items-center justify-center touch-manipulation"
+                  >
+                    <Minus size={14} />
+                  </button>
+                  <span className="text-sm text-zinc-300 w-10 text-center">
+                    {Math.round(selectedText.transform.scale * 100)}%
+                  </span>
+                  <button
+                    onClick={() => {
+                      const newScale = Math.min(3, selectedText.transform.scale + 0.1);
+                      onUpdateFreeText(selectedText.id, { transform: { ...selectedText.transform, scale: newScale } });
+                    }}
+                    className="w-8 h-8 rounded-lg bg-zinc-800 text-white flex items-center justify-center touch-manipulation"
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => onDeleteFreeText(selectedText.id)}
+              className="w-full py-2 rounded-lg bg-red-500/20 text-red-400 text-[12px] font-bold touch-manipulation"
+            >
+              Delete text
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
-
-function SectionToggle({ title, active, onToggle }: {
-  title: string; active: boolean; onToggle: (v: boolean) => void;
-}) {
-  return (
-    <button
-      onClick={() => onToggle(!active)}
-      className="w-full flex items-center justify-between px-3 py-3 rounded-lg bg-zinc-900
-                 border border-zinc-800 mb-2 touch-manipulation"
-    >
-      <span className="text-[13px] text-zinc-200">{title}</span>
-      <span className={`w-9 h-5 rounded-full relative transition-colors ${active ? "bg-white" : "bg-zinc-700"}`}>
-        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-black transition-all ${active ? "left-[18px]" : "left-0.5"}`} />
-      </span>
-    </button>
-  );
-}
 
 // ======== VideoPanel ========
 interface VideoPanelProps {
@@ -1335,13 +1277,11 @@ function EditorContent() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [captions, setCaptions] = useState<Caption[]>([]);
-  const [activeTab, setActiveTab] = useState<RsbTab>("design");
+  const [activeTab, setActiveTab] = useState<RsbTab>("content"); // default to content for text editing
   const [activeTool, setActiveTool] = useState<Tool>("select");
   const [activeFormat, setActiveFormat] = useState<FormatId>("ig");
   const [scale, setScale] = useState<number | null>(null);
-  const [focusedEl, setFocusedEl] = useState<HTMLElement | null>(null);
-  const [showFtb, setShowFtb] = useState(false);
-  const [sheetExpanded, setSheetExpanded] = useState(false);
+  const [panelCollapsed, setPanelCollapsed] = useState(false); // true = collapsed (header only), false = expanded
 
   const [logoOverlay, setLogoOverlay] = useState<{
     image: string | null;
@@ -1686,7 +1626,7 @@ function EditorContent() {
       ro.disconnect();
       window.visualViewport?.removeEventListener("resize", recalc);
     };
-  }, [activeFormat, sheetExpanded]);
+  }, [activeFormat]);
 
   const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     setSelectedOverlayId(null);
@@ -1708,7 +1648,20 @@ function EditorContent() {
     ]);
     setSelectedOverlayId(id);
     setActiveTool("select");
+    // switch to content tab to show text properties
+    setActiveTab("content");
   }, [activeTool]);
+
+  const updateFreeText = useCallback((id: string, updates: Partial<{ text: string; color: string; transform: Transform }>) => {
+    setFreeTexts(prev =>
+      prev.map(ft => ft.id === id ? { ...ft, ...updates } : ft)
+    );
+  }, []);
+
+  const deleteFreeText = useCallback((id: string) => {
+    setFreeTexts(prev => prev.filter(ft => ft.id !== id));
+    if (selectedOverlayId === id) setSelectedOverlayId(null);
+  }, [selectedOverlayId]);
 
   const TOOLS = [
     { id: "select" as Tool, icon: <Pointer size={16} />, label: "Select (V)" },
@@ -1732,6 +1685,14 @@ function EditorContent() {
   }
 
   const currentFormat = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
+
+  // Determine panel height based on collapsed state and viewport
+  const panelHeight = panelCollapsed
+    ? "h-[52px]" // header only
+    : "h-[70vh]"; // expanded
+
+  // On desktop, we might want to keep it expanded always, but we'll still allow collapse via toggle for consistency.
+  // We'll just use the same logic for all screens.
 
   // -------- RENDER --------
   return (
@@ -1771,7 +1732,7 @@ function EditorContent() {
       <div className="flex flex-1 overflow-hidden relative">
 
         {/* ====== CANVAS ====== */}
-        <section className="flex-1 flex flex-col overflow-hidden bg-zinc-950 pb-[112px] md:pb-0">
+        <section className="flex-1 flex flex-col overflow-hidden bg-zinc-950 pb-[52px] md:pb-0">
           <div
             ref={canvasWrapRef}
             className="flex-1 flex items-center justify-center overflow-hidden relative"
@@ -1806,8 +1767,8 @@ function EditorContent() {
               <TemplateRenderer
                 data={{ ...flyer, logoImage: null, badgeText: "" }}
                 onUpdate={update}
-                onElementFocus={(el) => { setFocusedEl(el); setShowFtb(true); }}
-                onElementBlur={() => setTimeout(() => setShowFtb(false), 150)}
+                onElementFocus={() => {}}
+                onElementBlur={() => {}}
                 onUpdateFeature={updateFeature}
                 onAddFeature={addFeature}
                 onRemoveFeature={removeFeature}
@@ -1893,7 +1854,7 @@ function EditorContent() {
                   containerRef={flyerNodeRef}
                   selected={selectedOverlayId === ft.id}
                   onSelect={() => setSelectedOverlayId(ft.id)}
-                  onDelete={() => setFreeTexts(prev => prev.filter(item => item.id !== ft.id))}
+                  onDelete={() => deleteFreeText(ft.id)}
                   dragHandleOnly
                   extra={
                     <div className="absolute top-0 left-full ml-2 p-2 bg-zinc-900 border border-zinc-700 rounded shadow-lg z-50">
@@ -1927,11 +1888,6 @@ function EditorContent() {
                   />
                 </Movable>
               ))}
-
-              {/* Floating text toolbar */}
-              <AnimatePresence>
-                {showFtb && focusedEl && <FloatingTextToolbar onClose={() => setShowFtb(false)} />}
-              </AnimatePresence>
             </div>
 
             <AnimatePresence>
@@ -2035,12 +1991,12 @@ function EditorContent() {
             bg-[#111113] border-t md:border-t-0 md:border-l border-zinc-800
             flex flex-col z-30
             transition-[height] duration-200 ease-out
-            ${sheetExpanded ? "h-[70vh]" : "h-[128px]"}
+            ${panelCollapsed ? "h-[52px]" : "h-[70vh]"}
             md:h-auto md:flex-1
           `}
-          style={{ paddingBottom: sheetExpanded ? 0 : "env(safe-area-inset-bottom)" }}
+          style={{ paddingBottom: panelCollapsed ? 0 : "env(safe-area-inset-bottom)" }}
         >
-          {/* ====== SHEET HEADER (tools + tabs) ====== */}
+          {/* ====== SHEET HEADER (tools + tabs + toggle) ====== */}
           <div className="flex items-center border-b border-zinc-800 shrink-0 gap-1 px-2 h-12 md:h-auto">
             {/* Tools */}
             <div className="flex items-center gap-0.5">
@@ -2056,7 +2012,7 @@ function EditorContent() {
             {/* Tabs */}
             <div className="flex flex-1">
               {TABS.map(tab => (
-                <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSheetExpanded(true); }}
+                <button key={tab.id} onClick={() => { setActiveTab(tab.id); setPanelCollapsed(false); }}
                   className={`flex-1 py-3 md:py-2.5 text-[10px] font-bold uppercase tracking-wider
                               border-b-2 transition-colors touch-manipulation flex items-center justify-center gap-1.5
                     ${activeTab === tab.id
@@ -2074,58 +2030,66 @@ function EditorContent() {
               ))}
             </div>
 
-            {/* Drag handle (mobile only) */}
-            <div className="md:hidden flex items-center justify-center w-8 h-8"
-              onClick={() => setSheetExpanded(v => !v)}>
-              <div className="w-9 h-1 rounded-full bg-zinc-700" />
-            </div>
+            {/* Toggle button: collapse/expand */}
+            <button
+              onClick={() => setPanelCollapsed(v => !v)}
+              className="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors touch-manipulation"
+              aria-label={panelCollapsed ? "Expand panel" : "Collapse panel"}
+            >
+              {panelCollapsed ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </button>
           </div>
 
-          {/* ====== PANEL CONTENT ====== */}
-          <div className={`flex-1 overflow-y-auto p-4 overscroll-contain
-                          [&::-webkit-scrollbar]:w-1
-                          [&::-webkit-scrollbar-thumb]:bg-zinc-700
-                          [&::-webkit-scrollbar-track]:bg-transparent
-                          ${sheetExpanded ? "" : "hidden md:block"}`}
-            style={{ WebkitOverflowScrolling: "touch" }}>
-            <AnimatePresence mode="wait">
-              <motion.div key={activeTab}
-                initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.1 }}>
-                {activeTab === "design" && (
-                  <DesignPanel
-                    data={flyer}
-                    onUpdate={update}
-                    onLogoUpload={(file) => handleImageUpload(file, "logoImage")}
-                    badge={badgeOverlay}
-                    onBadgeChange={setBadgeOverlay}
-                    activeFormat={activeFormat}
-                    setActiveFormat={setActiveFormat}
-                  />
-                )}
-                {activeTab === "video" && (
-                  <VideoPanel
-                    flyer={flyer}
-                    activeFormatId={activeFormat}
-                    jobId={jobId}
-                    logoOverlay={logoOverlay}
-                    badgeOverlay={badgeOverlay}
-                  />
-                )}
-                {activeTab === "captions" && (
-                  <CaptionsPanel captions={captions} />
-                )}
-                {activeTab === "content" && (
-                  <ContentPanel
-                    data={flyer}
-                    onUpdate={update}
-                    badge={badgeOverlay}
-                    onBadgeChange={setBadgeOverlay}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+          {/* ====== PANEL CONTENT (only shown when expanded) ====== */}
+          {!panelCollapsed && (
+            <div className={`flex-1 overflow-y-auto p-4 overscroll-contain
+                            [&::-webkit-scrollbar]:w-1
+                            [&::-webkit-scrollbar-thumb]:bg-zinc-700
+                            [&::-webkit-scrollbar-track]:bg-transparent`}
+              style={{ WebkitOverflowScrolling: "touch" }}>
+              <AnimatePresence mode="wait">
+                <motion.div key={activeTab}
+                  initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.1 }}>
+                  {activeTab === "design" && (
+                    <DesignPanel
+                      data={flyer}
+                      onUpdate={update}
+                      onLogoUpload={(file) => handleImageUpload(file, "logoImage")}
+                      badge={badgeOverlay}
+                      onBadgeChange={setBadgeOverlay}
+                      activeFormat={activeFormat}
+                      setActiveFormat={setActiveFormat}
+                    />
+                  )}
+                  {activeTab === "video" && (
+                    <VideoPanel
+                      flyer={flyer}
+                      activeFormatId={activeFormat}
+                      jobId={jobId}
+                      logoOverlay={logoOverlay}
+                      badgeOverlay={badgeOverlay}
+                    />
+                  )}
+                  {activeTab === "captions" && (
+                    <CaptionsPanel captions={captions} />
+                  )}
+                  {activeTab === "content" && (
+                    <ContentPanel
+                      data={flyer}
+                      onUpdate={update}
+                      badge={badgeOverlay}
+                      onBadgeChange={setBadgeOverlay}
+                      selectedTextId={selectedOverlayId?.startsWith("ft-") ? selectedOverlayId : null}
+                      freeTexts={freeTexts}
+                      onUpdateFreeText={updateFreeText}
+                      onDeleteFreeText={deleteFreeText}
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          )}
         </aside>
       </div>
     </div>
