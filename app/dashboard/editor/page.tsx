@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   ArrowLeft, Download, Palette,
   Video, MessageSquare, Check, Copy, ListChecks,
-  Package, GripVertical, X,
+  GripVertical, X,
   UploadCloud, Film, Square, Smartphone, Monitor, Image as ImageIcon, Loader2,
   ChevronDown,
 } from "lucide-react";
@@ -242,25 +242,19 @@ const TEMPLATE_THEMES = [
   { label: "Sage", bg: "#f0f2ea", accent: "#4a5d43", text: "#1f2417" },
 ];
 
-// ===== RESTORED ORIGINAL 30-COLOR SWATCH SET =====
+// Full 30‑colour swatch set
 const COLOR_SWATCHES = [
-  // Neutrals & metals
   "#0a0a0a", "#1c1c1e", "#f5f5f0", "#e8e2d5", "#c0c0c0", "#8c8c8c",
   "#d4af37", "#b08d57", "#e5c07b", "#b76e79",
-  // Blues & indigos
   "#1a237e", "#283593", "#003153", "#0f4c81", "#4682b4",
-  // Greens
   "#014421", "#0b6e4f", "#4a5d43", "#2e4600",
-  // Reds & warms
   "#7b1e3a", "#9a2a2a", "#c1440e", "#e07a5f", "#d94f70",
-  // Purples & pinks
   "#5b2a86", "#6a0572", "#a78bfa",
-  // Basics
   "#ffffff", "#111111", "#f4f1ea",
 ];
 
 // ============================================================================
-// EDITABLE COMPONENT (kept for badge)
+// EDITABLE COMPONENT (only used for badge)
 // ============================================================================
 type EditableProps = {
   id: string;
@@ -569,16 +563,12 @@ const DesignPanel = memo(function DesignPanel({
   onLogoUpload,
   badge,
   onBadgeChange,
-  activeFormat,
-  setActiveFormat,
 }: {
   data: FlyerState;
   onUpdate: (k: keyof FlyerState, v: any) => void;
   onLogoUpload: (file: File) => void;
   badge: DiscountBadge;
   onBadgeChange: (b: DiscountBadge) => void;
-  activeFormat: FormatId;
-  setActiveFormat: (id: FormatId) => void;
 }) {
   const [colorLayer, setColorLayer] = useState<"bg" | "accent" | "text">("accent");
   const [activeTheme, setActiveTheme] = useState<number | null>(null);
@@ -676,7 +666,7 @@ const DesignPanel = memo(function DesignPanel({
   );
 });
 
-// ======== ContentPanel – now includes badge controls ========
+// ======== ContentPanel – includes badge controls ========
 const ContentPanel = memo(function ContentPanel({
   data, onUpdate, badge, onBadgeChange,
 }: {
@@ -1090,7 +1080,7 @@ const VALID_CATEGORIES: FlyerState["templateCategory"][] = [
   "Luxury Product", "Minimal Product", "Premium Brand",
 ];
 
-// ---------- EXPORT HELPERS (improved for mobile) ----------
+// ---------- EXPORT HELPERS (switched to html2canvas) ----------
 async function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -1103,7 +1093,6 @@ async function downloadBlob(blob: Blob, filename: string) {
 }
 
 async function toDataURL(url: string): Promise<string> {
-  // Try fetch with CORS first
   try {
     const res = await fetch(url, { mode: "cors" });
     const blob = await res.blob();
@@ -1114,7 +1103,6 @@ async function toDataURL(url: string): Promise<string> {
       reader.readAsDataURL(blob);
     });
   } catch {
-    // Fallback: canvas with image element
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = "anonymous";
@@ -1163,7 +1151,7 @@ function EditorContent() {
   const [captions, setCaptions] = useState<Caption[]>([]);
   const [activeTab, setActiveTab] = useState<RsbTab>("design");
   const [activeFormat, setActiveFormat] = useState<FormatId>("ig");
-  const [scale, setScale] = useState(1); // initial scale so flyer shows immediately
+  const [scale, setScale] = useState(1);
   const [sheetExpanded, setSheetExpanded] = useState(false);
 
   const [logoOverlay, setLogoOverlay] = useState<{
@@ -1281,7 +1269,7 @@ function EditorContent() {
     [update]
   );
 
-  // ---------- EXPORT FLYER (improved for mobile) ----------
+  // ---------- EXPORT FLYER (using html2canvas) ----------
   const exportFlyer = useCallback(async (
     format: 'png' | 'jpg' | 'pdf',
   ) => {
@@ -1299,7 +1287,7 @@ function EditorContent() {
     let originalSrcs: string[] = [];
 
     try {
-      // 1. Convert all images in the export node to data URLs
+      // 1. Convert all images to data URLs to avoid CORS issues
       imgEls = Array.from(node.querySelectorAll("img"));
       originalSrcs = imgEls.map(img => img.src);
 
@@ -1308,59 +1296,61 @@ function EditorContent() {
           try {
             const dataUrl = await toDataURL(originalSrcs[i]);
             img.src = dataUrl;
-            // Wait for the new data URL to load
             if (img.complete) return;
             await new Promise<void>((resolve) => {
               img.onload = () => resolve();
               img.onerror = () => resolve();
             });
           } catch {
-            // Keep original if conversion fails (should not happen with data URLs)
+            // keep original
           }
         })
       );
 
-      // 2. Force a reflow and extra paint for mobile
+      // 2. Give the DOM time to settle
       await new Promise(res => requestAnimationFrame(res));
       await new Promise(res => setTimeout(res, 300));
 
-      // 3. Use html-to-image with conservative options
-      const { toPng, toJpeg } = await import("html-to-image");
+      // 3. Use html2canvas (more reliable on mobile)
+      const html2canvas = (await import('html2canvas')).default;
       const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
-      const snapshotOpts = {
-        pixelRatio: 1,
-        cacheBust: true,
+      const canvas = await html2canvas(node, {
+        scale: 1,
+        useCORS: true,
+        backgroundColor: '#ffffff',
         width: fmt.exportW,
         height: fmt.exportH,
-        useCORS: true,
-        skipAutoScale: true,
-        backgroundColor: '#ffffff',
-      };
+        logging: false,
+        allowTaint: false,
+        // onclone ensures images are loaded
+      });
 
-      let blob: Blob;
-      if (format === 'jpg') {
-        const dataUrl = await toJpeg(node, { ...snapshotOpts, quality: 0.95 });
-        blob = await (await fetch(dataUrl)).blob();
-      } else if (format === 'pdf') {
+      // 4. Convert to blob
+      const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
+      const quality = format === 'jpg' ? 0.95 : undefined;
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((b) => resolve(b!), mimeType, quality);
+      });
+
+      // 5. Download
+      const ext = format === 'pdf' ? 'pdf' : format;
+      const filename = `flyer-${activeFormat}.${ext}`;
+
+      if (format === 'pdf') {
+        // For PDF, we need to use jsPDF with the canvas data URL
+        const dataUrl = canvas.toDataURL('image/png');
         const { default: jsPDF } = await import('jspdf');
-        const dataUrl = await toPng(node, snapshotOpts);
         const pdf = new jsPDF({
           orientation: fmt.exportW > fmt.exportH ? "landscape" : "portrait",
           unit: "px",
           format: [fmt.exportW, fmt.exportH],
         });
         pdf.addImage(dataUrl, "PNG", 0, 0, fmt.exportW, fmt.exportH);
-        blob = pdf.output("blob");
+        const pdfBlob = pdf.output("blob");
+        await downloadBlob(pdfBlob, filename);
       } else {
-        // png
-        const dataUrl = await toPng(node, snapshotOpts);
-        blob = await (await fetch(dataUrl)).blob();
+        await downloadBlob(blob, filename);
       }
-
-      // 4. Direct download
-      const ext = format === 'pdf' ? 'pdf' : format;
-      const filename = `flyer-${activeFormat}.${ext}`;
-      await downloadBlob(blob, filename);
 
     } catch (err) {
       console.error(err);
@@ -1505,6 +1495,8 @@ function EditorContent() {
     };
   }, [activeFormat, sheetExpanded]);
 
+  // ---------- NO free-text state or handlers ----------
+
   const TABS: { id: RsbTab; icon: React.ReactNode; label: string }[] = [
     { id: "design", icon: <Palette size={16} />, label: "Design" },
     { id: "content", icon: <ListChecks size={16} />, label: "Content" },
@@ -1559,7 +1551,7 @@ function EditorContent() {
       {/* MAIN AREA */}
       <div className="flex flex-1 overflow-hidden relative">
 
-        {/* CANVAS (no format bar) */}
+        {/* CANVAS – no click handler, no free text */}
         <section className="flex-1 flex flex-col overflow-hidden bg-zinc-950 pb-[52px] md:pb-0">
           <div
             ref={canvasWrapRef}
@@ -1667,7 +1659,7 @@ function EditorContent() {
             </div>
           </div>
 
-          {/* Hidden export clone – now with opacity:0 and pointer-events:none for mobile compat */}
+          {/* Hidden export clone – opacity:0, pointer-events:none */}
           <div
             aria-hidden="true"
             style={{
@@ -1753,7 +1745,7 @@ function EditorContent() {
             </span>
           </div>
 
-          {/* Format selector (always visible, top of panel) */}
+          {/* Format selector – always visible */}
           <div className="border-b border-zinc-800 px-3 py-2 shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden">
             <div className="flex gap-1.5 items-center justify-start">
               <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-wider mr-1 shrink-0">Format</span>
@@ -1813,8 +1805,6 @@ function EditorContent() {
                     onLogoUpload={(file) => handleImageUpload(file, "logoImage")}
                     badge={badgeOverlay}
                     onBadgeChange={setBadgeOverlay}
-                    activeFormat={activeFormat}
-                    setActiveFormat={setActiveFormat}
                   />
                 )}
                 {activeTab === "video" && (
