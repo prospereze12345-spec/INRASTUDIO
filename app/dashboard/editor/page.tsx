@@ -142,7 +142,7 @@ const TemplateRenderer = memo(function TemplateRenderer({
     default:
       return <LuxuryProductTemplate {...shared} />;
   }
-}
+});
 
 // ============================================================================
 // TYPES
@@ -1731,8 +1731,6 @@ function EditorContent() {
                 </Movable>
               ))}
             </div>
-
-            {/* The hint was here – removed completely */}
           </div>
 
           {/* Hidden export clone — off-screen, full size */}
