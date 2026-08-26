@@ -1080,7 +1080,7 @@ const VALID_CATEGORIES: FlyerState["templateCategory"][] = [
   "Luxury Product", "Minimal Product", "Premium Brand",
 ];
 
-// ---------- EXPORT HELPERS (uses html-to-image) ----------
+// ---------- EXPORT HELPERS (using modern-screenshot) ----------
 async function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -1269,7 +1269,7 @@ function EditorContent() {
     [update]
   );
 
-  // ---------- EXPORT FLYER (using html-to-image, no oklch error) ----------
+  // ---------- EXPORT FLYER (using modern-screenshot) ----------
   const exportFlyer = useCallback(async (
     format: 'png' | 'jpg' | 'pdf',
   ) => {
@@ -1287,7 +1287,7 @@ function EditorContent() {
     let originalSrcs: string[] = [];
 
     try {
-      // 1. Convert all images to data URLs
+      // Convert all images to data URLs to ensure they render
       imgEls = Array.from(node.querySelectorAll("img"));
       originalSrcs = imgEls.map(img => img.src);
 
@@ -1307,30 +1307,33 @@ function EditorContent() {
         })
       );
 
-      // 2. Extra paint delay for mobile
+      // Allow paint to settle
       await new Promise(res => requestAnimationFrame(res));
       await new Promise(res => setTimeout(res, 300));
 
-      // 3. Import html-to-image
-      const { toPng, toJpeg } = await import("html-to-image");
+      // Use modern-screenshot – handles oklch without errors
+      const { capture } = await import('modern-screenshot');
       const fmt = SOCIAL_FORMATS.find(f => f.id === activeFormat)!;
-      const snapshotOpts = {
-        pixelRatio: 1,
-        cacheBust: true,
+
+      const canvas = await capture(node, {
         width: fmt.exportW,
         height: fmt.exportH,
-        useCORS: true,
-        skipAutoScale: true,
         backgroundColor: '#ffffff',
-      };
+        scale: 1,
+        // @ts-ignore – type definitions may not include all options
+        style: {
+          transform: 'none', // prevent extra transforms
+        },
+      });
 
       let blob: Blob;
       if (format === 'jpg') {
-        const dataUrl = await toJpeg(node, { ...snapshotOpts, quality: 0.95 });
-        blob = await (await fetch(dataUrl)).blob();
+        blob = await new Promise<Blob>((resolve) => {
+          canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.95);
+        });
       } else if (format === 'pdf') {
         const { default: jsPDF } = await import('jspdf');
-        const dataUrl = await toPng(node, snapshotOpts);
+        const dataUrl = canvas.toDataURL('image/png');
         const pdf = new jsPDF({
           orientation: fmt.exportW > fmt.exportH ? "landscape" : "portrait",
           unit: "px",
@@ -1339,8 +1342,9 @@ function EditorContent() {
         pdf.addImage(dataUrl, "PNG", 0, 0, fmt.exportW, fmt.exportH);
         blob = pdf.output("blob");
       } else {
-        const dataUrl = await toPng(node, snapshotOpts);
-        blob = await (await fetch(dataUrl)).blob();
+        blob = await new Promise<Blob>((resolve) => {
+          canvas.toBlob((b) => resolve(b!), 'image/png');
+        });
       }
 
       const ext = format === 'pdf' ? 'pdf' : format;
