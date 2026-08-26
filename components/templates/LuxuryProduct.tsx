@@ -60,12 +60,6 @@ export interface LuxuryProductProps {
 
 /* ─────────────────────────────────────────────────────────────────
    SPACING SCALE
-   `cq()` mirrors the same `--ci` custom-property mechanism used by
-   PremiumBrandTemplate — NOT `vw` (viewport width). `vw` sizes to the
-   browser window, which doesn't shrink with the flyer's on-screen
-   scale, so it broke both the mobile editor view and the export.
-   `--ci` is set by the editor to exportWidth / 100 and inherits down
-   through this component automatically.
 ───────────────────────────────────────────────────────────────── */
 
 const cq = (n: number) => `calc(var(--ci) * ${n})`;
@@ -120,7 +114,7 @@ export function LuxuryProductTemplate(props: LuxuryProductProps) {
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   IMAGE SAFETY WRAPPER (now uses plain <img>)
+   IMAGE SAFETY WRAPPER (plain <img>)
 ───────────────────────────────────────────────────────────────── */
 
 function SafeImage({
@@ -215,7 +209,6 @@ const VariantNoirEditorial = ({
       className="@container w-full h-full relative overflow-hidden flex flex-col font-sans aspect-[4/5]"
       style={{ backgroundColor: colors.primary, color: "#fff" }}
     >
-      {/* Background image – plain <img> */}
       <div className="absolute inset-0">
         {bustedBg ? (
           <img
@@ -353,16 +346,43 @@ const VariantNoirEditorial = ({
 ═══════════════════════════════════════════════════════════════════════════ */
 
 const VariantAtelierLight = ({
-  headline, subtext, ctaText, productImage, imageVersion, brandName, price,
-  colors, editable, onUpdate, onFocusEl, onBlurEl, features, phone, email, whyChooseUs,
-  onUpdateFeature, onAddFeature, onRemoveFeature,
-  onUpdateWhyChooseUs, onAddWhyChooseUs, onRemoveWhyChooseUs,
-  featuresVisible, whyChooseUsVisible, phoneVisible, emailVisible, websiteVisible,
-  onRestoreFeatures, onRestoreWhyChooseUs,
-  onRemovePhone, onRemoveEmail, onRemoveWebsite,
-  onRestorePhone, onRestoreEmail, onRestoreWebsite,
+  headline,
+  subtext,
+  ctaText,
+  productImage,
+  imageVersion,
+  brandName,
+  price,
+  colors,
+  editable,
+  onUpdate,
+  onFocusEl,
+  onBlurEl,
+  features,
+  phone,
+  email,
+  whyChooseUs,
+  onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
+  featuresVisible,
+  whyChooseUsVisible,
+  phoneVisible,
+  emailVisible,
+  websiteVisible,
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
   website,
-}: LuxuryProductProps) {
+}: LuxuryProductProps) => {
   const hasFeatures = Array.isArray(features) && features.length > 0;
   const hasWhyChooseUs = Array.isArray(whyChooseUs) && whyChooseUs.length > 0;
 
