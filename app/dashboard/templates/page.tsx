@@ -3,245 +3,760 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { 
-  Home, 
-  LayoutTemplate, 
-  Settings, 
+import {
+  Home,
+  LayoutTemplate,
   Crown,
-  LogOut,
   Menu,
   X,
-  History,
-  Sparkles
+  ArrowLeft,
+  ArrowUpRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Logo } from "@/components/Logo";
-import Image from "next/image";
 import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
 import { SleekFlyerTemplate as MinimalProductTemplate } from "@/components/templates/MinimalProduct";
 import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
-import { LUXURY_VARIATIONS, MINIMAL_PRODUCT_VARIATIONS, PREMIUM_BRAND_VARIATIONS } from "@/lib/template-data";
+import {
+  LUXURY_VARIATIONS,
+  MINIMAL_PRODUCT_VARIATIONS,
+  PREMIUM_BRAND_VARIATIONS,
+} from "@/lib/template-data";
 
-function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+/* =========================================================
+   DESIGN TOKENS
+========================================================= */
+
+const ink = "#16140F";
+const panel = "#1D1A14";
+const panelSoft = "#211E17";
+const rule = "#38321F";
+const paper = "#EDE6D6";
+const paperMuted = "#C9BFA4";
+const marigold = "#E8A33D";
+const textPrimary = "#F3ECDD";
+const textMuted = "#8C8368";
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+function Sidebar({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   return (
     <>
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#030712]/80 backdrop-blur-sm z-40 lg:hidden"
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"
             onClick={onClose}
           />
         )}
       </AnimatePresence>
-      <motion.aside 
-        className={`fixed top-0 left-0 bottom-0 w-64 bg-[#0a1128] border-r border-white/5 z-50 flex flex-col transition-transform lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+
+      <motion.aside
+        className={`fixed top-0 left-0 bottom-0 w-[270px] z-50 flex flex-col border-r transition-transform duration-300 lg:translate-x-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        style={{
+          background: panel,
+          borderColor: rule,
+        }}
       >
-        <div className="p-6 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Logo className="w-8 h-8 rounded-lg" />
+        {/* Logo */}
+        <div
+          className="h-[82px] px-6 flex items-center justify-between border-b"
+          style={{ borderColor: rule }}
+        >
+          <Link href="/" className="flex items-center">
+            <Logo className="w-9 h-9 rounded-lg" />
           </Link>
-          <button className="lg:hidden text-slate-400 hover:text-white" onClick={onClose}>
+
+          <button
+            onClick={onClose}
+            className="lg:hidden p-2 rounded-lg transition-opacity hover:opacity-70"
+            style={{ color: textMuted }}
+            aria-label="Close menu"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-1">
-          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white font-medium transition-colors">
-            <Home className="w-5 h-5" /> Dashboard
-          </Link>
-          <Link href="/dashboard/templates" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 text-white font-medium transition-colors">
-            <LayoutTemplate className="w-5 h-5 text-cyan-400" /> Templates
-          </Link>
-          
-          
+        {/* Navigation */}
+        <div className="flex-1 px-4 py-7">
+          <p
+            className="font-mono text-[10px] tracking-[0.18em] px-4 mb-3"
+            style={{ color: textMuted }}
+          >
+            WORKSPACE
+          </p>
+
+          <div className="flex flex-col gap-1">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-white/[0.04]"
+              style={{ color: textMuted }}
+            >
+              <Home className="w-[18px] h-[18px]" />
+              <span className="text-sm font-medium">Dashboard</span>
+            </Link>
+
+            <Link
+              href="/dashboard/templates"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl"
+              style={{
+                background: "rgba(232,163,61,0.10)",
+                color: textPrimary,
+                border: `1px solid rgba(232,163,61,0.16)`,
+              }}
+            >
+              <LayoutTemplate
+                className="w-[18px] h-[18px]"
+                style={{ color: marigold }}
+              />
+
+              <span className="text-sm font-medium">Templates</span>
+            </Link>
+          </div>
         </div>
 
-        <div className="p-4 border-t border-white/5">
-          <Link href="/pricing" className="flex items-center gap-3 px-4 py-3 mb-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-transparent hover:bg-amber-500/20 text-amber-400 font-medium transition-colors border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]">
-            <Crown className="w-5 h-5" /> Upgrade to Pro
+        {/* Upgrade */}
+        <div
+          className="p-4 border-t"
+          style={{ borderColor: rule }}
+        >
+          <Link
+            href="/pricing"
+            className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:-translate-y-0.5"
+            style={{
+              background: "rgba(232,163,61,0.08)",
+              border: "1px solid rgba(232,163,61,0.18)",
+              color: marigold,
+            }}
+          >
+            <Crown className="w-5 h-5" />
+
+            <div>
+              <p className="text-sm font-semibold">Upgrade to Pro</p>
+              <p
+                className="font-mono text-[9px] tracking-[0.08em] mt-0.5"
+                style={{ color: textMuted }}
+              >
+                MORE CREATIVE OPTIONS
+              </p>
+            </div>
           </Link>
-          
         </div>
       </motion.aside>
     </>
   );
 }
 
+/* =========================================================
+   TEMPLATE DATA
+========================================================= */
+
 const TEMPLATE_CATEGORIES = [
-  
   {
     title: "Luxury Product",
-    description: "Best for perfume sellers, skincare brands, jewelry sellers, luxury fashion, and watches.",
-    templates: LUXURY_VARIATIONS.map(v => v.name)
+    description:
+      "Refined layouts for perfume, skincare, jewelry, watches, and premium fashion.",
+    templates: LUXURY_VARIATIONS.map((v) => v.name),
   },
   {
     title: "Minimal Product",
-    description: "Best for cosmetics, tech gadgets, small online stores, and modern fashion brands.",
-    templates: MINIMAL_PRODUCT_VARIATIONS.map(v => v.name)
+    description:
+      "Clean, modern compositions for cosmetics, tech, online stores, and fashion.",
+    templates: MINIMAL_PRODUCT_VARIATIONS.map((v) => v.name),
   },
   {
     title: "Premium Brand",
-    description: "Best for established businesses, salons, restaurants, real estate, and agencies.",
-    templates: PREMIUM_BRAND_VARIATIONS.map(v => v.name)
-  }
+    description:
+      "Confident layouts for established businesses, salons, restaurants, property, and agencies.",
+    templates: PREMIUM_BRAND_VARIATIONS.map((v) => v.name),
+  },
 ];
+
+/* =========================================================
+   PREVIEW FRAME
+========================================================= */
+
+function TemplatePreview({
+  category,
+  index,
+  templateName,
+  campaignImage,
+  onUse,
+}: {
+  category: string;
+  index: number;
+  templateName: string;
+  campaignImage: string | null;
+  onUse: () => void;
+}) {
+  const isLuxury = category === "Luxury Product";
+  const isMinimal = category === "Minimal Product";
+  const isPremium = category === "Premium Brand";
+
+  return (
+    <div className="group">
+      {/* Preview */}
+      <div
+        className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl"
+        style={{
+          aspectRatio: "4 / 5",
+          background: "#100F0B",
+          border: `1px solid ${rule}`,
+        }}
+      >
+        {/* Inner stage
+            Keeps the template centered and prevents its dimensions
+            from breaking the gallery layout.
+        */}
+        <div className="absolute inset-[7px] sm:inset-[10px] overflow-hidden rounded-xl sm:rounded-2xl">
+          <div
+            className="absolute inset-0 flex items-center justify-center overflow-hidden"
+            style={{
+              background: paper,
+            }}
+          >
+            {isLuxury ? (
+              <div className="absolute inset-0">
+                <LuxuryProductTemplate
+                  {...LUXURY_VARIATIONS[index]}
+                  productImage={
+                    campaignImage ||
+                    LUXURY_VARIATIONS[index].productImage
+                  }
+                />
+              </div>
+            ) : isMinimal ? (
+              <div className="absolute inset-0">
+                <MinimalProductTemplate
+                  {...MINIMAL_PRODUCT_VARIATIONS[index]}
+                  productImage={
+                    campaignImage ||
+                    MINIMAL_PRODUCT_VARIATIONS[index].productImage
+                  }
+                />
+              </div>
+            ) : isPremium ? (
+              <div className="absolute inset-0">
+                <PremiumBrandTemplate
+                  {...PREMIUM_BRAND_VARIATIONS[index]}
+                  productImage={
+                    campaignImage ||
+                    PREMIUM_BRAND_VARIATIONS[index].productImage
+                  }
+                />
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Category label */}
+        <div className="absolute top-4 left-4 z-20">
+          <span
+            className="font-mono text-[9px] sm:text-[10px] tracking-[0.13em] uppercase px-2.5 py-1.5 rounded-full backdrop-blur-md"
+            style={{
+              background: "rgba(22,20,15,0.72)",
+              border: `1px solid rgba(237,230,214,0.16)`,
+              color: textPrimary,
+            }}
+          >
+            {category}
+          </span>
+        </div>
+
+        {/* Hover overlay */}
+        <div
+          className="absolute inset-0 z-30 flex items-end p-4 sm:p-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(22,20,15,0.92), rgba(22,20,15,0.05) 65%)",
+          }}
+        >
+          <button
+            onClick={onUse}
+            className="w-full flex items-center justify-center gap-2 rounded-full py-3 font-semibold text-sm transition-all duration-300 translate-y-3 group-hover:translate-y-0"
+            style={{
+              background: marigold,
+              color: ink,
+            }}
+          >
+            Use this template
+            <ArrowUpRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Caption */}
+      <div className="pt-3 px-1">
+        <div className="flex items-center justify-between gap-3">
+          <h3
+            className="font-display text-sm sm:text-base font-semibold truncate"
+            style={{ color: textPrimary }}
+          >
+            {templateName}
+          </h3>
+
+          <ArrowUpRight
+            className="w-4 h-4 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ color: marigold }}
+          />
+        </div>
+
+        <p
+          className="font-mono text-[9px] tracking-[0.08em] mt-1"
+          style={{ color: textMuted }}
+        >
+          {category.toUpperCase()}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   FEATURED TEMPLATE
+========================================================= */
+
+function FeaturedTemplate({
+  name,
+  category,
+  templateType,
+  data,
+  campaignImage,
+  onUse,
+}: {
+  name: string;
+  category: string;
+  templateType: any;
+  data: any;
+  campaignImage: string | null;
+  onUse: () => void;
+}) {
+  const TemplateComp = templateType;
+
+  return (
+    <div
+      className="group rounded-3xl overflow-hidden"
+      style={{
+        background: panel,
+        border: `1px solid ${rule}`,
+      }}
+    >
+      {/* Large preview */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          aspectRatio: "4 / 5",
+          background: "#100F0B",
+        }}
+      >
+        <div className="absolute inset-3 sm:inset-4 rounded-2xl overflow-hidden">
+          <TemplateComp
+            {...data}
+            productImage={campaignImage || data.productImage}
+          />
+        </div>
+
+        {/* Overlay */}
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-5 sm:p-6"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(22,20,15,0.95), transparent 65%)",
+          }}
+        >
+          <button
+            onClick={onUse}
+            className="w-full rounded-full py-3.5 font-semibold text-sm flex items-center justify-center gap-2 transition-transform hover:-translate-y-0.5"
+            style={{
+              background: marigold,
+              color: ink,
+            }}
+          >
+            Use this template
+            <ArrowUpRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="absolute top-5 left-5 z-20">
+          <span
+            className="font-mono text-[9px] tracking-[0.13em] px-3 py-1.5 rounded-full"
+            style={{
+              background: "rgba(22,20,15,0.75)",
+              color: textPrimary,
+              border: `1px solid rgba(237,230,214,0.15)`,
+            }}
+          >
+            FEATURED
+          </span>
+        </div>
+      </div>
+
+      {/* Information */}
+      <div className="p-5 sm:p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p
+              className="font-mono text-[9px] tracking-[0.15em]"
+              style={{ color: marigold }}
+            >
+              {category.toUpperCase()}
+            </p>
+
+            <h3
+              className="font-display text-lg sm:text-xl font-semibold mt-1"
+              style={{ color: textPrimary }}
+            >
+              {name}
+            </h3>
+          </div>
+
+          <ArrowUpRight
+            className="w-5 h-5 shrink-0"
+            style={{ color: textMuted }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default function TemplatesPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [campaignImage, setCampaignImage] = useState<string | null>(null);
+
   const router = useRouter();
 
+  /* ORIGINAL SESSION STORAGE LOGIC */
   useEffect(() => {
     const saved = sessionStorage.getItem("campaignImage");
+
     if (saved) {
       const timer = setTimeout(() => {
         setCampaignImage(saved);
       }, 0);
+
       return () => clearTimeout(timer);
     }
   }, []);
 
-  const handleUseTemplate = (templateName: string, categoryName: string) => {
+  /* ORIGINAL ROUTING LOGIC */
+  const handleUseTemplate = (
+    templateName: string,
+    categoryName: string
+  ) => {
     if (!campaignImage) {
       router.push("/dashboard");
     } else {
-      router.push(`/dashboard/editor?variant=${encodeURIComponent(templateName)}&category=${encodeURIComponent(categoryName)}`);
+      router.push(
+        `/dashboard/editor?variant=${encodeURIComponent(
+          templateName
+        )}&category=${encodeURIComponent(categoryName)}`
+      );
     }
   };
 
   return (
     <>
-      {/* Global touch‑action fix + overflow prevention */}
       <style>{`
-        button, a, label, [role="button"] {
+        button,
+        a,
+        label,
+        [role="button"] {
           touch-action: manipulation;
         }
-        html, body { overflow-x: hidden; max-width: 100%; }
+
+        html,
+        body {
+          overflow-x: hidden;
+          max-width: 100%;
+          background: ${ink};
+        }
+
+        * {
+          box-sizing: border-box;
+        }
+
+        .template-scroll::-webkit-scrollbar {
+          height: 4px;
+        }
+
+        .template-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .template-scroll::-webkit-scrollbar-thumb {
+          background: ${rule};
+          border-radius: 999px;
+        }
       `}</style>
 
-      <div className="min-h-screen bg-[#030712] text-slate-50 font-sans selection:bg-cyan-500 selection:text-white flex overflow-x-hidden">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div
+        className="min-h-screen flex overflow-x-hidden"
+        style={{
+          background: ink,
+          color: textPrimary,
+        }}
+      >
+        {/* SIDEBAR */}
+        <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
 
-        <main className="flex-1 lg:ml-64 relative min-h-screen w-full max-w-full overflow-x-hidden">
-          {/* Mobile header — only logo, no text */}
-          <header className="lg:hidden flex items-center justify-between p-4 border-b border-white/5 bg-[#0a1128]/80 backdrop-blur-md sticky top-0 z-30">
-            <Logo className="w-8 h-8 rounded-md" />
-            <button onClick={() => setSidebarOpen(true)} className="p-3 -m-3 text-slate-300">
-              <Menu className="w-6 h-6" />
+        {/* MAIN */}
+        <main className="flex-1 lg:ml-[270px] min-w-0">
+          {/* MOBILE HEADER */}
+          <header
+            className="lg:hidden sticky top-0 z-40 h-[72px] px-4 flex items-center justify-between backdrop-blur-xl border-b"
+            style={{
+              background: "rgba(29,26,20,0.92)",
+              borderColor: rule,
+            }}
+          >
+            <Link href="/">
+              <Logo className="w-8 h-8 rounded-lg" />
+            </Link>
+
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-3 rounded-xl"
+              style={{
+                color: textPrimary,
+                background: "rgba(237,230,214,0.05)",
+              }}
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5" />
             </button>
           </header>
 
-          <div className="p-4 sm:p-6 md:p-10 max-w-7xl mx-auto space-y-10 sm:space-y-12 w-full max-w-full">
-            
-            <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-white tracking-tight mb-3 break-words">
-                Templates Gallery
+          {/* CONTENT */}
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-7 sm:py-10 lg:py-12">
+            {/* PAGE HEADER */}
+            <div className="max-w-3xl">
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.12em] mb-7 transition-opacity hover:opacity-70"
+                style={{ color: textMuted }}
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                BACK TO DASHBOARD
+              </Link>
+
+              <p
+                className="font-mono text-[10px] sm:text-[11px] tracking-[0.2em]"
+                style={{ color: marigold }}
+              >
+                CAMPAIGN TEMPLATES
+              </p>
+
+              <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mt-2 leading-[1.05]">
+                Start with a look
+                <br className="hidden sm:block" /> that fits your business.
               </h1>
-              <p className="text-slate-400 text-sm md:text-base max-w-2xl break-words">
-                Browse our curated collection of templates designed specifically for your marketing objectives. Just swap images, colors, and text to make it yours.
+
+              <p
+                className="mt-4 text-sm sm:text-base max-w-2xl leading-relaxed"
+                style={{ color: textMuted }}
+              >
+                Pick a direction, drop in your product, and make it yours.
+                Every template is built to keep the message clear and the
+                product in focus.
               </p>
             </div>
 
-            <section>
-              <div className="flex items-center gap-2 mb-4 sm:mb-6">
-                <Sparkles className="w-5 h-5 text-cyan-400 shrink-0" />
-                <h2 className="text-lg sm:text-xl font-display font-semibold text-white tracking-tight">Most Used Templates</h2>
+            {/* CAMPAIGN IMAGE NOTICE */}
+            {campaignImage && (
+              <div
+                className="mt-8 rounded-2xl px-4 py-3.5 flex items-center gap-3"
+                style={{
+                  background: "rgba(232,163,61,0.07)",
+                  border: "1px solid rgba(232,163,61,0.15)",
+                }}
+              >
+                <div
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{ background: marigold }}
+                />
+
+                <p
+                  className="font-mono text-[10px] sm:text-[11px] tracking-[0.04em]"
+                  style={{ color: paperMuted }}
+                >
+                  YOUR CAMPAIGN PHOTO WILL BE USED IN THE PREVIEW
+                </p>
               </div>
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-2xl">
+            )}
+
+            {/* =====================================================
+                FEATURED
+            ====================================================== */}
+
+            <section className="mt-12 sm:mt-14">
+              <div className="flex items-end justify-between gap-5 mb-6">
+                <div>
+                  <p
+                    className="font-mono text-[10px] tracking-[0.18em]"
+                    style={{ color: textMuted }}
+                  >
+                    A GOOD PLACE TO START
+                  </p>
+
+                  <h2 className="font-display text-xl sm:text-2xl font-semibold mt-1">
+                    Featured templates
+                  </h2>
+                </div>
+              </div>
+
+              {/* Mobile horizontal scroll.
+                  Desktop two-column layout.
+              */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 max-w-4xl">
                 {[
-                  { name: "Digital Agency", category: "Premium Brand", templateType: PremiumBrandTemplate, data: PREMIUM_BRAND_VARIATIONS.find(v => v.name === "Digital Agency")! },
-                  { name: "Black Gold", category: "Luxury Product", templateType: LuxuryProductTemplate, data: LUXURY_VARIATIONS.find(v => v.name === "Black Gold")! }
-                ].map((item, i) => {
-                  const TemplateComp = item.templateType as any;
-                  return (
-                    <div key={item.name} className="group relative rounded-2xl overflow-hidden bg-white/5 border border-white/10 aspect-[4/5] cursor-pointer hover:border-cyan-400/50 transition-colors shadow-lg">
-                      <div className="w-full h-full pointer-events-none select-none relative">
-                        <TemplateComp {...item.data} productImage={campaignImage || item.data.productImage} />
-                      </div>
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 sm:p-6 z-[60]">
-                        <button 
-                          onClick={() => handleUseTemplate(item.name, item.category)} 
-                          className="block text-center text-sm font-semibold text-[#0a1128] hover:bg-cyan-300 w-full bg-cyan-400 rounded-xl py-3 backdrop-blur-md translate-y-4 group-hover:translate-y-0 transition-all duration-300 pointer-events-auto shadow-xl min-h-[44px] touch-manipulation"
-                        >
-                          Use Template
-                        </button>
-                      </div>
-                      <div className="absolute top-4 left-4 z-[70] bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 pointer-events-none">
-                        <span className="text-xs uppercase font-bold tracking-widest text-[#ffffff]">{item.category}</span>
-                      </div>
-                    </div>
-                  );
-                })}
+                  {
+                    name: "Digital Agency",
+                    category: "Premium Brand",
+                    templateType: PremiumBrandTemplate,
+                    data: PREMIUM_BRAND_VARIATIONS.find(
+                      (v) => v.name === "Digital Agency"
+                    )!,
+                  },
+                  {
+                    name: "Black Gold",
+                    category: "Luxury Product",
+                    templateType: LuxuryProductTemplate,
+                    data: LUXURY_VARIATIONS.find(
+                      (v) => v.name === "Black Gold"
+                    )!,
+                  },
+                ].map((item) => (
+                  <FeaturedTemplate
+                    key={item.name}
+                    {...item}
+                    campaignImage={campaignImage}
+                    onUse={() =>
+                      handleUseTemplate(
+                        item.name,
+                        item.category
+                      )
+                    }
+                  />
+                ))}
               </div>
             </section>
 
-            <div className="space-y-12 sm:space-y-16">
-              {TEMPLATE_CATEGORIES.map((category, index) => (
+            {/* DIVIDER */}
+            <div
+              className="my-14 sm:my-16"
+              style={{
+                borderTop: `1px dashed ${rule}`,
+              }}
+            />
+
+            {/* =====================================================
+                ALL TEMPLATE CATEGORIES
+            ====================================================== */}
+
+            <div className="space-y-14 sm:space-y-20">
+              {TEMPLATE_CATEGORIES.map((category) => (
                 <section key={category.title}>
-                  <div className="mb-4 sm:mb-6">
-                    <h2 className="text-xl sm:text-2xl font-display font-semibold text-white mb-2 break-words">{category.title}</h2>
-                    <p className="text-slate-400 text-sm break-words">{category.description}</p>
+                  {/* Category heading */}
+                  <div className="max-w-2xl mb-6 sm:mb-8">
+                    <p
+                      className="font-mono text-[10px] tracking-[0.17em]"
+                      style={{ color: marigold }}
+                    >
+                      {category.title.toUpperCase()}
+                    </p>
+
+                    <h2 className="font-display text-2xl sm:text-3xl font-semibold mt-1">
+                      {category.title}
+                    </h2>
+
+                    <p
+                      className="text-sm mt-2 leading-relaxed"
+                      style={{ color: textMuted }}
+                    >
+                      {category.description}
+                    </p>
                   </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-3xl">
-                    {category.templates.map((templateName, idx) => (
-                      <div key={templateName} className="group relative rounded-2xl overflow-hidden bg-white/5 border border-white/5 aspect-[4/5] cursor-pointer hover:border-white/20 transition-colors">
-                        {category.title === "Luxury Product"  || category.title === "Minimal Product" || category.title === "Premium Brand" ? (
-                          <div className="w-full h-full pointer-events-none select-none relative">
-                            {category.title === "Luxury Product" ? (
-                              <LuxuryProductTemplate {...LUXURY_VARIATIONS[idx]} productImage={campaignImage || LUXURY_VARIATIONS[idx].productImage} />
-                            
-                            ) : category.title === "Minimal Product" ? (
-                              <MinimalProductTemplate {...MINIMAL_PRODUCT_VARIATIONS[idx]} productImage={campaignImage || MINIMAL_PRODUCT_VARIATIONS[idx].productImage} />
-                            ) : category.title === "Premium Brand" ? (
-                              <PremiumBrandTemplate {...PREMIUM_BRAND_VARIATIONS[idx]} productImage={campaignImage || PREMIUM_BRAND_VARIATIONS[idx].productImage} />
-                            ) : null}
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 sm:p-6 z-[60]">
-                              <button 
-                                onClick={() => handleUseTemplate(templateName, category.title)} 
-                                className="block text-center text-xs font-semibold text-[#0a1128] hover:bg-cyan-300 w-full bg-cyan-400 rounded-xl py-2.5 backdrop-blur-md translate-y-4 group-hover:translate-y-0 transition-all duration-300 pointer-events-auto min-h-[44px] touch-manipulation"
-                              >
-                                Use Template
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <Image 
-                              src={campaignImage || `https://picsum.photos/seed/${category.title.replace(/\s+/g, '')}${idx}/400/500`} 
-                              alt={templateName} 
-                              unoptimized
-                              fill 
-                              className="object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-500 scale-100 group-hover:scale-105" 
-                              referrerPolicy="no-referrer" 
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#0a1128] via-transparent to-transparent opacity-80" />
-                            <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                <h3 className="text-white font-medium text-sm mb-1 break-words">{templateName}</h3>
-                                <button 
-                                  onClick={() => handleUseTemplate(templateName, category.title)} 
-                                  className="block text-center text-xs font-semibold text-[#0a1128] hover:bg-cyan-300 w-full mt-2 bg-cyan-400 rounded-lg py-2 min-h-[44px] touch-manipulation"
-                                >
-                                  Use Template
-                                </button>
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    ))}
+
+                  {/* PREVIEWS */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-5 gap-y-8 sm:gap-y-10">
+                    {category.templates.map(
+                      (templateName, idx) => (
+                        <TemplatePreview
+                          key={templateName}
+                          category={category.title}
+                          index={idx}
+                          templateName={templateName}
+                          campaignImage={campaignImage}
+                          onUse={() =>
+                            handleUseTemplate(
+                              templateName,
+                              category.title
+                            )
+                          }
+                        />
+                      )
+                    )}
                   </div>
                 </section>
               ))}
             </div>
 
+            {/* BOTTOM */}
+            <div
+              className="mt-16 sm:mt-20 pt-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+              style={{
+                borderTop: `1px dashed ${rule}`,
+              }}
+            >
+              <div>
+                <p className="font-display text-sm font-semibold">
+                  Can't decide?
+                </p>
+
+                <p
+                  className="text-xs mt-1"
+                  style={{ color: textMuted }}
+                >
+                  Start with your product photo and choose a style later.
+                </p>
+              </div>
+
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full font-semibold text-sm transition-transform hover:-translate-y-0.5"
+                style={{
+                  background: paper,
+                  color: ink,
+                }}
+              >
+                Go to dashboard
+                <ArrowUpRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </main>
       </div>
     </>
   );
 }
-
-
