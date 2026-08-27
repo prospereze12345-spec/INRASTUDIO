@@ -320,7 +320,7 @@ export default function SignUpPage() {
                   <input
                     id="fullName"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Inrastudio"
                     value={form.full_name}
                     onChange={set("full_name")}
                     autoComplete="name"
@@ -349,7 +349,7 @@ export default function SignUpPage() {
                   <input
                     id="email"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder="inrastudio@gmail.com"
                     value={form.email}
                     onChange={set("email")}
                     autoComplete="email"

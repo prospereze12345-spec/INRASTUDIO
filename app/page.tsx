@@ -394,7 +394,7 @@ function StatsBar() {
         </span>
         <p className="max-w-2xl text-lg text-[#F2EEE2]">
           1,102 flyers went out to resellers, skincare sellers, estate agents
-          and caterers across Lagos, Abuja, Accra and Nairobi.
+          and caterers across Nigeria, Morocco,USA,  Accra and Kenya.
         </p>
       </div>
     </section>
@@ -621,11 +621,11 @@ function VideoDemo() {
 
 function Testimonials() {
   const reviews = [
-    { name: "Chukwudi N.", location: "Lagos", stars: 5, text: "I was paying ten thousand naira a flyer before this. Now I do it myself between customers. The captions sometimes need a small edit, but that's it." },
-    { name: "Amara S.", location: "Accra", stars: 4, text: "Video isn't the sharpest on a big screen, but for WhatsApp Status it's more than good enough. Saves me real time." },
-    { name: "Kwame K.", location: "Nairobi", stars: 5, text: "Uploaded a photo taken with a torch at night and it still came out looking decent. Didn't expect that." },
-    { name: "Sarah M.", location: "Abuja", stars: 5, text: "I've used it for two collection launches now. Customers ask if I hired a photographer." },
-    { name: "Tomiwa A.", location: "Lagos", stars: 5, text: "I do property listings. Once I added my agency logo, it carried over on every flyer automatically. Clients take it more seriously now." },
+    { name: "Chukwudi N.", location: "Nigeria", stars: 5, text: "I was paying ten thousand naira a flyer before this. Now I do it myself between customers. The captions sometimes need a small edit, but that's it." },
+    { name: "Amara S.", location: "Ghana", stars: 4, text: "Video isn't the sharpest on a big screen, but for WhatsApp Status it's more than good enough. Saves me real time." },
+    { name: "Kwame K.", location: "Kenya", stars: 5, text: "Uploaded a photo taken with a torch at night and it still came out looking decent. Didn't expect that." },
+    { name: "Sarah M.", location: "USA", stars: 5, text: "I've used it for two collection launches now. Customers ask if I hired a photographer." },
+    { name: "Tomiwa A.", location: "Morocco", stars: 5, text: "I do property listings. Once I added my agency logo, it carried over on every flyer automatically. Clients take it more seriously now." },
   ];
 
   const carouselRef = useRef<HTMLDivElement>(null);
