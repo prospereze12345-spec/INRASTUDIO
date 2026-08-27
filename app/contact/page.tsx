@@ -1,9 +1,21 @@
 "use client";
 
-import { ArrowUpRight, Instagram, Facebook, Mail, MapPin, Send } from "lucide-react";
+import { useState } from "react";
+import {
+  ArrowUpRight,
+  Instagram,
+  Facebook,
+  Mail,
+  Send,
+} from "lucide-react";
 import Link from "next/link";
+
 import { Logo } from "@/components/Logo";
 import { Navbar } from "@/components/Navbar";
+
+// ============================================================================
+// DESIGN TOKENS
+// ============================================================================
 
 const ink = "#16140F";
 const paper = "#EEE7D8";
@@ -12,11 +24,9 @@ const signal = "#D6491F";
 const marigold = "#E8A33D";
 const muted = "#756D5C";
 
-const navLinks = [
-  { label: "Contact", href: "/contact" },
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Pricing", href: "/pricing" },
-];
+// ============================================================================
+// FOOTER
+// ============================================================================
 
 function Footer() {
   return (
@@ -27,12 +37,13 @@ function Footer() {
         borderColor: "rgba(238,231,216,0.12)",
       }}
     >
-      <div className="max-w-[1180px] mx-auto px-5 sm:px-8 pt-16 sm:pt-24 pb-8">
+      <div className="mx-auto max-w-[1180px] px-5 pt-16 pb-8 sm:px-8 sm:pt-24">
+
         {/* FOOTER INTRO */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-14 lg:gap-24 pb-20">
+        <div className="grid grid-cols-1 gap-14 pb-20 lg:grid-cols-[1.3fr_0.7fr] lg:gap-24">
           <div>
             <div
-              className="font-mono text-[9px] tracking-[0.2em] mb-6"
+              className="mb-6 font-mono text-[9px] tracking-[0.2em]"
               style={{ color: "#8D836C" }}
             >
               INRASTUDIO / 2026
@@ -56,7 +67,14 @@ function Footer() {
 
           <div className="lg:pt-10">
             <p
-              className="font-display text-xl sm:text-2xl leading-[1.15] tracking-[-0.025em] max-w-md"
+              className="
+                max-w-md
+                font-display
+                text-xl
+                leading-[1.15]
+                tracking-[-0.025em]
+                sm:text-2xl
+              "
               style={{ color: "#C5BCAA" }}
             >
               Good marketing should earn attention before it asks for a sale.
@@ -66,15 +84,60 @@ function Footer() {
 
         {/* FOOTER NAVIGATION */}
         <div
-          className="border-t border-b py-8 sm:py-10 grid grid-cols-1 sm:grid-cols-3 gap-10"
+          className="
+            grid
+            grid-cols-1
+            gap-10
+            border-t
+            border-b
+            py-8
+            sm:grid-cols-3
+            sm:py-10
+          "
           style={{
             borderColor: "rgba(238,231,216,0.12)",
           }}
         >
-          
+          {/* EXPLORE */}
           <div>
             <p
-              className="font-mono text-[9px] tracking-[0.18em] mb-5"
+              className="mb-5 font-mono text-[9px] tracking-[0.18em]"
+              style={{ color: "#77705F" }}
+            >
+              (01) EXPLORE
+            </p>
+
+            <div className="flex flex-col gap-3">
+              <Link
+                href="/pricing"
+                className="font-display text-base transition-opacity hover:opacity-70"
+                style={{ color: paper }}
+              >
+                Pricing
+              </Link>
+
+              <Link
+                href="/dashboard"
+                className="font-display text-base transition-opacity hover:opacity-70"
+                style={{ color: paper }}
+              >
+                Dashboard
+              </Link>
+
+              <Link
+                href="/contact"
+                className="font-display text-base transition-opacity hover:opacity-70"
+                style={{ color: paper }}
+              >
+                Contact
+              </Link>
+            </div>
+          </div>
+
+          {/* CONNECT */}
+          <div>
+            <p
+              className="mb-5 font-mono text-[9px] tracking-[0.18em]"
               style={{ color: "#77705F" }}
             >
               (02) CONNECT
@@ -83,29 +146,39 @@ function Footer() {
             <div className="flex flex-col gap-3">
               <a
                 href="#"
-                className="flex items-center gap-2 font-display text-base group hover:opacity-70 transition-opacity"
+                className="flex items-center gap-2 font-display text-base transition-opacity hover:opacity-70"
                 style={{ color: paper }}
               >
-                <Instagram className="w-4 h-4" />
+                <Instagram className="h-4 w-4" />
                 Instagram
-                <ArrowUpRight className="w-3.5 h-3.5" />
+                <ArrowUpRight className="h-3.5 w-3.5" />
               </a>
 
               <a
                 href="#"
-                className="flex items-center gap-2 font-display text-base group hover:opacity-70 transition-opacity"
+                className="flex items-center gap-2 font-display text-base transition-opacity hover:opacity-70"
                 style={{ color: paper }}
               >
-                <Facebook className="w-4 h-4" />
+                <Facebook className="h-4 w-4" />
                 Facebook
-                <ArrowUpRight className="w-3.5 h-3.5" />
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </a>
+
+              <a
+                href="mailto:prospereze12345@gmail.com"
+                className="flex items-center gap-2 font-display text-base transition-opacity hover:opacity-70"
+                style={{ color: paper }}
+              >
+                <Mail className="h-4 w-4" />
+                Support
               </a>
             </div>
           </div>
 
+          {/* READ */}
           <div>
             <p
-              className="font-mono text-[9px] tracking-[0.18em] mb-5"
+              className="mb-5 font-mono text-[9px] tracking-[0.18em]"
               style={{ color: "#77705F" }}
             >
               (03) READ
@@ -114,7 +187,7 @@ function Footer() {
             <div className="flex flex-col gap-3">
               <Link
                 href="/privacy"
-                className="font-display text-base hover:opacity-70 transition-opacity"
+                className="font-display text-base transition-opacity hover:opacity-70"
                 style={{ color: paper }}
               >
                 Privacy Policy
@@ -122,7 +195,7 @@ function Footer() {
 
               <Link
                 href="/terms"
-                className="font-display text-base hover:opacity-70 transition-opacity"
+                className="font-display text-base transition-opacity hover:opacity-70"
                 style={{ color: paper }}
               >
                 Terms & Conditions
@@ -130,7 +203,7 @@ function Footer() {
 
               <Link
                 href="/disclosure"
-                className="font-display text-base hover:opacity-70 transition-opacity"
+                className="font-display text-base transition-opacity hover:opacity-70"
                 style={{ color: paper }}
               >
                 Disclosure
@@ -140,12 +213,12 @@ function Footer() {
         </div>
 
         {/* FOOTER BASELINE */}
-        <div className="pt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+        <div className="flex flex-col items-start justify-between gap-5 pt-8 sm:flex-row sm:items-center">
           <div className="flex items-center gap-3">
             <Logo
               size="sm"
               showWordmark={false}
-              className="w-8 h-8 rounded-lg"
+              className="h-8 w-8 rounded-lg"
             />
 
             <span
@@ -168,6 +241,10 @@ function Footer() {
   );
 }
 
+// ============================================================================
+// FORM FIELD
+// ============================================================================
+
 function Field({
   label,
   name,
@@ -182,7 +259,7 @@ function Field({
   return (
     <label className="block">
       <span
-        className="block font-mono text-[9px] tracking-[0.16em] mb-3"
+        className="mb-3 block font-mono text-[9px] tracking-[0.16em]"
         style={{ color: muted }}
       >
         {label}
@@ -192,17 +269,18 @@ function Field({
         name={name}
         type={type}
         placeholder={placeholder}
+        required
         className="
           w-full
-          bg-transparent
+          rounded-none
           border-0
           border-b
+          bg-transparent
           px-0
           py-3
-          rounded-none
-          outline-none
           font-display
           text-lg
+          outline-none
           placeholder:opacity-40
           transition-colors
           focus:border-[#D6491F]
@@ -216,7 +294,81 @@ function Field({
   );
 }
 
+// ============================================================================
+// CONTACT PAGE
+// ============================================================================
+
 export default function ContactRoute() {
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+
+  // --------------------------------------------------------------------------
+  // SUBMIT CONTACT FORM
+  // --------------------------------------------------------------------------
+
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
+    setSending(true);
+    setSent(false);
+    setError("");
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    const firstName = String(formData.get("firstName") || "").trim();
+    const lastName = String(formData.get("lastName") || "").trim();
+    const email = String(formData.get("email") || "").trim();
+    const message = String(formData.get("message") || "").trim();
+
+    if (!firstName || !lastName || !email || !message) {
+      setError("Please complete all fields.");
+      setSending(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          message,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Unable to send your message."
+        );
+      }
+
+      setSent(true);
+      form.reset();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again."
+      );
+    } finally {
+      setSending(false);
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // PAGE
+  // --------------------------------------------------------------------------
+
   return (
     <div
       className="min-h-screen overflow-x-hidden"
@@ -228,14 +380,16 @@ export default function ContactRoute() {
       <Navbar />
 
       <main>
-        {/* =========================================================
-            HERO
-        ========================================================== */}
 
-        <section className="pt-[118px] sm:pt-[145px] px-5 sm:px-8">
-          <div className="max-w-[1180px] mx-auto">
+        {/* ================================================================
+            HERO
+        ================================================================ */}
+
+        <section className="px-5 pt-[118px] sm:px-8 sm:pt-[145px]">
+          <div className="mx-auto max-w-[1180px]">
+
             {/* TOP LABEL */}
-            <div className="flex items-center gap-4 mb-8 sm:mb-10">
+            <div className="mb-8 flex items-center gap-4 sm:mb-10">
               <span
                 className="font-mono text-[9px] tracking-[0.2em]"
                 style={{ color: muted }}
@@ -244,59 +398,79 @@ export default function ContactRoute() {
               </span>
 
               <span
-                className="h-px flex-1 max-w-[180px]"
-                style={{ background: "rgba(22,20,15,0.18)" }}
+                className="h-px max-w-[180px] flex-1"
+                style={{
+                  background: "rgba(22,20,15,0.18)",
+                }}
               />
 
               <span
-                className="font-mono text-[9px] tracking-[0.16em] hidden sm:block"
+                className="hidden font-mono text-[9px] tracking-[0.16em] sm:block"
                 style={{ color: muted }}
               >
                 LAGOS / WORLDWIDE
               </span>
             </div>
 
-            {/* MEMORABLE HERO */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-10 lg:gap-20 items-end">
+            {/* HERO */}
+            <div className="grid grid-cols-1 items-end gap-10 lg:grid-cols-[1fr_300px] lg:gap-20">
               <h1
                 className="
+                  max-w-[950px]
                   font-display
                   text-[clamp(4rem,11vw,9.5rem)]
                   font-medium
                   leading-[0.82]
                   tracking-[-0.07em]
-                  max-w-[950px]
                 "
               >
                 LET&apos;S MAKE
                 <br />
-                <span style={{ color: signal }}>SOMETHING</span>
+
+                <span style={{ color: signal }}>
+                  SOMETHING
+                </span>
+
                 <br />
+
                 <span className="inline-flex items-end gap-4">
                   WORTH
+
                   <span
-                    className="inline-block w-5 h-5 sm:w-8 sm:h-8 mb-[0.08em]"
-                    style={{ background: marigold }}
+                    className="mb-[0.08em] inline-block h-5 w-5 sm:h-8 sm:w-8"
+                    style={{
+                      background: marigold,
+                    }}
                   />
+
                   IT.
                 </span>
               </h1>
 
               <div className="pb-2 lg:pb-4">
                 <p
-                  className="font-display text-lg sm:text-xl leading-[1.2] tracking-[-0.02em] max-w-[280px]"
+                  className="
+                    max-w-[280px]
+                    font-display
+                    text-lg
+                    leading-[1.2]
+                    tracking-[-0.02em]
+                    sm:text-xl
+                  "
                   style={{ color: "#514B3E" }}
                 >
-                  Have a question, an idea, or a campaign that needs a sharper
-                  edge? Tell us what you&apos;re working on.
+                  Have a question, an idea, or a campaign that needs
+                  a sharper edge? Tell us what you&apos;re working on.
                 </p>
               </div>
             </div>
 
             {/* HERO BASELINE */}
             <div
-              className="mt-10 sm:mt-14 border-t"
-              style={{ borderColor: "rgba(22,20,15,0.2)" }}
+              className="mt-10 border-t sm:mt-14"
+              style={{
+                borderColor: "rgba(22,20,15,0.2)",
+              }}
             >
               <div className="grid grid-cols-2 sm:grid-cols-4">
                 {[
@@ -307,13 +481,18 @@ export default function ContactRoute() {
                 ].map(([number, label]) => (
                   <div
                     key={number}
-                    className="py-4 sm:py-5 border-r last:border-r-0"
+                    className="
+                      border-r
+                      py-4
+                      last:border-r-0
+                      sm:py-5
+                    "
                     style={{
                       borderColor: "rgba(22,20,15,0.14)",
                     }}
                   >
                     <div
-                      className="font-mono text-[8px] mb-2"
+                      className="mb-2 font-mono text-[8px]"
                       style={{ color: signal }}
                     >
                       {number}
@@ -332,78 +511,89 @@ export default function ContactRoute() {
           </div>
         </section>
 
-        {/* =========================================================
+        {/* ================================================================
             CONTACT AREA
-        ========================================================== */}
+        ================================================================ */}
 
-        <section className="px-5 sm:px-8 mt-20 sm:mt-28 pb-24">
-          <div className="max-w-[1180px] mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-[0.72fr_1.28fr] gap-12 lg:gap-20">
-              {/* LEFT INFORMATION */}
+        <section className="mt-20 px-5 pb-24 sm:mt-28 sm:px-8">
+          <div className="mx-auto max-w-[1180px]">
+
+            <div className="grid grid-cols-1 gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
+
+              {/* ==========================================================
+                  LEFT INFORMATION
+              ========================================================== */}
+
               <aside>
                 <div
-                  className="font-mono text-[9px] tracking-[0.2em] mb-8"
+                  className="mb-8 font-mono text-[9px] tracking-[0.2em]"
                   style={{ color: muted }}
                 >
                   02 / FIND US
                 </div>
 
+                {/* EMAIL */}
                 <div
-                  className="border-t pt-6 mb-10"
-                  style={{ borderColor: "rgba(22,20,15,0.2)" }}
+                  className="mb-10 border-t pt-6"
+                  style={{
+                    borderColor: "rgba(22,20,15,0.2)",
+                  }}
                 >
                   <div className="flex gap-4">
                     <Mail
-                      className="w-5 h-5 shrink-0"
+                      className="h-5 w-5 shrink-0"
                       style={{ color: signal }}
                     />
 
                     <div>
                       <p
-                        className="font-mono text-[9px] tracking-[0.14em] mb-2"
+                        className="mb-2 font-mono text-[9px] tracking-[0.14em]"
                         style={{ color: muted }}
                       >
                         EMAIL
                       </p>
 
                       <a
-                        href="mailto:hello@inrastudio.com"
+                        href="mailto:prospereze12345@gmail.com"
                         className="
                           font-display
                           text-lg
-                          sm:text-xl
-                          hover:opacity-60
                           transition-opacity
+                          hover:opacity-60
+                          sm:text-xl
                         "
                       >
-                        hello@inrastudio.com
+                        prospereze12345@gmail.com
                       </a>
                     </div>
                   </div>
                 </div>
 
+                {/* LOCATION */}
                 <div
-                  className="border-t pt-6 mb-10"
-                  style={{ borderColor: "rgba(22,20,15,0.2)" }}
+                  className="mb-10 border-t pt-6"
+                  style={{
+                    borderColor: "rgba(22,20,15,0.2)",
+                  }}
                 >
                   <div className="flex gap-4">
-                    <MapPin
-                      className="w-5 h-5 shrink-0"
-                      style={{ color: signal }}
+                    <div
+                      className="mt-1 h-2 w-2 shrink-0 rounded-full"
+                      style={{
+                        background: signal,
+                      }}
                     />
 
                     <div>
                       <p
-                        className="font-mono text-[9px] tracking-[0.14em] mb-2"
+                        className="mb-2 font-mono text-[9px] tracking-[0.14em]"
                         style={{ color: muted }}
                       >
                         STUDIO
                       </p>
 
-                      <p className="font-display text-lg sm:text-xl leading-[1.15]">
-                        100 Innovation Way
-                        <br />
-                        Tech Hub, Lagos
+                      <p className="font-display text-lg leading-[1.15] sm:text-xl">
+                        Lagos, Nigeria
                       </p>
                     </div>
                   </div>
@@ -411,14 +601,14 @@ export default function ContactRoute() {
 
                 {/* RESPONSE NOTE */}
                 <div
-                  className="mt-12 p-5 sm:p-6 border"
+                  className="mt-12 border p-5 sm:p-6"
                   style={{
                     background: paperDark,
                     borderColor: "rgba(22,20,15,0.14)",
                   }}
                 >
                   <div
-                    className="font-mono text-[9px] tracking-[0.16em] mb-4"
+                    className="mb-4 font-mono text-[9px] tracking-[0.16em]"
                     style={{ color: muted }}
                   >
                     A QUICK NOTE
@@ -428,17 +618,20 @@ export default function ContactRoute() {
                     className="font-display text-base leading-[1.3]"
                     style={{ color: "#514B3E" }}
                   >
-                    You don&apos;t need a polished brief. A rough idea is
-                    enough. Give us the useful bits and we&apos;ll take it
-                    from there.
+                    You don&apos;t need a polished brief. A rough idea
+                    is enough. Give us the useful bits and we&apos;ll
+                    take it from there.
                   </p>
                 </div>
               </aside>
 
-              {/* FORM */}
+              {/* ==========================================================
+                  FORM
+              ========================================================== */}
+
               <div>
                 <div
-                  className="font-mono text-[9px] tracking-[0.2em] mb-8"
+                  className="mb-8 font-mono text-[9px] tracking-[0.2em]"
                   style={{ color: muted }}
                 >
                   03 / SEND A NOTE
@@ -446,25 +639,31 @@ export default function ContactRoute() {
 
                 <div
                   className="border-t"
-                  style={{ borderColor: "rgba(22,20,15,0.2)" }}
+                  style={{
+                    borderColor: "rgba(22,20,15,0.2)",
+                  }}
                 >
                   <form
                     className="pt-8 sm:pt-10"
-                    onSubmit={(event) => event.preventDefault()}
+                    onSubmit={handleSubmit}
                   >
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-x-8 sm:gap-y-10">
+                    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-10">
+
+                      {/* FIRST NAME */}
                       <Field
                         label="01 / FIRST NAME"
                         name="firstName"
                         placeholder="Jane"
                       />
 
+                      {/* LAST NAME */}
                       <Field
                         label="02 / LAST NAME"
                         name="lastName"
                         placeholder="Doe"
                       />
 
+                      {/* EMAIL */}
                       <div className="sm:col-span-2">
                         <Field
                           label="03 / EMAIL"
@@ -474,10 +673,11 @@ export default function ContactRoute() {
                         />
                       </div>
 
+                      {/* MESSAGE */}
                       <div className="sm:col-span-2">
                         <label className="block">
                           <span
-                            className="block font-mono text-[9px] tracking-[0.16em] mb-3"
+                            className="mb-3 block font-mono text-[9px] tracking-[0.16em]"
                             style={{ color: muted }}
                           >
                             04 / WHAT&apos;S ON YOUR MIND?
@@ -486,18 +686,19 @@ export default function ContactRoute() {
                           <textarea
                             name="message"
                             rows={6}
+                            required
                             placeholder="Tell us what you're working on..."
                             className="
                               w-full
-                              bg-transparent
+                              resize-none
+                              rounded-none
                               border
+                              bg-transparent
                               px-4
                               py-4
-                              rounded-none
-                              outline-none
-                              resize-none
                               font-display
                               text-lg
+                              outline-none
                               placeholder:opacity-40
                               transition-colors
                               focus:border-[#D6491F]
@@ -511,45 +712,67 @@ export default function ContactRoute() {
                       </div>
                     </div>
 
-                    {/* SUBMIT */}
+                    {/* SUBMIT AREA */}
                     <div
                       className="
                         mt-8
-                        pt-6
-                        border-t
                         flex
                         flex-col
-                        sm:flex-row
                         items-start
-                        sm:items-center
                         justify-between
                         gap-6
+                        border-t
+                        pt-6
+                        sm:flex-row
+                        sm:items-center
                       "
                       style={{
                         borderColor: "rgba(22,20,15,0.2)",
                       }}
                     >
-                      <p
-                        className="font-mono text-[9px] leading-[1.5] max-w-[260px]"
-                        style={{ color: muted }}
-                      >
-                        We read every message. No automated maze, no sales
-                        script.
-                      </p>
+                      <div>
+                        <p
+                          className="max-w-[260px] font-mono text-[9px] leading-[1.5]"
+                          style={{ color: muted }}
+                        >
+                          We read every message. No automated maze,
+                          no sales script.
+                        </p>
+
+                        {/* SUCCESS */}
+                        {sent && (
+                          <p
+                            className="mt-4 font-mono text-[9px]"
+                            style={{ color: "#357A38" }}
+                          >
+                            Your message has been sent successfully.
+                          </p>
+                        )}
+
+                        {/* ERROR */}
+                        {error && (
+                          <p
+                            className="mt-4 max-w-[300px] font-mono text-[9px]"
+                            style={{ color: signal }}
+                          >
+                            {error}
+                          </p>
+                        )}
+                      </div>
 
                       <button
                         type="submit"
+                        disabled={sending}
                         className="
                           group
-                          w-full
-                          sm:w-auto
-                          min-w-[190px]
-                          h-14
-                          px-6
                           flex
+                          h-14
+                          w-full
+                          min-w-[190px]
                           items-center
                           justify-center
                           gap-3
+                          px-6
                           font-display
                           text-sm
                           font-bold
@@ -557,15 +780,24 @@ export default function ContactRoute() {
                           duration-200
                           hover:-translate-y-0.5
                           active:translate-y-0
+                          disabled:cursor-not-allowed
+                          disabled:opacity-60
+                          sm:w-auto
                         "
                         style={{
                           background: signal,
                           color: "#F7F0E2",
                         }}
                       >
-                        SEND MESSAGE
+                        {sending
+                          ? "SENDING..."
+                          : sent
+                            ? "MESSAGE SENT"
+                            : "SEND MESSAGE"}
 
-                        <Send className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                        {!sending && !sent && (
+                          <Send className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                        )}
                       </button>
                     </div>
                   </form>
@@ -575,9 +807,9 @@ export default function ContactRoute() {
           </div>
         </section>
 
-        {/* =========================================================
+        {/* ================================================================
             CLOSING STATEMENT
-        ========================================================== */}
+        ================================================================ */}
 
         <section
           className="border-t"
@@ -586,11 +818,12 @@ export default function ContactRoute() {
             borderColor: "rgba(22,20,15,0.15)",
           }}
         >
-          <div className="max-w-[1180px] mx-auto px-5 sm:px-8 py-16 sm:py-24">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
+          <div className="mx-auto max-w-[1180px] px-5 py-16 sm:px-8 sm:py-24">
+            <div className="flex flex-col justify-between gap-10 md:flex-row md:items-end">
+
               <div>
                 <div
-                  className="font-mono text-[9px] tracking-[0.2em] mb-6"
+                  className="mb-6 font-mono text-[9px] tracking-[0.2em]"
                   style={{ color: muted }}
                 >
                   04 / BEFORE YOU GO
@@ -600,14 +833,17 @@ export default function ContactRoute() {
                   className="
                     font-display
                     text-[clamp(2.7rem,6vw,6rem)]
+                    font-medium
                     leading-[0.88]
                     tracking-[-0.06em]
-                    font-medium
                   "
                 >
                   HAVE SOMETHING
                   <br />
-                  <span style={{ color: signal }}>IN MIND?</span>
+
+                  <span style={{ color: signal }}>
+                    IN MIND?
+                  </span>
                 </h2>
               </div>
 
@@ -618,21 +854,23 @@ export default function ContactRoute() {
                   inline-flex
                   items-center
                   gap-3
+                  border-b
+                  pb-2
                   font-mono
                   text-[10px]
-                  tracking-[0.14em]
                   font-semibold
-                  pb-2
-                  border-b
+                  tracking-[0.14em]
                   transition-colors
                   hover:text-[#D6491F]
                 "
                 style={{
+                  color: ink,
                   borderColor: "rgba(22,20,15,0.25)",
                 }}
               >
                 BACK TO STUDIO
-                <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+
+                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
               </Link>
             </div>
           </div>

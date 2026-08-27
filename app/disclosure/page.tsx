@@ -1,9 +1,13 @@
 "use client";
 
-import { ArrowUpRight, Facebook, Instagram } from "lucide-react";
+import { ArrowUpRight, Facebook, Instagram, Mail } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Navbar } from "@/components/Navbar";
 import Link from "next/link";
+
+// ────────────────────────────────────────────────────────────────────────────
+// DESIGN TOKENS
+// ────────────────────────────────────────────────────────────────────────────
 
 const ink = "#16140F";
 const paper = "#EEE7D8";
@@ -12,189 +16,101 @@ const signal = "#D6491F";
 const marigold = "#E8A33D";
 const muted = "#756D5C";
 
+// ────────────────────────────────────────────────────────────────────────────
+// FOOTER
+// ────────────────────────────────────────────────────────────────────────────
+
 function Footer() {
   return (
     <footer
-      className="w-full border-t"
+      className="relative mt-12 w-full border-t px-6 pb-12 pt-24"
       style={{
-        background: ink,
-        borderColor: "rgba(238,231,216,0.12)",
+        background: "#0c0a08",
+        borderColor: "rgba(242,238,226,0.10)",
       }}
     >
-      <div className="max-w-[1180px] mx-auto px-5 sm:px-8 pt-16 sm:pt-24 pb-8">
-        {/* FOOTER INTRO */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-14 lg:gap-24 pb-20">
-          <div>
-            <div
-              className="font-mono text-[9px] tracking-[0.2em] mb-6"
-              style={{ color: "#8D836C" }}
-            >
-              INRASTUDIO / 2026
-            </div>
-
-            <h2
-              className="
-                font-display
-                text-[clamp(3rem,8vw,7rem)]
-                font-medium
-                leading-[0.88]
-                tracking-[-0.055em]
-              "
-              style={{ color: paper }}
-            >
-              MAKE IT
-              <br />
-              <span style={{ color: marigold }}>NOTICE.</span>
-            </h2>
-          </div>
-
-          <div className="lg:pt-10">
-            <p
-              className="font-display text-xl sm:text-2xl leading-[1.15] tracking-[-0.025em] max-w-md"
-              style={{ color: "#C5BCAA" }}
-            >
-              Good marketing should earn attention before it asks for a sale.
-            </p>
-          </div>
+      <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-16 pb-20 lg:flex-row">
+        <div className="max-w-2xl flex-1">
+          <h2 className="text-3xl leading-snug tracking-tight text-[#F2EEE2] md:text-4xl">
+            We&apos;re software, not a design agency.
+            <br />
+            Give it one photo and it hands back a flyer, five captions and a
+            video — no brief, no back-and-forth.
+          </h2>
         </div>
 
-        {/* FOOTER NAVIGATION */}
-        <div
-          className="border-t border-b py-8 sm:py-10 grid grid-cols-1 sm:grid-cols-3 gap-10"
-          style={{
-            borderColor: "rgba(238,231,216,0.12)",
-          }}
-        >
-          <div>
-            <p
-              className="font-mono text-[9px] tracking-[0.18em] mb-5"
-              style={{ color: "#77705F" }}
+        <div className="flex shrink-0 flex-wrap gap-12 font-mono text-xs uppercase tracking-widest sm:gap-24">
+          <div className="flex flex-col gap-4">
+            <span className="mb-2 font-bold text-[#A79A82]">Legal</span>
+
+            <Link
+              href="/privacy"
+              className="text-[#F2EEE2] transition-colors hover:text-[#FFC629]"
             >
-              (01) EXPLORE
-            </p>
+              Privacy
+            </Link>
 
-            <div className="flex flex-col gap-3">
-              <Link
-                href="/pricing"
-                className="font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
-              >
-                Pricing
-              </Link>
+            <Link
+              href="/terms"
+              className="text-[#F2EEE2] transition-colors hover:text-[#FFC629]"
+            >
+              Terms
+            </Link>
 
-              <Link
-                href="/dashboard"
-                className="font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
-              >
-                Dashboard
-              </Link>
-
-              <Link
-                href="/contact"
-                className="font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
-              >
-                Contact
-              </Link>
-            </div>
+            <Link
+              href="/disclosure"
+              className="text-[#F2EEE2] transition-colors hover:text-[#FFC629]"
+            >
+              Disclosure
+            </Link>
           </div>
 
-          <div>
-            <p
-              className="font-mono text-[9px] tracking-[0.18em] mb-5"
-              style={{ color: "#77705F" }}
+          <div className="flex flex-col gap-4">
+            <span className="mb-2 font-bold text-[#A79A82]">Contact</span>
+
+            <a
+              href="#"
+              className="flex items-center gap-2 text-[#F2EEE2] transition-colors hover:text-[#FFC629]"
             >
-              (02) CONNECT
-            </p>
+              <Facebook className="h-4 w-4" />
+              Facebook
+            </a>
 
-            <div className="flex flex-col gap-3">
-              <a
-                href="#"
-                className="flex items-center gap-2 font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
-              >
-                <Instagram className="w-4 h-4" />
-                Instagram
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </a>
-
-              <a
-                href="#"
-                className="flex items-center gap-2 font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
-              >
-                <Facebook className="w-4 h-4" />
-                Facebook
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </a>
-            </div>
-          </div>
-
-          <div>
-            <p
-              className="font-mono text-[9px] tracking-[0.18em] mb-5"
-              style={{ color: "#77705F" }}
+            <a
+              href="#"
+              className="flex items-center gap-2 text-[#F2EEE2] transition-colors hover:text-[#FFC629]"
             >
-              (03) READ
-            </p>
+              <Instagram className="h-4 w-4" />
+              Instagram
+            </a>
 
-            <div className="flex flex-col gap-3">
-              <Link
-                href="/privacy"
-                className="font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
-              >
-                Privacy Policy
-              </Link>
-
-              <Link
-                href="/terms"
-                className="font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
-              >
-                Terms & Conditions
-              </Link>
-
-              <Link
-                href="/disclosure"
-                className="font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
-              >
-                Disclosure
-              </Link>
-            </div>
+            <a
+              href="mailto:somtohgist@gmail.com"
+              className="flex items-center gap-2 text-[#F2EEE2] transition-colors hover:text-[#FFC629]"
+            >
+              <Mail className="h-4 w-4" />
+              Support
+            </a>
           </div>
         </div>
+      </div>
 
-        {/* FOOTER BASELINE */}
-        <div className="pt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-          <div className="flex items-center gap-3">
-            <Logo
-              size="sm"
-              showWordmark={false}
-              className="w-8 h-8 rounded-lg"
-            />
+      <div className="mx-auto mt-4 flex max-w-7xl flex-col items-center justify-between gap-4 border-t border-[#F2EEE2]/10 pt-8 text-sm text-[#A79A82] md:flex-row">
+        <Logo
+          size="sm"
+          showWordmark={false}
+          className="h-8 w-8"
+        />
 
-            <span
-              className="font-mono text-[9px] tracking-[0.16em]"
-              style={{ color: "#8D836C" }}
-            >
-              INRASTUDIO
-            </span>
-          </div>
-
-          <p
-            className="font-mono text-[9px] tracking-[0.08em]"
-            style={{ color: "#77705F" }}
-          >
-            © 2026 INRASTUDIO AI MARKETING STUDIO.
-          </p>
-        </div>
+        <p>© 2026 Inrastudio. Made in Lagos.</p>
       </div>
     </footer>
   );
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// DISCLOSURE CONTENT
+// ────────────────────────────────────────────────────────────────────────────
 
 const disclosureSections = [
   {
@@ -246,6 +162,10 @@ const disclosureSections = [
   },
 ];
 
+// ────────────────────────────────────────────────────────────────────────────
+// MAIN PAGE
+// ────────────────────────────────────────────────────────────────────────────
+
 export default function DisclosureRoute() {
   const updatedDate = new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
@@ -264,13 +184,13 @@ export default function DisclosureRoute() {
       <Navbar />
 
       <main>
-        {/* =========================================================
-            DOCUMENT HEADER
-        ========================================================== */}
+        {/* ────────────────────────────────────────────────────────────────
+            HEADER
+        ───────────────────────────────────────────────────────────────── */}
 
-        <section className="pt-[120px] sm:pt-[150px] px-5 sm:px-8">
-          <div className="max-w-[1000px] mx-auto">
-            <div className="flex items-center gap-4 mb-8 sm:mb-10">
+        <section className="px-5 pt-[120px] sm:px-8 sm:pt-[150px]">
+          <div className="mx-auto max-w-[1000px]">
+            <div className="mb-8 flex items-center gap-4 sm:mb-10">
               <span
                 className="font-mono text-[9px] tracking-[0.2em]"
                 style={{ color: muted }}
@@ -279,24 +199,24 @@ export default function DisclosureRoute() {
               </span>
 
               <span
-                className="h-px flex-1 max-w-[180px]"
+                className="h-px max-w-[180px] flex-1"
                 style={{
                   background: "rgba(22,20,15,0.18)",
                 }}
               />
 
               <span
-                className="font-mono text-[9px] tracking-[0.16em] hidden sm:block"
+                className="hidden font-mono text-[9px] tracking-[0.16em] sm:block"
                 style={{ color: muted }}
               >
                 03 / 03
               </span>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-10 lg:gap-20 items-end">
+            <div className="grid grid-cols-1 items-end gap-10 lg:grid-cols-[1fr_260px] lg:gap-20">
               <div>
                 <p
-                  className="font-mono text-[10px] tracking-[0.18em] mb-5"
+                  className="mb-5 font-mono text-[10px] tracking-[0.18em]"
                   style={{ color: signal }}
                 >
                   DISCLOSURE
@@ -323,7 +243,7 @@ export default function DisclosureRoute() {
 
               <div className="pb-1">
                 <p
-                  className="font-display text-lg sm:text-xl leading-[1.2] tracking-[-0.02em]"
+                  className="font-display text-lg leading-[1.2] tracking-[-0.02em] sm:text-xl"
                   style={{ color: "#514B3E" }}
                 >
                   A straightforward explanation of how AI, affiliate links,
@@ -333,20 +253,21 @@ export default function DisclosureRoute() {
             </div>
 
             {/* DOCUMENT META */}
+
             <div
-              className="mt-10 sm:mt-14 border-t border-b grid grid-cols-1 sm:grid-cols-3"
+              className="mt-10 grid grid-cols-1 border-b border-t sm:mt-14 sm:grid-cols-3"
               style={{
                 borderColor: "rgba(22,20,15,0.2)",
               }}
             >
               <div
-                className="py-5 sm:pr-6 border-b sm:border-b-0 sm:border-r"
+                className="border-b py-5 sm:border-b-0 sm:border-r sm:pr-6"
                 style={{
                   borderColor: "rgba(22,20,15,0.14)",
                 }}
               >
                 <p
-                  className="font-mono text-[8px] tracking-[0.15em] mb-2"
+                  className="mb-2 font-mono text-[8px] tracking-[0.15em]"
                   style={{ color: muted }}
                 >
                   DOCUMENT
@@ -358,13 +279,13 @@ export default function DisclosureRoute() {
               </div>
 
               <div
-                className="py-5 sm:px-6 border-b sm:border-b-0 sm:border-r"
+                className="border-b py-5 sm:border-b-0 sm:border-r sm:px-6"
                 style={{
                   borderColor: "rgba(22,20,15,0.14)",
                 }}
               >
                 <p
-                  className="font-mono text-[8px] tracking-[0.15em] mb-2"
+                  className="mb-2 font-mono text-[8px] tracking-[0.15em]"
                   style={{ color: muted }}
                 >
                   LAST UPDATED
@@ -375,15 +296,15 @@ export default function DisclosureRoute() {
 
               <div className="py-5 sm:pl-6">
                 <p
-                  className="font-mono text-[8px] tracking-[0.15em] mb-2"
+                  className="mb-2 font-mono text-[8px] tracking-[0.15em]"
                   style={{ color: muted }}
                 >
                   STATUS
                 </p>
 
-                <p className="font-display text-sm flex items-center gap-2">
+                <p className="flex items-center gap-2 font-display text-sm">
                   <span
-                    className="w-2 h-2 rounded-full"
+                    className="h-2 w-2 rounded-full"
                     style={{ background: signal }}
                   />
                   Current
@@ -393,18 +314,19 @@ export default function DisclosureRoute() {
           </div>
         </section>
 
-        {/* =========================================================
+        {/* ────────────────────────────────────────────────────────────────
             DISCLOSURE CONTENT
-        ========================================================== */}
+        ───────────────────────────────────────────────────────────────── */}
 
-        <section className="px-5 sm:px-8 mt-16 sm:mt-24 pb-24">
-          <div className="max-w-[1000px] mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-[180px_1fr] gap-10 lg:gap-20">
+        <section className="mt-16 px-5 pb-24 sm:mt-24 sm:px-8">
+          <div className="mx-auto max-w-[1000px]">
+            <div className="grid grid-cols-1 gap-10 lg:grid-cols-[180px_1fr] lg:gap-20">
               {/* SIDEBAR */}
+
               <aside className="hidden lg:block">
                 <div className="sticky top-28">
                   <p
-                    className="font-mono text-[8px] tracking-[0.18em] mb-5"
+                    className="mb-5 font-mono text-[8px] tracking-[0.18em]"
                     style={{ color: muted }}
                   >
                     ON THIS PAGE
@@ -416,13 +338,13 @@ export default function DisclosureRoute() {
                         key={section.number}
                         href={`#section-${section.number}`}
                         className="
-                          py-3
                           border-b
+                          py-3
                           font-mono
                           text-[9px]
                           tracking-[0.08em]
-                          hover:text-[#D6491F]
                           transition-colors
+                          hover:text-[#D6491F]
                         "
                         style={{
                           borderColor: "rgba(22,20,15,0.14)",
@@ -438,9 +360,10 @@ export default function DisclosureRoute() {
               </aside>
 
               {/* DOCUMENT */}
+
               <article>
                 <div
-                  className="font-display text-xl sm:text-2xl leading-[1.35] max-w-[720px] mb-16 sm:mb-20"
+                  className="mb-16 max-w-[720px] font-display text-xl leading-[1.35] tracking-[-0.02em] sm:mb-20 sm:text-2xl"
                   style={{ color: "#514B3E" }}
                 >
                   This disclosure explains the important limitations and
@@ -461,7 +384,7 @@ export default function DisclosureRoute() {
                           borderColor: "rgba(22,20,15,0.2)",
                         }}
                       >
-                        <div className="grid grid-cols-[44px_1fr] sm:grid-cols-[60px_1fr] gap-4 sm:gap-6">
+                        <div className="grid grid-cols-[44px_1fr] gap-4 sm:grid-cols-[60px_1fr] sm:gap-6">
                           <span
                             className="font-mono text-[10px] tracking-[0.1em]"
                             style={{ color: signal }}
@@ -472,13 +395,13 @@ export default function DisclosureRoute() {
                           <div>
                             <h2
                               className="
+                                mb-6
                                 font-display
                                 text-2xl
-                                sm:text-3xl
                                 font-medium
-                                tracking-[-0.035em]
                                 leading-tight
-                                mb-6
+                                tracking-[-0.035em]
+                                sm:text-3xl
                               "
                             >
                               {section.title}
@@ -486,11 +409,11 @@ export default function DisclosureRoute() {
 
                             <div
                               className="
+                                max-w-[680px]
                                 font-display
                                 text-base
-                                sm:text-lg
                                 leading-[1.65]
-                                max-w-[680px]
+                                sm:text-lg
                               "
                               style={{ color: "#5F584B" }}
                             >
@@ -504,8 +427,9 @@ export default function DisclosureRoute() {
                 </div>
 
                 {/* CLOSING NOTE */}
+
                 <div
-                  className="mt-16 sm:mt-20 border-t pt-6 sm:pt-8"
+                  className="mt-16 border-t pt-6 sm:mt-20 sm:pt-8"
                   style={{
                     borderColor: "rgba(22,20,15,0.2)",
                   }}
@@ -517,14 +441,14 @@ export default function DisclosureRoute() {
                     }}
                   >
                     <p
-                      className="font-mono text-[8px] tracking-[0.17em] mb-4"
+                      className="mb-4 font-mono text-[8px] tracking-[0.17em]"
                       style={{ color: muted }}
                     >
                       IN SHORT
                     </p>
 
                     <p
-                      className="font-display text-lg sm:text-xl leading-[1.35]"
+                      className="font-display text-lg leading-[1.35] sm:text-xl"
                       style={{ color: ink }}
                     >
                       Check what AI produces before you publish it, understand
@@ -536,8 +460,9 @@ export default function DisclosureRoute() {
                 </div>
 
                 {/* LEGAL NAVIGATION */}
+
                 <div
-                  className="mt-12 pt-6 border-t flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5"
+                  className="mt-12 flex flex-col items-start justify-between gap-5 border-t pt-6 sm:flex-row sm:items-center"
                   style={{
                     borderColor: "rgba(22,20,15,0.2)",
                   }}
@@ -552,8 +477,8 @@ export default function DisclosureRoute() {
                       font-mono
                       text-[9px]
                       tracking-[0.13em]
-                      hover:text-[#D6491F]
                       transition-colors
+                      hover:text-[#D6491F]
                     "
                     style={{ color: muted }}
                   >
@@ -570,13 +495,14 @@ export default function DisclosureRoute() {
                       font-mono
                       text-[9px]
                       tracking-[0.13em]
-                      hover:text-[#D6491F]
                       transition-colors
+                      hover:text-[#D6491F]
                     "
                     style={{ color: muted }}
                   >
                     TERMS & CONDITIONS
-                    <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+
+                    <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   </Link>
                 </div>
               </article>
@@ -584,9 +510,9 @@ export default function DisclosureRoute() {
           </div>
         </section>
 
-        {/* =========================================================
+        {/* ────────────────────────────────────────────────────────────────
             FINAL CTA
-        ========================================================== */}
+        ───────────────────────────────────────────────────────────────── */}
 
         <section
           className="border-t"
@@ -595,11 +521,11 @@ export default function DisclosureRoute() {
             borderColor: "rgba(22,20,15,0.15)",
           }}
         >
-          <div className="max-w-[1000px] mx-auto px-5 sm:px-8 py-16 sm:py-24">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
+          <div className="mx-auto max-w-[1000px] px-5 py-16 sm:px-8 sm:py-24">
+            <div className="flex flex-col justify-between gap-10 md:flex-row md:items-end">
               <div>
                 <div
-                  className="font-mono text-[9px] tracking-[0.2em] mb-6"
+                  className="mb-6 font-mono text-[9px] tracking-[0.2em]"
                   style={{ color: muted }}
                 >
                   STILL HAVE A QUESTION?
@@ -609,9 +535,9 @@ export default function DisclosureRoute() {
                   className="
                     font-display
                     text-[clamp(2.8rem,6vw,5.8rem)]
+                    font-medium
                     leading-[0.88]
                     tracking-[-0.06em]
-                    font-medium
                   "
                 >
                   ASK US
@@ -627,14 +553,14 @@ export default function DisclosureRoute() {
                   inline-flex
                   items-center
                   gap-3
+                  border-b
+                  pb-2
                   font-mono
                   text-[10px]
-                  tracking-[0.14em]
                   font-semibold
-                  pb-2
-                  border-b
-                  hover:text-[#D6491F]
+                  tracking-[0.14em]
                   transition-colors
+                  hover:text-[#D6491F]
                 "
                 style={{
                   color: ink,
@@ -642,7 +568,8 @@ export default function DisclosureRoute() {
                 }}
               >
                 CONTACT INRASTUDIO
-                <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+
+                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
               </Link>
             </div>
           </div>
