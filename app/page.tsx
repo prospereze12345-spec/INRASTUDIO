@@ -367,7 +367,7 @@ function Hero() {
             href="/signup"
             className="flex w-full items-center justify-center gap-2 bg-[#FFC629] px-8 py-4 text-lg font-bold text-[#15130F] shadow-[4px_4px_0_0_rgba(0,0,0,0.4)] transition-transform hover:-translate-y-0.5 sm:w-auto"
           >
-            Start free trial
+            Start Creating
             <ArrowRight className="h-5 w-5" />
           </Link>
           <InstallButton />
