@@ -2,270 +2,231 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Loader2, Eye, EyeOff } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { apiFetch } from "@/lib/auth";
+import { Loader2, Mail, User, Globe, CheckCircle, Sparkles, PenTool, Video, Zap } from "lucide-react";
 
-type FormField =
-  | "full_name"
-  | "email"
-  | "country"
-  | "password"
-  | "confirm_password";
+// ─── Design tokens (same as dashboard) ────────────────────────────
+const ink = "#16140F";
+const panel = "#1D1A14";
+const rule = "#38321F";
+const paper = "#EDE6D6";
+const paperMuted = "#C9BFA4";
+const marigold = "#E8A33D";
+const signal = "#D6491F";
+const textPrimary = "#F3ECDD";
+const textMuted = "#8C8368";
 
-interface FormState {
-  full_name: string;
-  email: string;
-  country: string;
-  password: string;
-  confirm_password: string;
-}
-
-const COUNTRIES = [
-  { value: "NG", label: "Nigeria" },
-  { value: "KE", label: "Kenya" },
-  { value: "GH", label: "Ghana" },
-  { value: "OTHER", label: "Other" },
-] as const;
-
-const INPUT_CLASS =
-  "w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 outline-none transition-all placeholder:text-slate-400 text-slate-900 text-sm";
-
-export default function SignUpPage() {
-  const router = useRouter();
-
-  const [form, setForm] = useState<FormState>({
-    full_name: "",
-    email: "",
-    country: "",
-    password: "",
-    confirm_password: "",
-  });
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+export default function SignupPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [country, setCountry] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const set =
-    (field: FormField) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-      setForm((prev) => ({ ...prev, [field]: e.target.value }));
-
-  function validate(): string | null {
-    if (!form.full_name.trim()) return "Name is required.";
-    if (!form.email.trim()) return "Email address is required.";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      return "Enter a valid email address.";
-    if (!form.country) return "Please select your country.";
-    if (form.password.length < 8)
-      return "Password must be at least 8 characters.";
-    if (form.password !== form.confirm_password)
-      return "Passwords do not match.";
-    return null;
-  }
+  const [success, setSuccess] = useState(false);
 
   async function handleSubmit() {
+    if (loading) return;
     setError("");
-
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
+    if (!name.trim() || !email.trim() || !country.trim()) {
+      setError("All fields are required.");
       return;
     }
-
     setLoading(true);
-
     try {
-  await apiFetch("/api/auth/signup/", {
-    method: "POST",
-    body: JSON.stringify({
-      full_name: form.full_name.trim(),
-      email: form.email.trim().toLowerCase(),
-      country: form.country,
-      password: form.password,
-      confirm_password: form.confirm_password,
-    }),
-  });
-
-
-      router.push("/dashboard");
+      await apiFetch("/api/auth/signup/", {
+        method: "POST",
+        body: JSON.stringify({ full_name: name, email: email.trim().toLowerCase(), country: country.trim() }),
+      });
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 4000);
+      // After success, optionally redirect to login
     } catch (err: unknown) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Signup failed. Please try again."
-      );
+      setError(err instanceof Error ? err.message : "Signup failed. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter" && !loading) handleSubmit();
-  }
-
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900">
-      {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 p-6 flex items-center">
-        <Link href="/" className="flex items-center gap-2">
-          <Logo className="w-8 h-8 rounded-lg" />
-          <span className="font-display font-medium text-xl tracking-widest text-[#0a1128]">
-            
-          </span>
-        </Link>
-      </nav>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+        .font-display { font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif; }
+        .font-mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+        .job-btn { transition: transform .15s ease; }
+        .job-btn:hover:not(:disabled) { transform: translateY(-2px); }
+        .job-btn:active:not(:disabled) { transform: translateY(0); }
+        .stamp { border: 2px dashed ${signal}; transform: rotate(-6deg); }
+      `}</style>
 
-      {/* Form */}
-      <div className="flex-1 flex items-center justify-center p-4 py-24">
-        <div className="w-full max-w-md bg-white p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-100">
-          <h1 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 mb-2 text-center tracking-tight">
-            Create an account
-          </h1>
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: ink }}>
+        <div className="w-full max-w-4xl rounded-3xl overflow-hidden" style={{ background: panel, border: `1px solid ${rule}` }}>
 
-          <p className="text-slate-500 mb-8 text-center text-sm font-light">
-            Start generating high-converting AI marketing assets.
-          </p>
-
-          {error && (
-            <p
-              role="alert"
-              className="mb-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3"
-            >
-              {error}
-            </p>
-          )}
-
-          <div className="space-y-4" onKeyDown={handleKeyDown}>
-            {/* Full Name */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-700">
-                Name
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. John"
-                value={form.full_name}
-                onChange={set("full_name")}
-                className={INPUT_CLASS}
-              />
+          {/* ─── Toast ─── */}
+          <div
+            className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl transition-all duration-500 ${
+              success ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3 pointer-events-none"
+            }`}
+            style={{ background: paper, border: `1px solid ${paperMuted}`, color: ink }}
+          >
+            <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: "#5FA05F", color: ink }}>
+              <CheckCircle className="w-4 h-4" />
             </div>
-
-            {/* Email */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-700">
-                Email address
-              </label>
-              <input
-                type="email"
-                placeholder="john@example.com"
-                value={form.email}
-                onChange={set("email")}
-                className={INPUT_CLASS}
-              />
+            <div>
+              <p className="font-semibold text-sm">Account created!</p>
+              <p className="text-xs" style={{ color: "#6b6250" }}>Check your email to verify.</p>
             </div>
-
-            {/* Country */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-700">
-                Country
-              </label>
-
-              <select
-                value={form.country}
-                onChange={set("country")}
-                className={`${INPUT_CLASS} appearance-none`}
-              >
-                <option value="">Select your country</option>
-                {COUNTRIES.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Password */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-700">
-                Password
-              </label>
-
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Min. 8 characters"
-                  value={form.password}
-                  onChange={set("password")}
-                  className={`${INPUT_CLASS} pr-12`}
-                />
-
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Confirm Password */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-700">
-                Confirm password
-              </label>
-
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Re-enter password"
-                  value={form.confirm_password}
-                  onChange={set("confirm_password")}
-                  className={`${INPUT_CLASS} pr-12`}
-                />
-
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword((v) => !v)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Submit */}
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full py-4 rounded-xl bg-cyan-500 text-white font-semibold hover:bg-cyan-600 active:scale-[0.98] transition-all shadow-lg shadow-cyan-500/25 mt-6 flex items-center justify-center gap-2 disabled:opacity-60"
-            >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {loading ? "Creating account…" : "Create account"}
-            </button>
           </div>
 
-          <p className="mt-8 text-center text-sm text-slate-500">
-            Already have an account?{" "}
-            <Link href="/login" className="text-cyan-600 font-semibold">
-              Log in
-            </Link>
-          </p>
+          {/* ─── Ticket header ─── */}
+          <div className="p-6 sm:p-8 pb-5 flex flex-col sm:flex-row justify-between items-start gap-4">
+            <div>
+              <span className="font-mono text-[11px] tracking-[0.2em]" style={{ color: textMuted }}>
+                CAMPAIGN TICKET · {new Date().toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short" }).toUpperCase()}
+              </span>
+              <h1 className="font-display text-2xl sm:text-3xl font-semibold mt-1.5 leading-tight" style={{ color: textPrimary }}>
+                Start your free trial
+              </h1>
+              <p className="mt-2 text-sm max-w-sm" style={{ color: textMuted }}>
+                Create an account and start making flyers in minutes.
+              </p>
+            </div>
+            <div className="stamp w-24 h-24 sm:w-28 sm:h-28 rounded-full flex flex-col items-center justify-center shrink-0">
+              <span className="font-mono font-bold text-2xl sm:text-3xl" style={{ color: signal }}>✨</span>
+              <span className="font-mono text-[9px] tracking-widest mt-1 text-center px-2" style={{ color: signal }}>FREE</span>
+            </div>
+          </div>
+
+          {/* ─── Perforation ─── */}
+          <div className="relative h-px mx-6 sm:mx-8">
+            <div style={{ borderTop: `2px dashed ${rule}` }} />
+            <div className="absolute -left-[10px] -top-[9px] w-[18px] h-[18px] rounded-full" style={{ background: ink }} />
+            <div className="absolute -right-[10px] -top-[9px] w-[18px] h-[18px] rounded-full" style={{ background: ink }} />
+          </div>
+
+          {/* ─── Body ─── */}
+          <div className="p-6 sm:p-8 pt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
+
+              {/* Left – Form */}
+              <div className="lg:col-span-3 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="font-mono text-[11px] tracking-[0.2em]" style={{ color: textMuted }} htmlFor="signupName">
+                    FULL NAME
+                  </label>
+                  <input
+                    id="signupName"
+                    type="text"
+                    placeholder="John Doe"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border-2 outline-none transition-all"
+                    style={{ background: paper, borderColor: paperMuted, color: ink }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = marigold}
+                    onBlur={(e) => e.currentTarget.style.borderColor = paperMuted}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="font-mono text-[11px] tracking-[0.2em]" style={{ color: textMuted }} htmlFor="signupEmail">
+                    EMAIL ADDRESS
+                  </label>
+                  <input
+                    id="signupEmail"
+                    type="email"
+                    placeholder="john@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border-2 outline-none transition-all"
+                    style={{ background: paper, borderColor: paperMuted, color: ink }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = marigold}
+                    onBlur={(e) => e.currentTarget.style.borderColor = paperMuted}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="font-mono text-[11px] tracking-[0.2em]" style={{ color: textMuted }} htmlFor="signupCountry">
+                    COUNTRY
+                  </label>
+                  <input
+                    id="signupCountry"
+                    type="text"
+                    placeholder="United Kingdom"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border-2 outline-none transition-all"
+                    style={{ background: paper, borderColor: paperMuted, color: ink }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = marigold}
+                    onBlur={(e) => e.currentTarget.style.borderColor = paperMuted}
+                  />
+                </div>
+
+                {error && (
+                  <p className="text-sm px-4 py-3 rounded-xl" style={{ background: "rgba(214,73,31,0.08)", border: `1px solid rgba(214,73,31,0.25)`, color: signal }}>
+                    {error}
+                  </p>
+                )}
+
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading || !name.trim() || !email.trim() || !country.trim()}
+                  className="job-btn w-full py-4 rounded-full font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+                  style={{ background: loading || !name.trim() || !email.trim() || !country.trim() ? "#5A4A22" : marigold, color: ink }}
+                >
+                  {loading ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Creating…</>
+                  ) : (
+                    "Create account"
+                  )}
+                </button>
+
+                <p className="text-center text-sm" style={{ color: textMuted }}>
+                  Already have an account?{" "}
+                  <Link href="/login" className="font-semibold hover:underline" style={{ color: marigold }}>
+                    Log in
+                  </Link>
+                </p>
+              </div>
+
+              {/* Right – Perks */}
+              <div className="lg:col-span-2 space-y-3 pt-1 lg:border-l lg:pl-6" style={{ borderColor: rule }}>
+                <p className="font-mono text-[11px] tracking-[0.2em] mb-2" style={{ color: textMuted }}>WHAT YOU GET</p>
+
+                {[
+                  { icon: PenTool, label: "Flyer designs", desc: "Professional templates for any product." },
+                  { icon: Sparkles, label: "AI captions", desc: "Ready‑to‑post copy in seconds." },
+                  { icon: Video, label: "Promo videos", desc: "Short clips that sell." },
+                  { icon: Zap, label: "5 free campaigns", desc: "No card required to start." },
+                ].map(({ icon: Icon, label, desc }) => (
+                  <div key={label} className="flex items-start gap-3 p-3 rounded-xl transition-colors" style={{ border: `1px solid rgba(255,255,255,0.06)`, background: "rgba(255,255,255,0.03)" }}>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: marigold, color: ink }}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm" style={{ color: textPrimary }}>{label}</p>
+                      <p className="text-xs" style={{ color: textMuted }}>{desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          </div>
+
+          {/* ─── Footer perforation ─── */}
+          <div className="relative h-px mx-6 sm:mx-8 mt-1">
+            <div style={{ borderTop: `2px dashed ${rule}` }} />
+            <div className="absolute -left-[10px] -top-[9px] w-[18px] h-[18px] rounded-full" style={{ background: ink }} />
+            <div className="absolute -right-[10px] -top-[9px] w-[18px] h-[18px] rounded-full" style={{ background: ink }} />
+          </div>
+
+          <div className="px-6 sm:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-mono tracking-wide" style={{ color: "#5A523F" }}>
+            <span>CAMPAIGN TICKET · SIGNUP</span>
+            <span>v1.0 · NO CREDIT CARD NEEDED</span>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
-
