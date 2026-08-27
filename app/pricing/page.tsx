@@ -9,6 +9,9 @@ import {
   Loader2,
   AlertCircle,
   ArrowRight,
+  ShieldCheck,
+  Zap,
+  Crown,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Navbar } from "@/components/Navbar";
@@ -38,73 +41,124 @@ interface InitiatePaymentResponse {
   transaction_id: string;
 }
 
+const ink = "#16140F";
+const panel = "#1D1A14";
+const panelSoft = "#242016";
+const rule = "#38321F";
+const paper = "#EDE6D6";
+const paperMuted = "#C9BFA4";
+const marigold = "#E8A33D";
+const signal = "#D6491F";
+const textPrimary = "#F3ECDD";
+const textMuted = "#8C8368";
+
 function Footer() {
   return (
-    <footer className="pt-24 pb-12 px-6 bg-[#030712] border-t border-white/5 relative overflow-hidden mt-12 w-full">
+    <footer
+      className="pt-24 pb-12 px-6 relative overflow-hidden mt-12 w-full"
+      style={{
+        background: ink,
+        borderTop: `1px solid ${rule}`,
+      }}
+    >
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-start gap-16 pb-40 relative z-20">
         <div className="flex-1 max-w-3xl">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-medium text-slate-200 tracking-tight leading-tight">
-            Ready to create something cool together, or just explore our
-            solutions.
+          <div
+            className="font-mono text-[11px] tracking-[0.2em] mb-6"
+            style={{ color: textMuted }}
+          >
+            INRASTUDIO / AI MARKETING STUDIO
+          </div>
+
+          <h2
+            className="font-display text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight leading-[1.05]"
+            style={{ color: textPrimary }}
+          >
+            Make your next campaign
+            <br />
+            worth stopping for.
           </h2>
         </div>
 
         <div className="flex flex-wrap gap-12 sm:gap-24 uppercase text-xs tracking-widest font-mono shrink-0">
           <div className="flex flex-col gap-5">
-            <span className="text-slate-600 mb-2 font-bold">(EXPLORE)</span>
+            <span
+              className="mb-2 font-bold"
+              style={{ color: textMuted }}
+            >
+              (EXPLORE)
+            </span>
 
             <Link
               href="/privacy"
-              className="text-slate-300 hover:text-white transition-colors"
+              className="transition-colors"
+              style={{ color: paperMuted }}
             >
               Privacy Policy
             </Link>
 
             <Link
               href="/terms"
-              className="text-slate-300 hover:text-white transition-colors"
+              className="transition-colors"
+              style={{ color: paperMuted }}
             >
               Terms and Condition
             </Link>
 
             <Link
               href="/disclosure"
-              className="text-slate-300 hover:text-white transition-colors"
+              className="transition-colors"
+              style={{ color: paperMuted }}
             >
               Disclosure
             </Link>
           </div>
 
           <div className="flex flex-col gap-5">
-            <span className="text-slate-600 mb-2 font-bold">(CONNECT)</span>
+            <span
+              className="mb-2 font-bold"
+              style={{ color: textMuted }}
+            >
+              (CONNECT)
+            </span>
 
             <a
               href="#"
-              className="text-slate-300 hover:text-white transition-colors flex items-center gap-2 group"
+              className="transition-colors flex items-center gap-2 group"
+              style={{ color: paperMuted }}
             >
-              <Facebook className="w-4 h-4 text-slate-400" />
+              <Facebook className="w-4 h-4" />
               FACEBOOK
-              <ArrowRight className="w-3 h-3 -rotate-45 group-hover:text-cyan-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
+              <ArrowRight className="w-3 h-3 -rotate-45 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
             </a>
 
             <a
               href="#"
-              className="text-slate-300 hover:text-white transition-colors flex items-center gap-2 group"
+              className="transition-colors flex items-center gap-2 group"
+              style={{ color: paperMuted }}
             >
-              <Instagram className="w-4 h-4 text-slate-400" />
+              <Instagram className="w-4 h-4" />
               INSTAGRAM
-              <ArrowRight className="w-3 h-3 -rotate-45 group-hover:text-cyan-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
+              <ArrowRight className="w-3 h-3 -rotate-45 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
             </a>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between pt-12 border-t border-white/5 mt-12 text-sm text-slate-500 font-mono z-30 relative gap-4">
+      <div
+        className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between pt-12 mt-12 relative z-30 gap-4"
+        style={{ borderTop: `1px solid ${rule}` }}
+      >
         <div className="flex items-center gap-3">
           <Logo className="w-8 h-8 rounded-lg" />
         </div>
 
-        <p>© 2026 INRASTUDIO AI Marketing Studio.</p>
+        <p
+          className="text-sm font-mono"
+          style={{ color: textMuted }}
+        >
+          © 2026 INRASTUDIO AI Marketing Studio.
+        </p>
       </div>
     </footer>
   );
@@ -118,9 +172,8 @@ function Pricing() {
   const [error, setError] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
-  const [purchasingPlanType, setPurchasingPlanType] = useState<string | null>(
-    null
-  );
+  const [purchasingPlanType, setPurchasingPlanType] =
+    useState<string | null>(null);
 
   useEffect(() => {
     fetchPlans();
@@ -157,7 +210,9 @@ function Pricing() {
     const token = localStorage.getItem("access");
 
     if (!token) {
-      router.push(`/signup?redirect=/pricing&plan=${plan.plan_type}`);
+      router.push(
+        `/signup?redirect=/pricing&plan=${plan.plan_type}`
+      );
       return;
     }
 
@@ -173,17 +228,18 @@ function Pricing() {
         .toString(36)
         .substring(7)}`;
 
-      const response = await apiFetch<InitiatePaymentResponse>(
-        "/api/pricing/initiate_payment/",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            plan_type: plan.plan_type,
-            idempotency_key: idempotencyKey,
-            country: user.country || user.country_code,
-          }),
-        }
-      );
+      const response =
+        await apiFetch<InitiatePaymentResponse>(
+          "/api/pricing/initiate_payment/",
+          {
+            method: "POST",
+            body: JSON.stringify({
+              plan_type: plan.plan_type,
+              idempotency_key: idempotencyKey,
+              country: user.country || user.country_code,
+            }),
+          }
+        );
 
       if (response.redirect_url) {
         sessionStorage.setItem(
@@ -234,13 +290,20 @@ function Pricing() {
       <section
         id="pricing"
         className="py-32 px-6 max-w-6xl mx-auto"
+        style={{ background: ink }}
       >
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <Loader2 className="w-12 h-12 text-cyan-400 animate-spin mx-auto mb-4" />
+            <Loader2
+              className="w-10 h-10 animate-spin mx-auto mb-5"
+              style={{ color: marigold }}
+            />
 
-            <p className="text-slate-400">
-              Loading plans...
+            <p
+              className="font-mono text-xs tracking-[0.15em]"
+              style={{ color: textMuted }}
+            >
+              LOADING PLANS...
             </p>
           </div>
         </div>
@@ -254,16 +317,27 @@ function Pricing() {
         id="pricing"
         className="py-32 px-6 max-w-6xl mx-auto"
       >
-        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-center">
-          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+        <div
+          className="rounded-2xl p-8 text-center"
+          style={{
+            background: panel,
+            border: `1px solid rgba(214,73,31,0.35)`,
+          }}
+        >
+          <AlertCircle
+            className="w-10 h-10 mx-auto mb-4"
+            style={{ color: signal }}
+          />
 
-          <p className="text-red-400">
-            {error}
-          </p>
+          <p style={{ color: signal }}>{error}</p>
 
           <button
             onClick={fetchPlans}
-            className="mt-4 px-6 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors"
+            className="mt-5 px-6 py-3 rounded-full font-semibold"
+            style={{
+              background: marigold,
+              color: ink,
+            }}
           >
             Retry
           </button>
@@ -275,46 +349,69 @@ function Pricing() {
   return (
     <section
       id="pricing"
-      className="py-32 px-6 max-w-6xl mx-auto"
+      className="py-20 md:py-28 px-4 sm:px-6 max-w-7xl mx-auto"
     >
-      <div className="text-center mb-20 md:mt-24 mt-16">
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
+      {/* HEADER */}
+      <div className="max-w-4xl mx-auto text-center mb-14 md:mb-20">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-5xl md:text-6xl lg:text-7xl font-display font-medium text-white mb-6 tracking-tight"
+          className="font-mono text-[11px] tracking-[0.22em] mb-5"
+          style={{ color: textMuted }}
         >
-          Flexible plans for
+          CAMPAIGN ACCESS / PRICING
+        </motion.div>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[0.95]"
+          style={{ color: textPrimary }}
+        >
+          Pay for the campaigns
           <br />
-          every creator
+          <span style={{ color: marigold }}>you actually need.</span>
         </motion.h1>
 
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-xl text-slate-400"
+          className="max-w-xl mx-auto mt-6 text-sm sm:text-base leading-relaxed"
+          style={{ color: textMuted }}
         >
-          Everything you need to step up your marketing game.
+          Start free. Buy one campaign when you need it,
+          or use Pro when marketing becomes part of your
+          routine.
         </motion.p>
       </div>
 
       {paymentError && (
-        <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-center">
-          <AlertCircle className="w-5 h-5 inline-block mr-2" />
+        <div
+          className="mb-8 p-4 rounded-2xl flex items-start sm:items-center gap-3 text-sm"
+          style={{
+            background: "rgba(214,73,31,0.08)",
+            border: "1px solid rgba(214,73,31,0.3)",
+            color: signal,
+          }}
+        >
+          <AlertCircle className="w-5 h-5 shrink-0" />
 
-          {paymentError}
+          <span className="flex-1">{paymentError}</span>
 
           <button
             onClick={() => setPaymentError(null)}
-            className="ml-4 text-sm text-red-400 hover:text-red-300 underline"
+            className="text-xs underline shrink-0"
           >
             Dismiss
           </button>
         </div>
       )}
 
-      <div className="grid md:grid-cols-3 gap-8">
-        {plans.map((plan) => {
+      {/* PLANS */}
+      <div className="grid md:grid-cols-3 gap-5 lg:gap-6 items-stretch">
+        {plans.map((plan, index) => {
           const isPro = plan.plan_type === "pro";
           const isFree = plan.plan_type === "free";
           const isPayg = plan.plan_type === "payg";
@@ -322,179 +419,363 @@ function Pricing() {
             purchasingPlanType === plan.plan_type;
 
           return (
-            <div
+            <motion.div
               key={plan.id}
-              className={`p-10 pb-12 rounded-3xl flex flex-col justify-between transition-all duration-300 ${
+              initial={{ opacity: 0, y: 25 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: 0.08 * index,
+                duration: 0.45,
+              }}
+              className={`relative flex flex-col rounded-3xl overflow-hidden transition-all duration-300 ${
                 isPro
-                  ? "bg-gradient-to-br from-[#0a1128] to-cyan-900/40 border-2 border-cyan-500/50 shadow-[0_0_50px_rgba(34,211,238,0.1)] hover:shadow-[0_0_70px_rgba(34,211,238,0.2)]"
-                  : "bg-white/[0.02] border border-white/5 hover:bg-white/[0.05]"
-              } ${isPro ? "relative" : ""}`}
+                  ? "md:-translate-y-3"
+                  : "hover:-translate-y-1"
+              }`}
+              style={{
+                background: isPro ? panelSoft : panel,
+                border: isPro
+                  ? `1px solid ${marigold}88`
+                  : `1px solid ${rule}`,
+                boxShadow: isPro
+                  ? "0 24px 70px rgba(0,0,0,0.3)"
+                  : "0 18px 45px rgba(0,0,0,0.15)",
+              }}
             >
+              {/* PRO LABEL */}
               {isPro && (
-                <div className="absolute top-0 inset-x-0 flex justify-center -translate-y-1/2">
-                  <span className="px-5 py-2 rounded-full bg-cyan-400 text-[#0a1128] text-xs font-bold uppercase tracking-widest shadow-lg animate-pulse">
-                    Most Popular
+                <div
+                  className="flex items-center justify-between px-6 py-3"
+                  style={{
+                    background: marigold,
+                    color: ink,
+                  }}
+                >
+                  <span className="font-mono text-[10px] font-bold tracking-[0.18em]">
+                    RECOMMENDED
                   </span>
+
+                  <Crown className="w-4 h-4" />
                 </div>
               )}
 
-              <div>
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  {plan.name}
-                </h3>
+              <div className="p-6 sm:p-8 lg:p-9 flex flex-col flex-1">
+                {/* PLAN HEADER */}
+                <div>
+                  <div
+                    className="font-mono text-[10px] tracking-[0.18em] mb-3"
+                    style={{ color: textMuted }}
+                  >
+                    {isFree
+                      ? "STARTER"
+                      : isPayg
+                      ? "ON DEMAND"
+                      : "FULL ACCESS"}
+                  </div>
 
-                <p className="text-slate-400 text-sm mb-6">
-                  {isFree
-                    ? "Test the platform."
-                    : isPayg
-                    ? "No commitments."
-                    : "For power users."}
-                </p>
+                  <h3
+                    className="font-display text-2xl sm:text-3xl font-semibold"
+                    style={{ color: textPrimary }}
+                  >
+                    {plan.name}
+                  </h3>
 
-                <div className="text-5xl font-display font-medium text-white mb-10 flex flex-col">
+                  <p
+                    className="text-sm mt-2 min-h-[40px]"
+                    style={{ color: textMuted }}
+                  >
+                    {isFree
+                      ? "Test the platform."
+                      : isPayg
+                      ? "No commitments."
+                      : "For power users."}
+                  </p>
+                </div>
+
+                {/* PRICE */}
+                <div
+                  className="mt-8 pb-8"
+                  style={{ borderBottom: `1px dashed ${rule}` }}
+                >
                   {isFree ? (
                     <>
-                      Free
+                      <div
+                        className="font-display text-5xl sm:text-6xl font-semibold"
+                        style={{ color: textPrimary }}
+                      >
+                        Free
+                      </div>
 
-                      <span className="text-base text-slate-400 font-normal uppercase tracking-widest mt-2">
-                        / Month
-                      </span>
+                      <div
+                        className="font-mono text-[10px] tracking-[0.15em] mt-3"
+                        style={{ color: textMuted }}
+                      >
+                        TO GET STARTED
+                      </div>
                     </>
                   ) : (
                     <>
                       {plan.old_price_display && (
-                        <span className="text-lg text-slate-500 line-through tracking-wide mb-1 decoration-red-500/50 decoration-2">
+                        <div
+                          className="font-mono text-sm line-through mb-1"
+                          style={{ color: "#655D4C" }}
+                        >
                           {plan.old_price_display}
-                        </span>
+                        </div>
                       )}
 
-                      {plan.price_display}
+                      <div
+                        className="font-display text-5xl sm:text-6xl font-semibold leading-none"
+                        style={{ color: isPro ? marigold : textPrimary }}
+                      >
+                        {plan.price_display}
+                      </div>
 
-                      <span className="text-base text-slate-400 font-normal uppercase tracking-widest mt-2">
-                        / {isPayg ? "Campaign" : "Month"}
-                      </span>
+                      <div
+                        className="font-mono text-[10px] tracking-[0.15em] mt-3"
+                        style={{ color: textMuted }}
+                      >
+                        / {isPayg ? "CAMPAIGN" : "MONTH"}
+                      </div>
                     </>
                   )}
                 </div>
 
-                <ul className="space-y-4 mb-10">
-                  {isFree ? (
-                    <>
-                      <li className="flex items-center gap-3 text-slate-300">
-                        <CheckCircle className="w-5 h-5 text-slate-500 shrink-0" />
-                        1 Campaign Free
-                      </li>
+                {/* FEATURES */}
+                <div className="py-8 flex-1">
+                  <div
+                    className="font-mono text-[10px] tracking-[0.16em] mb-5"
+                    style={{ color: textMuted }}
+                  >
+                    THIS INCLUDES
+                  </div>
 
-                      <li className="flex items-center gap-3 text-slate-300">
-                        <CheckCircle className="w-5 h-5 text-slate-500 shrink-0" />
-                        AI-powered marketing content
-                      </li>
-                    </>
-                  ) : isPayg ? (
-                    <>
-                      <li className="flex items-center gap-3 text-white">
-                        <CheckCircle className="w-5 h-5 text-slate-500 shrink-0" />
-                        1 Full Campaign
-                      </li>
+                  <ul className="space-y-4">
+                    {isFree ? (
+                      <>
+                        <li className="flex gap-3 text-sm">
+                          <CheckCircle
+                            className="w-4 h-4 shrink-0 mt-0.5"
+                            style={{ color: textMuted }}
+                          />
+                          <span style={{ color: paperMuted }}>
+                            1 Campaign Free
+                          </span>
+                        </li>
 
-                      <li className="flex items-center gap-3 text-white">
-                        <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" />
-                        AI-powered marketing content
-                      </li>
+                        <li className="flex gap-3 text-sm">
+                          <CheckCircle
+                            className="w-4 h-4 shrink-0 mt-0.5"
+                            style={{ color: textMuted }}
+                          />
+                          <span style={{ color: paperMuted }}>
+                            AI-powered marketing content
+                          </span>
+                        </li>
+                      </>
+                    ) : isPayg ? (
+                      <>
+                        <li className="flex gap-3 text-sm">
+                          <CheckCircle
+                            className="w-4 h-4 shrink-0 mt-0.5"
+                            style={{ color: marigold }}
+                          />
+                          <span style={{ color: textPrimary }}>
+                            1 Full Campaign
+                          </span>
+                        </li>
 
-                      <li className="flex items-center gap-3 text-white">
-                        <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" />
-                        High resolution exports
-                      </li>
-                    </>
-                  ) : (
-                    <>
-                      <li className="flex items-center gap-3 text-white">
-                        <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" />
-                        Unlimited Campaigns
-                      </li>
+                        <li className="flex gap-3 text-sm">
+                          <CheckCircle
+                            className="w-4 h-4 shrink-0 mt-0.5"
+                            style={{ color: marigold }}
+                          />
+                          <span style={{ color: textPrimary }}>
+                            AI-powered marketing content
+                          </span>
+                        </li>
 
-                      <li className="flex items-center gap-3 text-white">
-                        <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" />
-                        AI-powered marketing content
-                      </li>
+                        <li className="flex gap-3 text-sm">
+                          <CheckCircle
+                            className="w-4 h-4 shrink-0 mt-0.5"
+                            style={{ color: marigold }}
+                          />
+                          <span style={{ color: textPrimary }}>
+                            High resolution exports
+                          </span>
+                        </li>
+                      </>
+                    ) : (
+                      <>
+                        <li className="flex gap-3 text-sm">
+                          <CheckCircle
+                            className="w-4 h-4 shrink-0 mt-0.5"
+                            style={{ color: marigold }}
+                          />
+                          <span style={{ color: textPrimary }}>
+                            Unlimited Campaigns
+                          </span>
+                        </li>
 
-                      <li className="flex items-center gap-3 text-white">
-                        <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" />
-                        Priority queue generation
-                      </li>
+                        <li className="flex gap-3 text-sm">
+                          <CheckCircle
+                            className="w-4 h-4 shrink-0 mt-0.5"
+                            style={{ color: marigold }}
+                          />
+                          <span style={{ color: textPrimary }}>
+                            AI-powered marketing content
+                          </span>
+                        </li>
 
-                      <li className="flex items-center gap-3 text-white">
-                        <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0" />
-                        Complete campaign creation
-                      </li>
-                    </>
+                        <li className="flex gap-3 text-sm">
+                          <CheckCircle
+                            className="w-4 h-4 shrink-0 mt-0.5"
+                            style={{ color: marigold }}
+                          />
+                          <span style={{ color: textPrimary }}>
+                            Priority queue generation
+                          </span>
+                        </li>
+
+                        <li className="flex gap-3 text-sm">
+                          <CheckCircle
+                            className="w-4 h-4 shrink-0 mt-0.5"
+                            style={{ color: marigold }}
+                          />
+                          <span style={{ color: textPrimary }}>
+                            Complete campaign creation
+                          </span>
+                        </li>
+                      </>
+                    )}
+                  </ul>
+                </div>
+
+                {/* CTA */}
+                <div>
+                  <button
+                    onClick={
+                      isFree
+                        ? handleFreeTrial
+                        : () => handlePurchase(plan)
+                    }
+                    disabled={isPurchasing}
+                    className="w-full min-h-[52px] rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-60"
+                    style={{
+                      background: isPro
+                        ? marigold
+                        : isFree
+                        ? "transparent"
+                        : paper,
+                      color: isPro
+                        ? ink
+                        : isFree
+                        ? textPrimary
+                        : ink,
+                      border: isFree
+                        ? `1px solid ${rule}`
+                        : "none",
+                    }}
+                  >
+                    {isPurchasing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Redirecting...
+                      </>
+                    ) : isFree ? (
+                      <>
+                        Start for free
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    ) : isPro ? (
+                      <>
+                        Upgrade to Pro
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    ) : (
+                      <>
+                        Buy campaign
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+
+                  {!isFree && (
+                    <div
+                      className="flex items-center justify-center gap-2 mt-4 font-mono text-[9px] tracking-[0.12em]"
+                      style={{ color: textMuted }}
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      SECURE PAYMENT VIA FLUTTERWAVE
+                    </div>
                   )}
-                </ul>
+                </div>
               </div>
-
-              <button
-                onClick={
-                  isFree
-                    ? handleFreeTrial
-                    : () => handlePurchase(plan)
-                }
-                disabled={isPurchasing}
-                className={`w-full text-center py-4 rounded-full font-bold transition-all duration-300 shadow-lg mt-auto relative overflow-hidden flex items-center justify-center gap-2 disabled:opacity-70 ${
-                  isPro
-                    ? "bg-cyan-400 text-[#0a1128] hover:bg-cyan-300 hover:scale-105 shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]"
-                    : isFree
-                    ? "border border-white/20 hover:bg-white/10 text-white hover:scale-105"
-                    : "bg-white text-[#0a1128] hover:bg-slate-200 hover:scale-105"
-                }`}
-              >
-                {isPurchasing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Redirecting...
-                  </>
-                ) : isFree ? (
-                  "Start for free"
-                ) : isPro ? (
-                  "Upgrade to Pro"
-                ) : (
-                  "Buy Now"
-                )}
-              </button>
-
-              {!isFree && (
-                <div className="mt-4 text-center">
-                  <span className="text-xs text-slate-500">
-                    🔒 Secure payment via Flutterwave
-                  </span>
-                </div>
-              )}
-            </div>
+            </motion.div>
           );
         })}
       </div>
 
-      <div className="mt-16 text-center">
-        <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500">
-          <span className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-cyan-400" />
-            Secure payments
-          </span>
+      {/* TRUST STRIP */}
+      <div
+        className="mt-8 rounded-2xl px-5 py-5 sm:px-8"
+        style={{
+          background: panel,
+          border: `1px solid ${rule}`,
+        }}
+      >
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <div className="flex items-center gap-3">
+            <ShieldCheck
+              className="w-4 h-4 shrink-0"
+              style={{ color: marigold }}
+            />
+            <span
+              className="font-mono text-[9px] tracking-[0.1em]"
+              style={{ color: textMuted }}
+            >
+              SECURE PAYMENTS
+            </span>
+          </div>
 
-          <span className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-cyan-400" />
-            Instant activation
-          </span>
+          <div className="flex items-center gap-3">
+            <Zap
+              className="w-4 h-4 shrink-0"
+              style={{ color: marigold }}
+            />
+            <span
+              className="font-mono text-[9px] tracking-[0.1em]"
+              style={{ color: textMuted }}
+            >
+              INSTANT ACTIVATION
+            </span>
+          </div>
 
-          <span className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-cyan-400" />
-            24/7 support
-          </span>
+          <div className="flex items-center gap-3">
+            <CheckCircle
+              className="w-4 h-4 shrink-0"
+              style={{ color: marigold }}
+            />
+            <span
+              className="font-mono text-[9px] tracking-[0.1em]"
+              style={{ color: textMuted }}
+            >
+              24/7 SUPPORT
+            </span>
+          </div>
 
-          <span className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-cyan-400" />
-            Money-back guarantee
-          </span>
+          <div className="flex items-center gap-3">
+            <CheckCircle
+              className="w-4 h-4 shrink-0"
+              style={{ color: marigold }}
+            />
+            <span
+              className="font-mono text-[9px] tracking-[0.1em]"
+              style={{ color: textMuted }}
+            >
+              MONEY-BACK GUARANTEE
+            </span>
+          </div>
         </div>
       </div>
     </section>
@@ -503,7 +784,39 @@ function Pricing() {
 
 export default function PricingRoute() {
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-50 relative selection:bg-cyan-500 selection:text-white font-sans overflow-x-hidden">
+    <div
+      className="min-h-screen relative font-sans overflow-x-hidden"
+      style={{
+        background: ink,
+        color: textPrimary,
+      }}
+    >
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+        .font-display {
+          font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+        }
+
+        .font-mono {
+          font-family: 'IBM Plex Mono', ui-monospace, monospace;
+        }
+
+        html, body {
+          overflow-x: hidden;
+          max-width: 100%;
+        }
+
+        button, a {
+          touch-action: manipulation;
+        }
+
+        ::selection {
+          background: ${marigold};
+          color: ${ink};
+        }
+      `}</style>
+
       <Navbar />
 
       <main>
