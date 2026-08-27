@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Menu, X, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
@@ -15,12 +15,22 @@ export function Navbar() {
       setScrolled(window.scrollY > 24);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  const closeMenu = () => setIsMenuOpen(false);
+
+  const navLinks = [
+    { label: "Contact", href: "/contact" },
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Pricing", href: "/pricing" },
+  ];
 
   return (
     <>
@@ -34,7 +44,9 @@ export function Navbar() {
           --muted: #8D836C;
         }
 
-        .inra-nav * {
+        .inra-nav *,
+        .inra-nav *::before,
+        .inra-nav *::after {
           -webkit-tap-highlight-color: transparent;
         }
 
@@ -67,6 +79,7 @@ export function Navbar() {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
             transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
           }
         }
       `}</style>
@@ -88,8 +101,8 @@ export function Navbar() {
           <div
             className={`
               relative
-              border
               overflow-visible
+              border
               transition-all
               duration-500
               ${
@@ -109,58 +122,18 @@ export function Navbar() {
 
             <div className="h-[68px] sm:h-[74px] flex items-center">
               {/* BRAND */}
+
               <div className="flex items-center pl-4 sm:pl-6 pr-4">
                 <Link
                   href="/"
                   aria-label="INRASTUDIO home"
-                  className="group flex items-center gap-3"
+                  className="group flex items-center"
                 >
-                  <div
-                    className="
-                      w-9 h-9
-                      sm:w-10 sm:h-10
-                      rounded-[10px]
-                      flex items-center justify-center
-                      transition-transform
-                      duration-300
-                      group-hover:-rotate-3
-                    "
-                    style={{
-                      background: "#16140F",
-                    }}
-                  >
-                    <Logo className="w-7 h-7 sm:w-8 sm:h-8 rounded-[7px]" />
-                  </div>
-
-                  <div className="hidden sm:flex flex-col leading-none">
-                    <span
-                      className="
-                        inra-nav-display
-                        text-[15px]
-                        font-bold
-                        tracking-[-0.02em]
-                      "
-                      style={{
-                        color: "#16140F",
-                      }}
-                    >
-                      INRASTUDIO
-                    </span>
-
-                    <span
-                      className="
-                        inra-nav-mono
-                        text-[8px]
-                        tracking-[0.22em]
-                        mt-1
-                      "
-                      style={{
-                        color: "#8D836C",
-                      }}
-                    >
-                      MARKETING STUDIO
-                    </span>
-                  </div>
+                  <Logo
+                    size="md"
+                    showWordmark={true}
+                    className="h-9 w-9 sm:h-10 sm:w-10"
+                  />
                 </Link>
               </div>
 
@@ -169,56 +142,25 @@ export function Navbar() {
               ================================================== */}
 
               <div className="hidden lg:flex flex-1 items-center justify-center gap-8">
-                <Link
-                  href="/contact"
-                  className="
-                    inra-nav-mono
-                    text-[10px]
-                    tracking-[0.14em]
-                    font-semibold
-                    transition-colors
-                    hover:text-[#D6491F]
-                  "
-                  style={{
-                    color: "#514B3E",
-                  }}
-                >
-                  CONTACT
-                </Link>
-
-                <Link
-                  href="/dashboard"
-                  className="
-                    inra-nav-mono
-                    text-[10px]
-                    tracking-[0.14em]
-                    font-semibold
-                    transition-colors
-                    hover:text-[#D6491F]
-                  "
-                  style={{
-                    color: "#514B3E",
-                  }}
-                >
-                  DASHBOARD
-                </Link>
-
-                <Link
-                  href="/pricing"
-                  className="
-                    inra-nav-mono
-                    text-[10px]
-                    tracking-[0.14em]
-                    font-semibold
-                    transition-colors
-                    hover:text-[#D6491F]
-                  "
-                  style={{
-                    color: "#514B3E",
-                  }}
-                >
-                  PRICING
-                </Link>
+                {navLinks.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="
+                      inra-nav-mono
+                      text-[10px]
+                      tracking-[0.14em]
+                      font-semibold
+                      transition-colors
+                      hover:text-[#D6491F]
+                    "
+                    style={{
+                      color: "#514B3E",
+                    }}
+                  >
+                    {item.label.toUpperCase()}
+                  </Link>
+                ))}
               </div>
 
               {/* =================================================
@@ -227,10 +169,12 @@ export function Navbar() {
 
               <div className="ml-auto flex items-center gap-2 sm:gap-3 pr-3 sm:pr-4">
                 {/* LOGIN */}
+
                 <Link
                   href="/login"
                   className="
-                    hidden sm:inline-flex
+                    hidden
+                    sm:inline-flex
                     items-center
                     px-3
                     inra-nav-mono
@@ -248,10 +192,12 @@ export function Navbar() {
                 </Link>
 
                 {/* DESKTOP CTA */}
+
                 <Link
                   href="/signup"
                   className="
-                    hidden lg:inline-flex
+                    hidden
+                    lg:inline-flex
                     items-center
                     justify-center
                     gap-2
@@ -276,6 +222,7 @@ export function Navbar() {
                 </Link>
 
                 {/* MOBILE MENU BUTTON */}
+
                 <button
                   type="button"
                   onClick={() => setIsMenuOpen((open) => !open)}
@@ -333,23 +280,21 @@ export function Navbar() {
         {isMenuOpen && (
           <>
             {/* BACKDROP */}
+
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="
-                fixed
-                inset-0
-                z-40
-                lg:hidden
-              "
+              className="fixed inset-0 z-40 lg:hidden"
               style={{
                 background: "rgba(22,20,15,0.35)",
               }}
-              onClick={() => setIsMenuOpen(false)}
+              onClick={closeMenu}
+              aria-hidden="true"
             />
 
             {/* MOBILE MENU PANEL */}
+
             <motion.div
               initial={{
                 opacity: 0,
@@ -386,6 +331,7 @@ export function Navbar() {
               }}
             >
               {/* MENU INTRO */}
+
               <div
                 className="px-5 pt-6 pb-5 border-b"
                 style={{
@@ -427,30 +373,18 @@ export function Navbar() {
               </div>
 
               {/* NAV LINKS */}
+
               <div
                 className="px-5 py-3 border-b"
                 style={{
                   borderColor: "rgba(22,20,15,0.13)",
                 }}
               >
-                {[
-                  {
-                    label: "Contact",
-                    href: "/contact",
-                  },
-                  {
-                    label: "Dashboard",
-                    href: "/dashboard",
-                  },
-                  {
-                    label: "Pricing",
-                    href: "/pricing",
-                  },
-                ].map((item, index) => (
+                {navLinks.map((item, index) => (
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setIsMenuOpen(false)}
+                    onClick={closeMenu}
                     className="
                       group
                       flex
@@ -497,6 +431,7 @@ export function Navbar() {
               </div>
 
               {/* ACCOUNT + CTA */}
+
               <div
                 className="px-5 py-5"
                 style={{
@@ -506,7 +441,7 @@ export function Navbar() {
                 <div className="flex items-center justify-between gap-4">
                   <Link
                     href="/login"
-                    onClick={() => setIsMenuOpen(false)}
+                    onClick={closeMenu}
                     className="
                       inra-nav-mono
                       text-[10px]
@@ -524,7 +459,7 @@ export function Navbar() {
 
                   <Link
                     href="/signup"
-                    onClick={() => setIsMenuOpen(false)}
+                    onClick={closeMenu}
                     className="
                       flex-1
                       max-w-[200px]
@@ -552,6 +487,7 @@ export function Navbar() {
               </div>
 
               {/* BOTTOM CAMPAIGN STRIP */}
+
               <div
                 className="
                   px-5

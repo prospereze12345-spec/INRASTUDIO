@@ -689,38 +689,122 @@ export default function DashboardPage() {
               )}
             </section>
 
-            {/* ── Templates people reach for ── */}
-            <section>
-              <div className="flex items-center justify-between mb-4 sm:mb-5">
-                <h2 className="font-display text-lg sm:text-xl font-semibold tracking-tight">Templates people reach for</h2>
-                <Link href="/dashboard/templates" className="font-mono text-xs tracking-wide px-3 py-2 -my-2 min-h-[44px] flex items-center" style={{ color: marigold }}>
-                  VIEW ALL →
-                </Link>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-                {[
-                  { name: "Digital Agency",  category: "Premium brand",  Comp: PremiumBrandTemplate,  data: PREMIUM_BRAND_VARIATIONS.find((v) => v.name === "Digital Agency")! },
-                  { name: "Black Gold",      category: "Luxury product", Comp: LuxuryProductTemplate, data: LUXURY_VARIATIONS.find((v) => v.name === "Black Gold")! },
-                ].map(({ name, category, Comp, data }) => (
-                  <div
-                    key={name}
-                    onClick={() => router.push(`/dashboard/editor?variant=${encodeURIComponent(name)}&category=${encodeURIComponent(category)}`)}
-                    className="lift rounded-2xl p-2 cursor-pointer"
-                    style={{ background: paper, border: "1px solid transparent" }}
-                  >
-                    <ScaledPreview>
-                      <Comp {...(data as any)} />
-                    </ScaledPreview>
-                    <div className="flex items-center justify-between mt-2.5 px-1.5 pb-1">
-                      <div>
-                        <p className="text-sm font-bold" style={{ color: ink }}>{name}</p>
-                        <p className="font-mono text-[10px] tracking-wide mt-0.5" style={{ color: "#6b6250" }}>{category.toUpperCase()}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+           {/* ── Templates people reach for ── */}
+<section>
+  <div className="flex items-center justify-between mb-4 sm:mb-5">
+    <h2 className="font-display text-lg sm:text-xl font-semibold tracking-tight">
+      Templates people reach for
+    </h2>
+
+    <Link
+      href="/dashboard/templates"
+      className="font-mono text-xs tracking-wide px-3 py-2 -my-2 min-h-[44px] flex items-center"
+      style={{ color: marigold }}
+    >
+      VIEW ALL →
+    </Link>
+  </div>
+
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+    {[
+      {
+        name: "Digital Agency",
+        category: "Premium brand",
+        Comp: PremiumBrandTemplate,
+        data: PREMIUM_BRAND_VARIATIONS.find(
+          (v) => v.name === "Digital Agency"
+        ),
+      },
+      {
+        name: "Black Gold",
+        category: "Luxury product",
+        Comp: LuxuryProductTemplate,
+        data: LUXURY_VARIATIONS.find(
+          (v) => v.name === "Black Gold"
+        ),
+      },
+    ]
+      .filter((template) => template.data)
+      .map(({ name, category, Comp, data }) => (
+        <button
+          key={name}
+          type="button"
+          onClick={() =>
+            router.push(
+              `/dashboard/editor?variant=${encodeURIComponent(
+                name
+              )}&category=${encodeURIComponent(category)}`
+            )
+          }
+          className="
+            group
+            w-full
+            text-left
+            rounded-2xl
+            p-2
+            cursor-pointer
+            transition-transform
+            duration-200
+            hover:-translate-y-0.5
+            focus:outline-none
+            focus-visible:ring-2
+            focus-visible:ring-offset-2
+          "
+          style={{
+            background: paper,
+            border: "1px solid rgba(0,0,0,0.06)",
+          }}
+        >
+          {/* Preview */}
+          <div
+            className="overflow-hidden rounded-xl"
+            style={{
+              background: "#f4f0e8",
+            }}
+          >
+            <ScaledPreview>
+              <Comp {...(data as any)} />
+            </ScaledPreview>
+          </div>
+
+          {/* Template information */}
+          <div className="flex items-center justify-between mt-2.5 px-1.5 pb-1">
+            <div className="min-w-0">
+              <p
+                className="text-sm font-bold truncate"
+                style={{ color: ink }}
+              >
+                {name}
+              </p>
+
+              <p
+                className="font-mono text-[10px] tracking-wide mt-0.5"
+                style={{ color: "#6b6250" }}
+              >
+                {category.toUpperCase()}
+              </p>
+            </div>
+
+            <span
+              className="
+                hidden
+                sm:block
+                font-mono
+                text-[9px]
+                tracking-wider
+                opacity-0
+                group-hover:opacity-100
+                transition-opacity
+              "
+              style={{ color: marigold }}
+            >
+              USE →
+            </span>
+          </div>
+        </button>
+      ))}
+  </div>
+</section>
 
             {/* ── Security ── */}
             <section className="rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4" style={{ background: panel, border: `1px solid ${rule}` }}>
