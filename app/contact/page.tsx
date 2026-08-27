@@ -71,7 +71,7 @@ function Footer() {
 
         {/* FOOTER NAVIGATION */}
         <div
-          className="grid grid-cols-1 gap-10 border-b border-t py-8 sm:py-10 sm:grid-cols-2"
+          className="grid grid-cols-1 gap-10 border-b border-t py-8 sm:grid-cols-2 sm:py-10"
           style={{
             borderColor: "rgba(238,231,216,0.12)",
           }}
@@ -278,7 +278,9 @@ export default function ContactRoute() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.error || "Unable to send your message.");
+        throw new Error(
+          data?.error || "Unable to send your message."
+        );
       }
 
       setStatus("success");
@@ -310,9 +312,14 @@ export default function ContactRoute() {
       <Navbar />
 
       <main>
-        {/* HERO */}
+        {/* =========================================================
+            HERO
+        ========================================================== */}
+
         <section className="px-5 pt-[118px] sm:px-8 sm:pt-[145px]">
           <div className="mx-auto max-w-[1180px]">
+
+            {/* TOP LABEL */}
             <div className="mb-8 flex items-center gap-4 sm:mb-10">
               <span
                 className="font-mono text-[9px] tracking-[0.2em]"
@@ -336,6 +343,7 @@ export default function ContactRoute() {
               </span>
             </div>
 
+            {/* HERO */}
             <div className="grid grid-cols-1 items-end gap-10 lg:grid-cols-[1fr_300px] lg:gap-20">
               <h1
                 className="
@@ -349,15 +357,21 @@ export default function ContactRoute() {
               >
                 LET&apos;S MAKE
                 <br />
-                <span style={{ color: signal }}>SOMETHING</span>
+
+                <span style={{ color: signal }}>
+                  SOMETHING
+                </span>
+
                 <br />
 
                 <span className="inline-flex items-end gap-4">
                   WORTH
+
                   <span
                     className="mb-[0.08em] inline-block h-5 w-5 sm:h-8 sm:w-8"
                     style={{ background: marigold }}
                   />
+
                   IT.
                 </span>
               </h1>
@@ -367,8 +381,8 @@ export default function ContactRoute() {
                   className="max-w-[280px] font-display text-lg leading-[1.2] tracking-[-0.02em] sm:text-xl"
                   style={{ color: "#514B3E" }}
                 >
-                  Have a question, an idea, or a campaign that needs a sharper
-                  edge? Tell us what you&apos;re working on.
+                  Have a question, an idea, or a campaign that needs a
+                  sharper edge? Tell us what you&apos;re working on.
                 </p>
               </div>
             </div>
@@ -376,7 +390,9 @@ export default function ContactRoute() {
             {/* HERO BASELINE */}
             <div
               className="mt-10 border-t sm:mt-14"
-              style={{ borderColor: "rgba(22,20,15,0.2)" }}
+              style={{
+                borderColor: "rgba(22,20,15,0.2)",
+              }}
             >
               <div className="grid grid-cols-2 sm:grid-cols-4">
                 {[
@@ -412,11 +428,16 @@ export default function ContactRoute() {
           </div>
         </section>
 
-        {/* CONTACT AREA */}
+        {/* =========================================================
+            CONTACT AREA
+        ========================================================== */}
+
         <section className="mt-20 px-5 pb-24 sm:mt-28 sm:px-8">
           <div className="mx-auto max-w-[1180px]">
             <div className="grid grid-cols-1 gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
+
               {/* LEFT INFORMATION */}
+
               <aside>
                 <div
                   className="mb-8 font-mono text-[9px] tracking-[0.2em]"
@@ -426,6 +447,7 @@ export default function ContactRoute() {
                 </div>
 
                 {/* EMAIL */}
+
                 <div
                   className="mb-10 border-t pt-6"
                   style={{
@@ -457,6 +479,7 @@ export default function ContactRoute() {
                 </div>
 
                 {/* LOCATION */}
+
                 <div
                   className="mb-10 border-t pt-6"
                   style={{
@@ -486,7 +509,8 @@ export default function ContactRoute() {
                   </div>
                 </div>
 
-                {/* RESPONSE NOTE */}
+                {/* QUICK NOTE */}
+
                 <div
                   className="mt-12 border p-5 sm:p-6"
                   style={{
@@ -513,6 +537,7 @@ export default function ContactRoute() {
               </aside>
 
               {/* FORM */}
+
               <div>
                 <div
                   className="mb-8 font-mono text-[9px] tracking-[0.2em]"
@@ -532,6 +557,7 @@ export default function ContactRoute() {
                     onSubmit={handleSubmit}
                   >
                     <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-10">
+
                       <Field
                         label="01 / FIRST NAME"
                         name="firstName"
@@ -592,6 +618,7 @@ export default function ContactRoute() {
                     </div>
 
                     {/* STATUS */}
+
                     {status !== "idle" && (
                       <div
                         className="mt-8 border px-4 py-4 font-mono text-[10px] leading-[1.5]"
@@ -600,10 +627,12 @@ export default function ContactRoute() {
                             status === "success"
                               ? "rgba(40,120,70,0.08)"
                               : "rgba(214,73,31,0.08)",
+
                           borderColor:
                             status === "success"
                               ? "rgba(40,120,70,0.2)"
                               : "rgba(214,73,31,0.2)",
+
                           color:
                             status === "success"
                               ? "#285C3A"
@@ -615,6 +644,7 @@ export default function ContactRoute() {
                     )}
 
                     {/* SUBMIT */}
+
                     <div
                       className="
                         mt-8
@@ -682,7 +712,10 @@ export default function ContactRoute() {
           </div>
         </section>
 
-        {/* CLOSING STATEMENT */}
+        {/* =========================================================
+            CLOSING STATEMENT
+        ========================================================== */}
+
         <section
           className="border-t"
           style={{
@@ -711,7 +744,10 @@ export default function ContactRoute() {
                 >
                   HAVE SOMETHING
                   <br />
-                  <span style={{ color: signal }}>IN MIND?</span>
+
+                  <span style={{ color: signal }}>
+                    IN MIND?
+                  </span>
                 </h2>
               </div>
 

@@ -11,158 +11,112 @@ const paperDark = "#DCD2BD";
 const signal = "#D6491F";
 const marigold = "#E8A33D";
 const muted = "#756D5C";
-
 function Footer() {
   return (
-    <footer
-      className="w-full border-t"
-      style={{
-        background: ink,
-        borderColor: "rgba(238,231,216,0.12)",
-      }}
-    >
-      <div className="max-w-[1180px] mx-auto px-5 sm:px-8 pt-16 sm:pt-24 pb-8">
-        {/* FOOTER INTRO */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-14 lg:gap-24 pb-20">
-          <div>
-            <div
-              className="font-mono text-[9px] tracking-[0.2em] mb-6"
-              style={{ color: "#8D836C" }}
-            >
-              INRASTUDIO / 2026
-            </div>
+    <footer className="border-t border-[#25231e] bg-[#11100d] text-[#eee7d8]">
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+        {/* Main footer */}
+        <div className="grid gap-14 py-16 sm:py-20 lg:grid-cols-[1.3fr_1fr] lg:gap-24">
+          <div className="max-w-xl">
+            <p className="mb-5 font-mono text-[10px] uppercase tracking-[0.2em] text-[#8d836c]">
+              INRASTUDIO / LEGAL
+            </p>
 
-            <h2
-              className="
-                font-display
-                text-[clamp(3rem,8vw,7rem)]
-                font-medium
-                leading-[0.88]
-                tracking-[-0.055em]
-              "
-              style={{ color: paper }}
-            >
-              MAKE IT
-              <br />
-              <span style={{ color: marigold }}>NOTICE.</span>
+            <h2 className="font-display text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
+              Clear terms for using the studio.
             </h2>
-          </div>
 
-          <div className="lg:pt-10">
-            <p
-              className="font-display text-xl sm:text-2xl leading-[1.15] tracking-[-0.025em] max-w-md"
-              style={{ color: "#C5BCAA" }}
-            >
-              Good marketing should earn attention before it asks for a sale.
+            <p className="mt-5 max-w-md text-sm leading-7 text-[#aaa18f]">
+              The important details about your data, generated content and
+              using INRASTUDIO for your business.
             </p>
           </div>
-        </div>
 
-        {/* FOOTER NAVIGATION */}
-        <div
-          className="border-t border-b py-8 sm:py-10 grid grid-cols-1 sm:grid-cols-3 gap-10"
-          style={{
-            borderColor: "rgba(238,231,216,0.12)",
-          }}
-        >
-          
-             
-          <div>
-            <p
-              className="font-mono text-[9px] tracking-[0.18em] mb-5"
-              style={{ color: "#77705F" }}
-            >
-              (02) CONNECT
-            </p>
+          <div className="grid grid-cols-2 gap-10 sm:gap-16">
+            {/* Explore */}
+            <div className="flex flex-col gap-4">
+              <span className="mb-2 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#6f6859]">
+                (EXPLORE)
+              </span>
 
-            <div className="flex flex-col gap-3">
-              <a
-                href="#"
-                className="flex items-center gap-2 font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
-              >
-                <Instagram className="w-4 h-4" />
-                Instagram
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </a>
-
-              <a
-                href="#"
-                className="flex items-center gap-2 font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
-              >
-                <Facebook className="w-4 h-4" />
-                Facebook
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </a>
-            </div>
-          </div>
-
-          <div>
-            <p
-              className="font-mono text-[9px] tracking-[0.18em] mb-5"
-              style={{ color: "#77705F" }}
-            >
-              (03) READ
-            </p>
-
-            <div className="flex flex-col gap-3">
               <Link
                 href="/privacy"
-                className="font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
+                className="text-sm text-[#c9c1b0] transition-colors hover:text-[#d6491f]"
               >
                 Privacy Policy
               </Link>
 
               <Link
                 href="/terms"
-                className="font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
+                className="text-sm text-[#c9c1b0] transition-colors hover:text-[#d6491f]"
               >
                 Terms & Conditions
               </Link>
 
               <Link
                 href="/disclosure"
-                className="font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
+                className="text-sm text-[#c9c1b0] transition-colors hover:text-[#d6491f]"
               >
                 Disclosure
               </Link>
+
+              <Link
+                href="/contact"
+                className="mt-2 inline-flex items-center gap-2 text-sm text-[#c9c1b0] transition-colors hover:text-[#d6491f]"
+              >
+                Contact
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+
+            {/* Connect */}
+            <div className="flex flex-col gap-4">
+              <span className="mb-2 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#6f6859]">
+                (CONNECT)
+              </span>
+
+              <a
+                href="#"
+                className="group inline-flex items-center gap-2 text-sm text-[#c9c1b0] transition-colors hover:text-[#d6491f]"
+              >
+                <Facebook className="h-4 w-4 text-[#77705f]" />
+                Facebook
+                <ArrowUpRight className="h-3 w-3 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
+              </a>
+
+              <a
+                href="#"
+                className="group inline-flex items-center gap-2 text-sm text-[#c9c1b0] transition-colors hover:text-[#d6491f]"
+              >
+                <Instagram className="h-4 w-4 text-[#77705f]" />
+                Instagram
+                <ArrowUpRight className="h-3 w-3 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
+              </a>
             </div>
           </div>
         </div>
 
-        {/* FOOTER BASELINE */}
-        <div className="pt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-          <div className="flex items-center gap-3">
+        {/* Footer bottom */}
+        <div className="flex flex-col gap-5 border-t border-[#25231e] py-7 text-xs text-[#756e60] sm:flex-row sm:items-center sm:justify-between">
+          <Link href="/" className="inline-flex items-center gap-3">
             <Logo
-              size="sm"
               showWordmark={false}
-              className="w-8 h-8 rounded-lg"
+              className="h-8 w-8"
             />
 
-            <span
-              className="font-mono text-[9px] tracking-[0.16em]"
-              style={{ color: "#8D836C" }}
-            >
+            <span className="font-mono text-[10px] font-bold tracking-[0.16em] text-[#eee7d8]">
               INRASTUDIO
             </span>
-          </div>
+          </Link>
 
-          <p
-            className="font-mono text-[9px] tracking-[0.08em]"
-            style={{ color: "#77705F" }}
-          >
-            © 2026 INRASTUDIO AI MARKETING STUDIO.
+          <p className="font-mono text-[10px] tracking-wide">
+            © 2026 INRASTUDIO AI Marketing Studio.
           </p>
         </div>
       </div>
     </footer>
   );
 }
-
 const termsSections = [
   {
     number: "01",
