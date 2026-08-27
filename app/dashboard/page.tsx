@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Home, LayoutTemplate, ImageIcon, Crown, Plus,
   Video, Type, X, History, Upload, Menu, Loader2, AlertCircle, Pencil, Clock,
-  LogOut, User,
+  LogOut, User, ArrowLeft,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
@@ -63,7 +63,7 @@ interface DashboardData {
 }
 
 /* ────────────────────────────────────────────────────────────────
-   DESIGN TOKENS — "Job Ticket" system.
+   DESIGN TOKENS — "Campaign Ticket" system.
    Everything below is deliberately not navy/purple/glass: it borrows
    from print-shop dockets — kraft paper, stamps, perforation, mono
    labels — because the product's own output is a printed flyer.
@@ -254,8 +254,21 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
           </Link>
           <button className="lg:hidden p-1" style={{ color: textMuted }} onClick={onClose}><X className="w-5 h-5" /></button>
         </div>
-        <nav className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-1">
-          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium" style={{ background: "rgba(232,163,61,0.12)", color: textPrimary }}>
+
+        {/* Explicit way back to the marketing site — separate from the
+            in-app "Dashboard" link below, since that one stays inside the app. */}
+        <div className="px-6 pb-4">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.15em]"
+            style={{ color: textMuted }}
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> BACK TO HOME
+          </Link>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto py-2 px-4 flex flex-col gap-1" style={{ borderTop: `1px solid ${rule}` }}>
+          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 mt-4 rounded-xl font-medium" style={{ background: "rgba(232,163,61,0.12)", color: textPrimary }}>
             <Home className="w-5 h-5" style={{ color: marigold }} /> Dashboard
           </Link>
           <Link href="/dashboard/templates" className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors" style={{ color: textMuted }}>
@@ -273,7 +286,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Small building blocks specific to the "job ticket" concept
+// Small building blocks specific to the "campaign ticket" concept
 // ─────────────────────────────────────────────────────────────────────────────
 function Stamp({ value, label }: { value: string; label: string }) {
   return (
@@ -437,7 +450,10 @@ export default function DashboardPage() {
         <main className="flex-1 lg:ml-64 relative min-h-screen w-full max-w-full overflow-x-hidden">
 
           <header className="lg:hidden flex items-center justify-between p-4 sticky top-0 z-30" style={{ background: `${ink}cc`, borderBottom: `1px solid ${rule}`, backdropFilter: "blur(6px)" }}>
-            <Logo className="w-8 h-8 rounded-md" />
+            <Link href="/" className="flex items-center gap-2" style={{ color: textMuted }}>
+              <ArrowLeft className="w-4 h-4" />
+              <Logo className="w-8 h-8 rounded-md" />
+            </Link>
             <button onClick={() => setSidebarOpen(true)} className="p-3 -m-3" style={{ color: textMuted }}>
               <Menu className="w-6 h-6" />
             </button>
@@ -555,7 +571,7 @@ export default function DashboardPage() {
                   {isWorking ? (
                     <><Loader2 className="w-5 h-5 animate-spin" /> {phase === "uploading" ? "Sending…" : "Building…"}</>
                   ) : (
-                    <><Plus className="w-5 h-5" /> Start the job</>
+                    <><Plus className="w-5 h-5" /> Start the campaign</>
                   )}
                 </button>
               </div>
@@ -577,7 +593,7 @@ export default function DashboardPage() {
                 )}
               </div>
               <div className="p-5 sm:p-6" style={{ borderTop: `1px dashed ${paperMuted}`, borderLeft: `1px dashed ${paperMuted}` }}>
-                <p className="text-xs uppercase tracking-wide" style={{ color: "#5a523f" }}>Assets made so far</p>
+                <p className="text-xs uppercase tracking-wide" style={{ color: "#5a523f" }}>Flyers made so far</p>
                 {dashboardLoading ? (
                   <div className="h-8 w-16 rounded-lg mt-2 animate-pulse" style={{ background: paperMuted }} />
                 ) : (
@@ -630,9 +646,9 @@ export default function DashboardPage() {
               ) : recentCampaigns.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 sm:py-16 rounded-2xl" style={{ background: panel, border: `1px dashed ${rule}` }}>
                   <History className="w-8 h-8 mb-4" style={{ color: textMuted }} />
-                  <h3 className="text-base sm:text-lg font-semibold mb-2">No jobs yet</h3>
+                  <h3 className="text-base sm:text-lg font-semibold mb-2">No campaigns yet</h3>
                   <p className="text-sm max-w-sm text-center px-4" style={{ color: textMuted }}>
-                    Start your first job above and it will show up here — flyer, caption and video together.
+                    Start your first campaign above and it will show up here — flyer, caption and video together.
                   </p>
                 </div>
               ) : (

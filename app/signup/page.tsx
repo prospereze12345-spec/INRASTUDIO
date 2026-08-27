@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ArrowLeft, Loader2, CheckCircle2, ImageIcon, Type, Video, ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { apiFetch } from "@/lib/auth";
-import { Loader2, Mail, User, Globe, CheckCircle, Sparkles, PenTool, Video, Zap } from "lucide-react";
 
-// ─── Design tokens (same as dashboard) ────────────────────────────
+/* Same "Campaign Ticket" token system as login/dashboard. */
 const ink = "#16140F";
 const panel = "#1D1A14";
 const rule = "#38321F";
@@ -17,8 +17,18 @@ const signal = "#D6491F";
 const textPrimary = "#F3ECDD";
 const textMuted = "#8C8368";
 
+const COUNTRIES = [
+  "Nigeria", "United Kingdom", "United States", "Ghana", "Kenya", "South Africa", "Other",
+];
+
+const INCLUDED = [
+  { icon: ImageIcon, label: "Flyer design" },
+  { icon: Type,      label: "Social caption" },
+  { icon: Video,     label: "Promo video" },
+];
+
 export default function SignupPage() {
-  const [name, setName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [country, setCountry] = useState("");
   const [error, setError] = useState("");
@@ -27,206 +37,184 @@ export default function SignupPage() {
 
   async function handleSubmit() {
     if (loading) return;
+
     setError("");
-    if (!name.trim() || !email.trim() || !country.trim()) {
-      setError("All fields are required.");
-      return;
-    }
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = fullName.trim();
+
+    if (!cleanName) { setError("Your name is required."); return; }
+    if (!cleanEmail) { setError("Email is required."); return; }
+    if (!country) { setError("Please select a country."); return; }
+
     setLoading(true);
+
     try {
+      // NOTE: the original code only included a login endpoint. This assumes
+      // a matching signup endpoint that also issues a magic link — swap the
+      // path/body below for whatever your API actually expects.
       await apiFetch("/api/auth/signup/", {
         method: "POST",
-        body: JSON.stringify({ full_name: name, email: email.trim().toLowerCase(), country: country.trim() }),
+        body: JSON.stringify({ full_name: cleanName, email: cleanEmail, country }),
       });
+
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 4000);
-      // After success, optionally redirect to login
+      setTimeout(() => setSuccess(false), 3000);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Signup failed. Please try again.");
+      setError(err instanceof Error ? err.message : "Sign up failed. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <>
+    <div className="min-h-screen font-sans flex flex-col relative" style={{ background: ink, color: textPrimary }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
         .font-display { font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif; }
         .font-mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
-        .job-btn { transition: transform .15s ease; }
-        .job-btn:hover:not(:disabled) { transform: translateY(-2px); }
-        .job-btn:active:not(:disabled) { transform: translateY(0); }
-        .stamp { border: 2px dashed ${signal}; transform: rotate(-6deg); }
       `}</style>
 
-      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: ink }}>
-        <div className="w-full max-w-4xl rounded-3xl overflow-hidden" style={{ background: panel, border: `1px solid ${rule}` }}>
+      {/* Toast */}
+      <div
+        role="status"
+        aria-live="polite"
+        className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl transition-all duration-500 ${
+          success ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3 pointer-events-none"
+        }`}
+        style={{ background: panel, border: `1px solid ${marigold}55`, color: textPrimary }}
+      >
+        <CheckCircle2 className="w-5 h-5 shrink-0" style={{ color: marigold }} />
+        <div>
+          <p className="font-semibold text-sm">Account ticket raised</p>
+          <p className="font-mono text-[11px] mt-0.5" style={{ color: textMuted }}>CHECK YOUR INBOX TO CONFIRM</p>
+        </div>
+      </div>
 
-          {/* ─── Toast ─── */}
-          <div
-            className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl transition-all duration-500 ${
-              success ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3 pointer-events-none"
-            }`}
-            style={{ background: paper, border: `1px solid ${paperMuted}`, color: ink }}
-          >
-            <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: "#5FA05F", color: ink }}>
-              <CheckCircle className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="font-semibold text-sm">Account created!</p>
-              <p className="text-xs" style={{ color: "#6b6250" }}>Check your email to verify.</p>
-            </div>
-          </div>
+      {/* Nav */}
+      <nav className="p-6 flex items-center">
+        <Link href="/" className="inline-flex items-center gap-3" style={{ color: textMuted }}>
+          <ArrowLeft className="w-4 h-4" />
+          <Logo className="w-8 h-8 rounded-lg" />
+          <span className="font-mono text-[11px] tracking-[0.15em]">BACK TO HOME</span>
+        </Link>
+      </nav>
 
-          {/* ─── Ticket header ─── */}
-          <div className="p-6 sm:p-8 pb-5 flex flex-col sm:flex-row justify-between items-start gap-4">
-            <div>
-              <span className="font-mono text-[11px] tracking-[0.2em]" style={{ color: textMuted }}>
-                CAMPAIGN TICKET · {new Date().toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short" }).toUpperCase()}
-              </span>
-              <h1 className="font-display text-2xl sm:text-3xl font-semibold mt-1.5 leading-tight" style={{ color: textPrimary }}>
-                Start your free trial
-              </h1>
-              <p className="mt-2 text-sm max-w-sm" style={{ color: textMuted }}>
-                Create an account and start making flyers in minutes.
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 py-10">
+        <div className="w-full max-w-4xl rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-2" style={{ background: panel, border: `1px solid ${rule}` }}>
+
+          {/* LEFT — the form */}
+          <div className="p-8 sm:p-10 flex flex-col justify-center">
+            <span className="font-mono text-xs tracking-[0.2em]" style={{ color: textMuted }}>NEW ACCOUNT TICKET</span>
+            <h1 className="font-display text-2xl sm:text-3xl font-semibold mt-2 leading-tight">
+              Open your account.
+            </h1>
+            <p className="mt-3 text-sm sm:text-base max-w-sm" style={{ color: textMuted }}>
+              A few details, then we&apos;ll send a link to confirm — same as logging in, no password to set.
+            </p>
+
+            {error && (
+              <p className="mt-6 text-sm px-4 py-3 rounded-xl" style={{ background: "rgba(214,73,31,0.1)", border: `1px solid rgba(214,73,31,0.35)`, color: signal }}>
+                {error}
               </p>
-            </div>
-            <div className="stamp w-24 h-24 sm:w-28 sm:h-28 rounded-full flex flex-col items-center justify-center shrink-0">
-              <span className="font-mono font-bold text-2xl sm:text-3xl" style={{ color: signal }}>✨</span>
-              <span className="font-mono text-[9px] tracking-widest mt-1 text-center px-2" style={{ color: signal }}>FREE</span>
-            </div>
-          </div>
+            )}
 
-          {/* ─── Perforation ─── */}
-          <div className="relative h-px mx-6 sm:mx-8">
-            <div style={{ borderTop: `2px dashed ${rule}` }} />
-            <div className="absolute -left-[10px] -top-[9px] w-[18px] h-[18px] rounded-full" style={{ background: ink }} />
-            <div className="absolute -right-[10px] -top-[9px] w-[18px] h-[18px] rounded-full" style={{ background: ink }} />
-          </div>
-
-          {/* ─── Body ─── */}
-          <div className="p-6 sm:p-8 pt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
-
-              {/* Left – Form */}
-              <div className="lg:col-span-3 space-y-4">
-                <div className="space-y-1.5">
-                  <label className="font-mono text-[11px] tracking-[0.2em]" style={{ color: textMuted }} htmlFor="signupName">
+            <div className="mt-6 rounded-2xl p-1" style={{ background: paper }}>
+              <div className="rounded-xl p-4 sm:p-5 flex flex-col gap-4" style={{ border: `2px dashed ${paperMuted}` }}>
+                <div>
+                  <label className="font-mono text-[11px] tracking-[0.15em]" style={{ color: "#6b6250" }} htmlFor="fullName">
                     FULL NAME
                   </label>
                   <input
-                    id="signupName"
+                    id="fullName"
                     type="text"
-                    placeholder="John Doe"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border-2 outline-none transition-all"
-                    style={{ background: paper, borderColor: paperMuted, color: ink }}
-                    onFocus={(e) => e.currentTarget.style.borderColor = marigold}
-                    onBlur={(e) => e.currentTarget.style.borderColor = paperMuted}
+                    placeholder="Ada Obi"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full mt-1.5 bg-transparent outline-none text-lg font-medium placeholder:opacity-40"
+                    style={{ color: ink }}
                   />
                 </div>
-
-                <div className="space-y-1.5">
-                  <label className="font-mono text-[11px] tracking-[0.2em]" style={{ color: textMuted }} htmlFor="signupEmail">
+                <div style={{ borderTop: `1px dashed ${paperMuted}` }} className="pt-4">
+                  <label className="font-mono text-[11px] tracking-[0.15em]" style={{ color: "#6b6250" }} htmlFor="email">
                     EMAIL ADDRESS
                   </label>
                   <input
-                    id="signupEmail"
+                    id="email"
                     type="email"
-                    placeholder="john@example.com"
+                    placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border-2 outline-none transition-all"
-                    style={{ background: paper, borderColor: paperMuted, color: ink }}
-                    onFocus={(e) => e.currentTarget.style.borderColor = marigold}
-                    onBlur={(e) => e.currentTarget.style.borderColor = paperMuted}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
+                    className="w-full mt-1.5 bg-transparent outline-none text-lg font-medium placeholder:opacity-40"
+                    style={{ color: ink }}
                   />
                 </div>
-
-                <div className="space-y-1.5">
-                  <label className="font-mono text-[11px] tracking-[0.2em]" style={{ color: textMuted }} htmlFor="signupCountry">
+                <div style={{ borderTop: `1px dashed ${paperMuted}` }} className="pt-4">
+                  <label className="font-mono text-[11px] tracking-[0.15em]" style={{ color: "#6b6250" }} htmlFor="country">
                     COUNTRY
                   </label>
-                  <input
-                    id="signupCountry"
-                    type="text"
-                    placeholder="United Kingdom"
+                  <select
+                    id="country"
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border-2 outline-none transition-all"
-                    style={{ background: paper, borderColor: paperMuted, color: ink }}
-                    onFocus={(e) => e.currentTarget.style.borderColor = marigold}
-                    onBlur={(e) => e.currentTarget.style.borderColor = paperMuted}
-                  />
+                    className="w-full mt-1.5 bg-transparent outline-none text-lg font-medium"
+                    style={{ color: country ? ink : "#6b6250" }}
+                  >
+                    <option value="" disabled>Select your country</option>
+                    {COUNTRIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
                 </div>
-
-                {error && (
-                  <p className="text-sm px-4 py-3 rounded-xl" style={{ background: "rgba(214,73,31,0.08)", border: `1px solid rgba(214,73,31,0.25)`, color: signal }}>
-                    {error}
-                  </p>
-                )}
-
-                <button
-                  onClick={handleSubmit}
-                  disabled={loading || !name.trim() || !email.trim() || !country.trim()}
-                  className="job-btn w-full py-4 rounded-full font-bold flex items-center justify-center gap-2 disabled:opacity-50"
-                  style={{ background: loading || !name.trim() || !email.trim() || !country.trim() ? "#5A4A22" : marigold, color: ink }}
-                >
-                  {loading ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Creating…</>
-                  ) : (
-                    "Create account"
-                  )}
-                </button>
-
-                <p className="text-center text-sm" style={{ color: textMuted }}>
-                  Already have an account?{" "}
-                  <Link href="/login" className="font-semibold hover:underline" style={{ color: marigold }}>
-                    Log in
-                  </Link>
-                </p>
               </div>
+            </div>
 
-              {/* Right – Perks */}
-              <div className="lg:col-span-2 space-y-3 pt-1 lg:border-l lg:pl-6" style={{ borderColor: rule }}>
-                <p className="font-mono text-[11px] tracking-[0.2em] mb-2" style={{ color: textMuted }}>WHAT YOU GET</p>
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !email.trim() || !fullName.trim() || !country}
+              className="flex items-center justify-center gap-2 w-full mt-5 px-7 py-4 rounded-full font-bold transition-transform hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed min-h-[44px]"
+              style={{
+                background: loading || !email.trim() || !fullName.trim() || !country ? "#5A4A22" : marigold,
+                color: loading || !email.trim() || !fullName.trim() || !country ? "#8C7C52" : ink,
+              }}
+            >
+              {loading
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> Raising your ticket…</>
+                : "Create my account"
+              }
+            </button>
 
-                {[
-                  { icon: PenTool, label: "Flyer designs", desc: "Professional templates for any product." },
-                  { icon: Sparkles, label: "AI captions", desc: "Ready‑to‑post copy in seconds." },
-                  { icon: Video, label: "Promo videos", desc: "Short clips that sell." },
-                  { icon: Zap, label: "5 free campaigns", desc: "No card required to start." },
-                ].map(({ icon: Icon, label, desc }) => (
-                  <div key={label} className="flex items-start gap-3 p-3 rounded-xl transition-colors" style={{ border: `1px solid rgba(255,255,255,0.06)`, background: "rgba(255,255,255,0.03)" }}>
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: marigold, color: ink }}>
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm" style={{ color: textPrimary }}>{label}</p>
-                      <p className="text-xs" style={{ color: textMuted }}>{desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <p className="mt-6 text-sm" style={{ color: textMuted }}>
+              Already have one?{" "}
+              <Link href="/login" className="font-semibold" style={{ color: marigold }}>
+                Log in instead
+              </Link>
+            </p>
+          </div>
 
+          {/* RIGHT — what's waiting once they're in, framed like the
+              dashboard's "this campaign includes" checklist */}
+          <div className="hidden lg:flex flex-col justify-center p-10" style={{ borderLeft: `1px dashed ${rule}` }}>
+            <span className="font-mono text-xs tracking-[0.2em]" style={{ color: textMuted }}>WHAT'S WAITING FOR YOU</span>
+            <h2 className="font-display text-xl font-semibold mt-3">One photo in, a full campaign out.</h2>
+            <p className="text-sm mt-2" style={{ color: textMuted }}>
+              Every account starts on a free trial. Upload a product photo and your first campaign includes:
+            </p>
+            <div className="mt-6 flex flex-col gap-1">
+              {INCLUDED.map(({ icon: Icon, label }) => (
+                <div key={label} className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: ink, border: `1px solid ${rule}` }}>
+                  <Icon className="w-4 h-4 shrink-0" style={{ color: marigold }} />
+                  <span className="text-sm font-medium">{label}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 mt-6 font-mono text-[11px] tracking-[0.1em]" style={{ color: textMuted }}>
+              <ShieldCheck className="w-3.5 h-3.5" style={{ color: marigold }} /> NO CARD NEEDED TO START
             </div>
           </div>
 
-          {/* ─── Footer perforation ─── */}
-          <div className="relative h-px mx-6 sm:mx-8 mt-1">
-            <div style={{ borderTop: `2px dashed ${rule}` }} />
-            <div className="absolute -left-[10px] -top-[9px] w-[18px] h-[18px] rounded-full" style={{ background: ink }} />
-            <div className="absolute -right-[10px] -top-[9px] w-[18px] h-[18px] rounded-full" style={{ background: ink }} />
-          </div>
-
-          <div className="px-6 sm:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-mono tracking-wide" style={{ color: "#5A523F" }}>
-            <span>CAMPAIGN TICKET · SIGNUP</span>
-            <span>v1.0 · NO CREDIT CARD NEEDED</span>
-          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
