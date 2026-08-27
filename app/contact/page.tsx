@@ -71,41 +71,7 @@ function Footer() {
             borderColor: "rgba(238,231,216,0.12)",
           }}
         >
-          <div>
-            <p
-              className="font-mono text-[9px] tracking-[0.18em] mb-5"
-              style={{ color: "#77705F" }}
-            >
-              (01) EXPLORE
-            </p>
-
-            <div className="flex flex-col gap-3">
-              <Link
-                href="/pricing"
-                className="font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
-              >
-                Pricing
-              </Link>
-
-              <Link
-                href="/dashboard"
-                className="font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
-              >
-                Dashboard
-              </Link>
-
-              <Link
-                href="/contact"
-                className="font-display text-base hover:opacity-70 transition-opacity"
-                style={{ color: paper }}
-              >
-                Contact
-              </Link>
-            </div>
-          </div>
-
+          
           <div>
             <p
               className="font-mono text-[9px] tracking-[0.18em] mb-5"
