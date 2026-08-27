@@ -445,7 +445,7 @@ export default function DashboardPage() {
 
           <div className="p-3 sm:p-6 md:p-10 max-w-6xl mx-auto space-y-10 sm:space-y-14 w-full max-w-full">
 
-            {/* ── JOB TICKET: greeting + create-campaign as one torn ticket ── */}
+            {/* ── CAMPAIGN TICKET: greeting + create-campaign as one torn ticket ── */}
             <section className="rounded-3xl overflow-hidden" style={{ background: panel, border: `1px solid ${rule}` }}>
 
               {/* stub */}
@@ -459,7 +459,7 @@ export default function DashboardPage() {
                   ) : (
                     <>
                       <span className="font-mono text-xs tracking-[0.2em]" style={{ color: textMuted }}>
-                        JOB TICKET — {new Date().toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short" }).toUpperCase()}
+                        CAMPAIGN TICKET — {new Date().toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short" }).toUpperCase()}
                       </span>
                       <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-semibold mt-2 leading-tight break-words">
                         {greeting}, {getFirstName(user?.full_name ?? "")}.<br className="hidden sm:block" /> Let&apos;s get something printed.
@@ -473,7 +473,7 @@ export default function DashboardPage() {
                 {!dashboardLoading && dashboardData && (
                   <Stamp
                     value={getCampaignsDisplay(dashboardData.campaigns_remaining)}
-                    label="JOBS LEFT"
+                    label="CAMPAIGNS LEFT"
                   />
                 )}
               </div>
@@ -485,7 +485,7 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
 
                   <div>
-                    <p className="font-mono text-[11px] tracking-[0.2em]" style={{ color: textMuted }}>THIS JOB INCLUDES</p>
+                    <p className="font-mono text-[11px] tracking-[0.2em]" style={{ color: textMuted }}>THIS CAMPAIGN INCLUDES</p>
                     <div className="mt-3 flex flex-col gap-1">
                       <label className="flex items-center gap-3 px-2 py-2.5 rounded-lg opacity-90 cursor-not-allowed">
                         <input type="checkbox" className="w-4 h-4 shrink-0 pointer-events-none" checked readOnly disabled style={{ accentColor: marigold }} />
@@ -577,7 +577,7 @@ export default function DashboardPage() {
                 )}
               </div>
               <div className="p-5 sm:p-6" style={{ borderTop: `1px dashed ${paperMuted}`, borderLeft: `1px dashed ${paperMuted}` }}>
-                <p className="text-xs uppercase tracking-wide" style={{ color: "#5a523f" }}>Flyers made so far</p>
+                <p className="text-xs uppercase tracking-wide" style={{ color: "#5a523f" }}>Assets made so far</p>
                 {dashboardLoading ? (
                   <div className="h-8 w-16 rounded-lg mt-2 animate-pulse" style={{ background: paperMuted }} />
                 ) : (
