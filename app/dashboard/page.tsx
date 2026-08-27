@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
-   Home, LayoutTemplate, Image as ImageIcon, Settings, Crown, Plus,
+  Home, LayoutTemplate, ImageIcon, Crown, Plus,
   Video, Type, X, History, Upload, Menu, Loader2, AlertCircle, Pencil, Clock,
-  MonitorSmartphone, User,   // ← add User
+  LogOut, User,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
-
 import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
 import {
   LUXURY_VARIATIONS,
@@ -35,9 +34,6 @@ interface RecentCampaign {
   created_at: string;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
 interface UserProfile {
   id: string;
   email: string;
@@ -65,6 +61,23 @@ interface DashboardData {
   start_date: string;
   end_date: string | null;
 }
+
+/* ────────────────────────────────────────────────────────────────
+   DESIGN TOKENS — "Job Ticket" system.
+   Everything below is deliberately not navy/purple/glass: it borrows
+   from print-shop dockets — kraft paper, stamps, perforation, mono
+   labels — because the product's own output is a printed flyer.
+   Keep these in one place so the palette never drifts per-section.
+   ──────────────────────────────────────────────────────────────── */
+const ink = "#16140F";
+const panel = "#1D1A14";
+const rule = "#38321F";
+const paper = "#EDE6D6";
+const paperMuted = "#C9BFA4";
+const marigold = "#E8A33D";
+const signal = "#D6491F";
+const textPrimary = "#F3ECDD";
+const textMuted = "#8C8368";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Token helpers
@@ -152,13 +165,8 @@ function timeAgo(iso: string): string {
   if (days < 7) return `${days}d ago`;
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0][0].toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
 function getFirstName(fullName: string): string {
-  return fullName.trim().split(/\s+/)[0];
+  return fullName.trim().split(/\s+/)[0] || "";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -168,11 +176,60 @@ type UploadPhase = "idle" | "uploading" | "processing" | "done" | "error";
 
 const PHASE_LABEL: Record<UploadPhase, string> = {
   idle:       "",
-  uploading:  "Removing background…",
-  processing: "AI is generating your assets…",
-  done:       "Ready! Redirecting…",
-  error:      "Something went wrong. Please try again.",
+  uploading:  "Sending your photo across…",
+  processing: "Putting your flyer, caption and video together…",
+  done:       "Done — taking you to it now…",
+  error:      "That didn't go through. Please try again.",
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ScaledPreview — renders a template at its true design size, then scales the
+// whole thing down as one rigid block. This is the fix for thumbnails that
+// look cramped or overlapping: nothing ever reflows at a smaller width, it's
+// just optically shrunk, exactly like a print proof reduced on a photocopier.
+//
+// TEMPLATE_CANVAS_W / H below must match the pixel size your template
+// components are actually built at. If LuxuryProductTemplate / PremiumBrand
+// Template use a different intrinsic canvas, change these two numbers only —
+// nothing else in this component needs to know about it.
+// ─────────────────────────────────────────────────────────────────────────────
+const TEMPLATE_CANVAS_W = 1000;
+const TEMPLATE_CANVAS_H = 1250;
+
+function ScaledPreview({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.25);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => setScale(el.offsetWidth / TEMPLATE_CANVAS_W);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className="relative w-full overflow-hidden rounded-lg"
+      style={{ aspectRatio: `${TEMPLATE_CANVAS_W}/${TEMPLATE_CANVAS_H}` }}
+    >
+      <div
+        className="absolute top-0 left-0 pointer-events-none select-none"
+        style={{
+          width: TEMPLATE_CANVAS_W,
+          height: TEMPLATE_CANVAS_H,
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sidebar
@@ -183,34 +240,60 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
       <AnimatePresence>
         {isOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#030712]/80 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-black/70 z-40 lg:hidden"
             onClick={onClose} />
         )}
       </AnimatePresence>
-      <motion.aside className={`fixed top-0 left-0 bottom-0 w-64 bg-[#0a1128] border-r border-white/5 z-50 flex flex-col transition-transform lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <motion.aside
+        className={`fixed top-0 left-0 bottom-0 w-64 z-50 flex flex-col transition-transform lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+        style={{ background: panel, borderRight: `1px solid ${rule}` }}
+      >
         <div className="p-6 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Logo className="w-8 h-8 rounded-lg" />
           </Link>
-          <button className="lg:hidden text-slate-400 hover:text-white" onClick={onClose}><X className="w-5 h-5" /></button>
+          <button className="lg:hidden p-1" style={{ color: textMuted }} onClick={onClose}><X className="w-5 h-5" /></button>
         </div>
         <nav className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-1">
-          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 text-white font-medium">
-            <Home className="w-5 h-5 text-cyan-400" /> Dashboard
+          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium" style={{ background: "rgba(232,163,61,0.12)", color: textPrimary }}>
+            <Home className="w-5 h-5" style={{ color: marigold }} /> Dashboard
           </Link>
-          <Link href="/dashboard/templates" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white font-medium transition-colors">
+          <Link href="/dashboard/templates" className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors" style={{ color: textMuted }}>
             <LayoutTemplate className="w-5 h-5" /> Templates
           </Link>
-          
-          
         </nav>
-        <div className="p-4 border-t border-white/5">
-          <Link href="/pricing" className="flex items-center gap-3 px-4 py-3 mb-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-transparent hover:bg-amber-500/20 text-amber-400 font-medium transition-colors border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]">
-            <Crown className="w-5 h-5" /> Upgrade to Pro
+        <div className="p-4" style={{ borderTop: `1px solid ${rule}` }}>
+          <Link href="/pricing" className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors" style={{ background: "rgba(232,163,61,0.08)", color: marigold, border: `1px solid rgba(232,163,61,0.3)` }}>
+            <Crown className="w-5 h-5" /> Move up to Pro
           </Link>
         </div>
       </motion.aside>
     </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Small building blocks specific to the "job ticket" concept
+// ─────────────────────────────────────────────────────────────────────────────
+function Stamp({ value, label }: { value: string; label: string }) {
+  return (
+    <div
+      className="w-28 h-28 sm:w-32 sm:h-32 rounded-full flex flex-col items-center justify-center shrink-0"
+      style={{ border: `2px dashed ${signal}`, transform: "rotate(-6deg)" }}
+    >
+      <span className="font-mono font-bold text-2xl sm:text-3xl leading-none" style={{ color: signal }}>{value}</span>
+      <span className="font-mono text-[9px] sm:text-[10px] tracking-widest mt-1 text-center px-2" style={{ color: signal }}>{label}</span>
+    </div>
+  );
+}
+
+function Perforation() {
+  return (
+    <div className="relative h-px mx-8 sm:mx-10">
+      <div style={{ borderTop: `2px dashed ${rule}` }} />
+      <div className="absolute -left-[10px] -top-[9px] w-[18px] h-[18px] rounded-full" style={{ background: ink }} />
+      <div className="absolute -right-[10px] -top-[9px] w-[18px] h-[18px] rounded-full" style={{ background: ink }} />
+    </div>
   );
 }
 
@@ -234,13 +317,10 @@ export default function DashboardPage() {
   const { user, loading } = useUser();
   const greeting = useGreeting();
 
-  // ─── Logout handler ────────────────────────────────────────────────────────
   const handleLogout = async () => {
     await fetch("/api/auth/logout/", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${getAccessToken()}`,
-      },
+      headers: { Authorization: `Bearer ${getAccessToken()}` },
     });
     localStorage.clear();
     window.location.replace("/login");
@@ -251,7 +331,6 @@ export default function DashboardPage() {
       if (!user) return;
       try {
         const data = await apiFetch<RecentCampaign[]>('/api/campaign/recent/');
-        console.log("recentCampaigns response:", data);
         setRecentCampaigns(data);
       } catch (error) {
         console.error('Error fetching recent campaigns:', error);
@@ -260,9 +339,7 @@ export default function DashboardPage() {
         setRecentCampaignsLoading(false);
       }
     }
-    if (user) {
-      fetchRecentCampaigns();
-    }
+    if (user) fetchRecentCampaigns();
   }, [user]);
 
   useEffect(() => {
@@ -274,14 +351,12 @@ export default function DashboardPage() {
         setDashboardError(null);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        setDashboardError(error instanceof Error ? error.message : 'Failed to load dashboard data');
+        setDashboardError(error instanceof Error ? error.message : 'Could not load your account details');
       } finally {
         setDashboardLoading(false);
       }
     }
-    if (user) {
-      fetchDashboardData();
-    }
+    if (user) fetchDashboardData();
   }, [user]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -295,43 +370,31 @@ export default function DashboardPage() {
 
   const handleStartGenerating = async () => {
     if (!imageFile) {
-      alert("Please upload a product image to continue.");
+      alert("Add a product photo first — that's what we build the flyer from.");
       return;
     }
-
     try {
       setPhase("uploading");
       const { job_id } = await createCampaignJob(imageFile);
-
       setPhase("processing");
       const result = await pollUntilDone(job_id, {
         intervalMs: 2000,
         maxAttempts: 90,
-        onStatus: (status: JobStatus) => {
-          if (status === "processing") setPhase("processing");
-        },
+        onStatus: (status: JobStatus) => { if (status === "processing") setPhase("processing"); },
       });
-
       saveJobResult(result);
       setPhase("done");
-      apiFetch<RecentCampaign[]>('/api/campaign/recent/')
-        .then(setRecentCampaigns)
-        .catch(() => {});
-      
+      apiFetch<RecentCampaign[]>('/api/campaign/recent/').then(setRecentCampaigns).catch(() => {});
       try {
         await apiFetch('/api/pricing/track_generation/', {
           method: 'POST',
-          body: JSON.stringify({
-            campaign_id: job_id,
-            action: 'generated'
-          }),
+          body: JSON.stringify({ campaign_id: job_id, action: 'generated' }),
         });
         const updatedData = await apiFetch<DashboardData>('/api/pricing/dashboard/');
         setDashboardData(updatedData);
       } catch (trackError) {
         console.error('Error tracking generation:', trackError);
       }
-      
       router.push("/dashboard/templates");
     } catch (err: any) {
       console.error("[Campaign]", err);
@@ -343,222 +406,116 @@ export default function DashboardPage() {
   const isWorking = phase === "uploading" || phase === "processing";
 
   const getCampaignsDisplay = (remaining: number | string) => {
-    if (remaining === Infinity || remaining === 'Infinity' || remaining === 999999) {
-      return '♾️';
-    }
-    if (typeof remaining === 'number') {
-      return remaining.toString();
-    }
-    return remaining;
+    if (remaining === Infinity || remaining === 'Infinity' || remaining === 999999) return '∞';
+    return typeof remaining === 'number' ? remaining.toString() : remaining;
   };
-
   const getPlanDisplay = (planType: string) => {
-    if (planType === 'free') return 'Free Trial';
-    if (planType === 'payg') return 'Pay-as-you-go';
-    if (planType === 'pro') return 'Pro Plan';
+    if (planType === 'free') return 'Free trial';
+    if (planType === 'payg') return 'Pay as you go';
+    if (planType === 'pro') return 'Pro plan';
     return planType;
-  };
-
-  const canGenerate = () => {
-    if (!dashboardData) return false;
-    const remaining = dashboardData.campaigns_remaining;
-    if (remaining === Infinity || remaining === 'Infinity' || remaining === 999999) {
-      return true;
-    }
-    return typeof remaining === 'number' && remaining > 0;
   };
 
   return (
     <>
       <style>{`
-        button, a, label, [role="button"] {
-          touch-action: manipulation;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+        .font-display { font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif; }
+        .font-mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+        button, a, label, [role="button"] { touch-action: manipulation; }
         html, body { overflow-x: hidden; max-width: 100%; }
+        .job-btn { transition: transform .15s ease; }
+        .job-btn:hover:not(:disabled) { transform: translateY(-2px); }
+        .job-btn:active:not(:disabled) { transform: translateY(0); }
+        .lift:hover { transform: translateY(-3px); }
+        .lift { transition: transform .18s ease, border-color .18s ease; }
       `}</style>
 
-      <div className="min-h-screen bg-[#030712] text-slate-50 font-sans selection:bg-cyan-500 selection:text-white flex overflow-x-hidden">
+      <div className="min-h-screen font-sans flex overflow-x-hidden" style={{ background: ink, color: textPrimary }}>
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <main className="flex-1 lg:ml-64 relative min-h-screen w-full max-w-full overflow-x-hidden">
 
-          <header className="lg:hidden flex items-center justify-between p-4 border-b border-white/5 bg-[#0a1128]/80 backdrop-blur-md sticky top-0 z-30">
+          <header className="lg:hidden flex items-center justify-between p-4 sticky top-0 z-30" style={{ background: `${ink}cc`, borderBottom: `1px solid ${rule}`, backdropFilter: "blur(6px)" }}>
             <Logo className="w-8 h-8 rounded-md" />
-            <button onClick={() => setSidebarOpen(true)} className="p-3 -m-3 text-slate-300">
+            <button onClick={() => setSidebarOpen(true)} className="p-3 -m-3" style={{ color: textMuted }}>
               <Menu className="w-6 h-6" />
             </button>
           </header>
 
-          <div className="p-3 sm:p-6 md:p-10 max-w-6xl mx-auto space-y-8 sm:space-y-12 w-full max-w-full">
+          <div className="p-3 sm:p-6 md:p-10 max-w-6xl mx-auto space-y-10 sm:space-y-14 w-full max-w-full">
 
-            {/* ── Greeting ── */}
-            <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
-              <div className="min-w-0">
-                {loading ? (
-                  <div className="animate-pulse space-y-2">
-                    <div className="h-3 w-20 bg-white/10 rounded-full" />
-                    <div className="h-9 w-72 bg-white/10 rounded-xl" />
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-slate-400 text-sm font-medium uppercase tracking-widest mb-1">Overview</p>
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-white tracking-tight break-words">
-                      {greeting}, {getFirstName(user?.full_name ?? "")} 
-                    </h1>
-                  </>
-                )}
-              </div>
-              <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden" title={user?.full_name ?? ""}>
-  {loading ? (
-    <span className="w-4 h-4 bg-slate-700 rounded-full animate-pulse" />
-  ) : (
-    <User className="w-5 h-5 text-slate-400" strokeWidth={1.75} />
-  )}
-</div>
-            </section>
+            {/* ── JOB TICKET: greeting + create-campaign as one torn ticket ── */}
+            <section className="rounded-3xl overflow-hidden" style={{ background: panel, border: `1px solid ${rule}` }}>
 
-            {/* ── Stats ── */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              <div className="bg-white/[0.03] border border-white/5 backdrop-blur-md p-4 sm:p-6 rounded-3xl">
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <h3 className="text-slate-400 font-medium text-sm sm:text-base">Campaigns Left</h3>
+              {/* stub */}
+              <div className="p-6 sm:p-9 pb-6 sm:pb-7 flex flex-col sm:flex-row justify-between items-start gap-6">
+                <div className="min-w-0">
+                  {loading ? (
+                    <div className="animate-pulse space-y-3">
+                      <div className="h-3 w-40 rounded-full" style={{ background: rule }} />
+                      <div className="h-9 w-72 rounded-xl" style={{ background: rule }} />
+                    </div>
+                  ) : (
+                    <>
+                      <span className="font-mono text-xs tracking-[0.2em]" style={{ color: textMuted }}>
+                        JOB TICKET — {new Date().toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short" }).toUpperCase()}
+                      </span>
+                      <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-semibold mt-2 leading-tight break-words">
+                        {greeting}, {getFirstName(user?.full_name ?? "")}.<br className="hidden sm:block" /> Let&apos;s get something printed.
+                      </h1>
+                      <p className="mt-3 max-w-md text-sm sm:text-base" style={{ color: textMuted }}>
+                        Upload one product photo. We turn it into a flyer, a caption and a short video — ready to post.
+                      </p>
+                    </>
+                  )}
                 </div>
-                {dashboardLoading ? (
-                  <div className="animate-pulse">
-                    <div className="h-10 w-20 bg-white/10 rounded-lg" />
-                  </div>
-                ) : dashboardError ? (
-                  <div className="text-red-400 text-sm">{dashboardError}</div>
-                ) : (
-                  <>
-                    <div className="text-3xl sm:text-4xl font-display font-medium text-white break-words">
-                      {getCampaignsDisplay(dashboardData?.campaigns_remaining ?? 0)}
-                    </div>
-                    <p className="text-sm text-slate-500 mt-2 break-words">
-                      {dashboardData?.plan ? getPlanDisplay(dashboardData.plan.plan_type) : 'No Plan'}
-                    </p>
-                  </>
+                {!dashboardLoading && dashboardData && (
+                  <Stamp
+                    value={getCampaignsDisplay(dashboardData.campaigns_remaining)}
+                    label="JOBS LEFT"
+                  />
                 )}
               </div>
 
-              <div className="bg-white/[0.03] border border-white/5 backdrop-blur-md p-4 sm:p-6 rounded-3xl">
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <h3 className="text-slate-400 font-medium text-sm sm:text-base">Assets Generated</h3>
-                  <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0">
-                    <ImageIcon className="w-4 h-4 text-indigo-400" />
-                  </div>
-                </div>
-                {dashboardLoading ? (
-                  <div className="animate-pulse">
-                    <div className="h-10 w-20 bg-white/10 rounded-lg" />
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-3xl sm:text-4xl font-display font-medium text-white">
-                      {dashboardData?.campaigns_generated ?? 0}
+              <Perforation />
+
+              {/* order form */}
+              <div className="p-6 sm:p-9 pt-6 sm:pt-7">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+
+                  <div>
+                    <p className="font-mono text-[11px] tracking-[0.2em]" style={{ color: textMuted }}>THIS JOB INCLUDES</p>
+                    <div className="mt-3 flex flex-col gap-1">
+                      <label className="flex items-center gap-3 px-2 py-2.5 rounded-lg opacity-90 cursor-not-allowed">
+                        <input type="checkbox" className="w-4 h-4 shrink-0 pointer-events-none" checked readOnly disabled style={{ accentColor: marigold }} />
+                        <ImageIcon className="w-4 h-4 shrink-0" style={{ color: textMuted }} />
+                        <span className="text-sm font-medium">Flyer design</span>
+                        <span className="font-mono text-[10px] ml-auto" style={{ color: textMuted }}>REQUIRED</span>
+                      </label>
+                      <label className="flex items-center gap-3 px-2 py-2.5 rounded-lg opacity-90 cursor-not-allowed">
+                        <input type="checkbox" className="w-4 h-4 shrink-0 pointer-events-none" checked readOnly disabled style={{ accentColor: marigold }} />
+                        <Type className="w-4 h-4 shrink-0" style={{ color: textMuted }} />
+                        <span className="text-sm font-medium">Social caption</span>
+                        <span className="font-mono text-[10px] ml-auto" style={{ color: textMuted }}>REQUIRED</span>
+                      </label>
+                      <label className="flex items-center gap-3 px-2 py-2.5 rounded-lg cursor-pointer transition-colors" style={{ }}>
+                        <input type="checkbox" className="w-4 h-4 shrink-0" checked={generateVideo} onChange={(e) => setGenerateVideo(e.target.checked)} style={{ accentColor: marigold }} />
+                        <Video className="w-4 h-4 shrink-0" style={{ color: textMuted }} />
+                        <span className="text-sm font-medium">Promo video</span>
+                      </label>
                     </div>
-                    <p className="text-sm text-slate-500 mt-2">Lifetime creations</p>
-                  </>
-                )}
-              </div>
-
-              <div className="bg-white/[0.03] border border-white/5 backdrop-blur-md p-4 sm:p-6 rounded-3xl">
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <h3 className="text-slate-400 font-medium text-sm sm:text-base">Plan Status</h3>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                    dashboardData?.plan?.plan_type === 'pro' 
-                      ? 'bg-cyan-500/20' 
-                      : dashboardData?.plan?.plan_type === 'payg'
-                      ? 'bg-amber-500/20'
-                      : 'bg-slate-500/20'
-                  }`}>
-                    <span className={`text-sm font-bold ${
-                      dashboardData?.plan?.plan_type === 'pro' 
-                        ? 'text-cyan-400' 
-                        : dashboardData?.plan?.plan_type === 'payg'
-                        ? 'text-amber-400'
-                        : 'text-slate-400'
-                    }`}>
-                      {dashboardLoading ? '...' : dashboardData?.plan?.plan_type === 'pro' ? 'PRO' : 
-                       dashboardData?.plan?.plan_type === 'payg' ? 'PAYG' : 'FREE'}
-                    </span>
-                  </div>
-                </div>
-                {dashboardLoading ? (
-                  <div className="animate-pulse">
-                    <div className="h-10 w-32 bg-white/10 rounded-lg" />
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-3xl sm:text-4xl font-display font-medium text-white break-words">
-                      {dashboardData?.plan?.name || 'Free Trial'}
-                    </div>
-                    <p className="text-sm text-slate-500 mt-2 flex items-center gap-1.5 flex-wrap">
-                      <span className={`inline-block w-2 h-2 rounded-full ${dashboardData?.is_active ? 'bg-emerald-400' : 'bg-rose-400'}`} />
-                      {dashboardData?.is_active ? 'Active' : 'Inactive'}
-                    </p>
-                  </>
-                )}
-              </div>
-            </section>
-
-            {/* ── Create Campaign ── */}
-            <section className="bg-gradient-to-tr from-[#0a1128] to-cyan-950/40 border border-cyan-500/20 rounded-[2rem] p-4 sm:p-8 md:p-12 shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-32 bg-cyan-500/10 blur-[100px] rounded-full mix-blend-screen pointer-events-none" />
-              <div className="absolute bottom-0 left-0 p-32 bg-indigo-500/10 blur-[100px] rounded-full mix-blend-screen pointer-events-none" />
-
-              <div className="max-w-4xl relative z-10">
-                <h2 className="text-2xl sm:text-3xl font-display font-bold text-white mb-2 tracking-tight break-words">Create New Campaign</h2>
-                <p className="text-slate-400 mb-4 sm:mb-8 max-w-xl text-sm sm:text-base break-words">
-                  Upload your product image and select the assets you want to generate. Click start to auto-generate from beautiful templates.
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-8">
-                  <div className="bg-[#030712]/50 rounded-2xl p-4 sm:p-6 border border-white/5 backdrop-blur-sm space-y-3 sm:space-y-4">
-                    <p className="text-xs font-mono text-slate-500 uppercase tracking-widest font-bold">Includes:</p>
-
-                    <label className="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 rounded-xl opacity-80 cursor-not-allowed">
-                      <input type="checkbox" className="w-5 h-5 rounded border-slate-700 bg-slate-900 text-cyan-400 pointer-events-none shrink-0" checked readOnly disabled />
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center shrink-0"><ImageIcon className="w-4 h-4 text-cyan-400" /></div>
-                        <span className="font-medium text-slate-200 text-sm truncate">Flyer Design <span className="text-xs text-slate-400 ml-1">(Required)</span></span>
-                      </div>
-                    </label>
-
-                    <label className="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 rounded-xl opacity-80 cursor-not-allowed">
-                      <input type="checkbox" className="w-5 h-5 rounded border-slate-700 bg-slate-900 text-cyan-400 pointer-events-none shrink-0" checked readOnly disabled />
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center shrink-0"><Type className="w-4 h-4 text-indigo-400" /></div>
-                        <span className="font-medium text-slate-200 text-sm truncate">Social Caption <span className="text-xs text-slate-400 ml-1">(Required)</span></span>
-                      </div>
-                    </label>
-
-                    <label className="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer">
-                      <input type="checkbox" className="w-5 h-5 rounded border-slate-700 bg-slate-900 text-cyan-400 shrink-0"
-                        checked={generateVideo} onChange={(e) => setGenerateVideo(e.target.checked)} />
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0"><Video className="w-4 h-4 text-purple-400" /></div>
-                        <span className="font-medium text-slate-200 text-sm">Promo Video</span>
-                      </div>
-                    </label>
                   </div>
 
-                  <div className="bg-[#030712]/50 rounded-2xl p-4 sm:p-6 border border-white/5 backdrop-blur-sm flex flex-col gap-3 sm:gap-4">
-                    <div className="flex items-center justify-between flex-wrap gap-1">
-                      <p className="text-xs font-mono text-slate-500 uppercase tracking-widest font-bold">Product Image</p>
-                      <span className="text-xs font-medium text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">Required</span>
-                    </div>
-
-                    <label className={`flex-1 flex flex-col items-center justify-center min-h-[120px] sm:min-h-[160px] border-2 border-dashed rounded-2xl transition-all group overflow-hidden relative ${isWorking ? "border-cyan-400/60 cursor-not-allowed" : "border-cyan-500/30 cursor-pointer bg-cyan-950/10 hover:bg-cyan-950/20"}`}>
+                  <div className="rounded-2xl p-1" style={{ background: paper }}>
+                    <label className={`flex-1 flex flex-col items-center justify-center min-h-[132px] sm:min-h-[152px] rounded-xl relative overflow-hidden ${isWorking ? "cursor-not-allowed" : "cursor-pointer"}`} style={{ border: `2px dashed ${paperMuted}` }}>
                       {previewImage ? (
-                        <Image src={previewImage} alt="Uploaded product" fill className="object-contain p-2 sm:p-4" />
+                        <Image src={previewImage} alt="Uploaded product" fill className="object-contain p-3" />
                       ) : (
-                        <div className="flex flex-col items-center justify-center py-4 sm:py-8 px-4 text-center">
-                          <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                            <Upload className="w-6 h-6 text-cyan-400" />
-                          </div>
-                          <p className="text-sm text-slate-300 font-medium"><span className="text-cyan-400">Click to upload</span> or drag and drop</p>
-                          <p className="text-xs text-slate-500 mt-1">PNG, JPG or WEBP</p>
+                        <div className="flex flex-col items-center justify-center py-6 px-4 text-center">
+                          <Upload className="w-6 h-6 mb-2" style={{ color: ink }} />
+                          <p className="text-sm font-semibold" style={{ color: ink }}>Click to upload a photo</p>
+                          <p className="font-mono text-[11px] mt-1" style={{ color: "#6b6250" }}>PNG, JPG OR WEBP</p>
                         </div>
                       )}
                       <input type="file" className="hidden" accept="image/png,image/jpeg,image/webp" onChange={handleImageUpload} disabled={isWorking} />
@@ -573,25 +530,15 @@ export default function DashboardPage() {
                       initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -8 }}
-                      className={`mb-4 sm:mb-6 flex items-center gap-3 px-4 sm:px-5 py-3 rounded-2xl text-sm font-medium ${
-                        phase === "error"
-                          ? "bg-red-500/10 border border-red-500/20 text-red-400"
-                          : phase === "done"
-                          ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
-                          : "bg-cyan-500/10 border border-cyan-500/20 text-cyan-300"
-                      }`}
+                      className="mt-5 sm:mt-6 flex items-center gap-3 px-4 sm:px-5 py-3 rounded-xl text-sm font-medium"
+                      style={{
+                        background: phase === "error" ? "rgba(214,73,31,0.1)" : phase === "done" ? "rgba(120,180,120,0.1)" : "rgba(232,163,61,0.1)",
+                        border: `1px solid ${phase === "error" ? "rgba(214,73,31,0.35)" : phase === "done" ? "rgba(120,180,120,0.35)" : "rgba(232,163,61,0.35)"}`,
+                        color: phase === "error" ? signal : phase === "done" ? "#8FD08F" : marigold,
+                      }}
                     >
-                      {phase === "error" ? (
-                        <AlertCircle className="w-4 h-4 shrink-0" />
-                      ) : isWorking ? (
-                        <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
-                      ) : null}
+                      {phase === "error" ? <AlertCircle className="w-4 h-4 shrink-0" /> : isWorking ? <Loader2 className="w-4 h-4 shrink-0 animate-spin" /> : null}
                       <span className="flex-1 break-words">{phase === "error" ? errorMsg || PHASE_LABEL.error : PHASE_LABEL[phase]}</span>
-                      {isWorking && (
-                        <span className="text-xs opacity-60 font-mono shrink-0">
-                          {phase === "uploading" ? "Sending…" : "Processing…"}
-                        </span>
-                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -599,85 +546,125 @@ export default function DashboardPage() {
                 <button
                   onClick={handleStartGenerating}
                   disabled={isWorking || !imageFile}
-                  className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 sm:px-8 py-4 bg-cyan-400 hover:bg-cyan-300 disabled:bg-cyan-900 disabled:text-cyan-700 disabled:cursor-not-allowed text-[#0a1128] rounded-full font-bold transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] active:scale-[0.98] min-h-[44px] whitespace-nowrap"
+                  className="job-btn flex items-center justify-center gap-2 w-full sm:w-auto mt-6 px-7 py-4 rounded-full font-bold transition-colors disabled:cursor-not-allowed min-h-[44px] whitespace-nowrap"
+                  style={{
+                    background: isWorking || !imageFile ? "#5A4A22" : marigold,
+                    color: isWorking || !imageFile ? "#8C7C52" : ink,
+                  }}
                 >
                   {isWorking ? (
-                    <><Loader2 className="w-5 h-5 animate-spin" /> {phase === "uploading" ? "Uploading…" : "Generating…"}</>
+                    <><Loader2 className="w-5 h-5 animate-spin" /> {phase === "uploading" ? "Sending…" : "Building…"}</>
                   ) : (
-                    <><Plus className="w-5 h-5" /> Start Campaign</>
+                    <><Plus className="w-5 h-5" /> Start the job</>
                   )}
                 </button>
               </div>
             </section>
 
-            {/* ── Recent Campaigns ── */}
+            {/* ── STAT RECEIPT STRIP ── */}
+            <section className="rounded-2xl grid grid-cols-1 sm:grid-cols-3" style={{ background: paper, color: ink }}>
+              <div className="p-5 sm:p-6">
+                <p className="text-xs uppercase tracking-wide" style={{ color: "#5a523f" }}>Campaigns left</p>
+                {dashboardLoading ? (
+                  <div className="h-8 w-16 rounded-lg mt-2 animate-pulse" style={{ background: paperMuted }} />
+                ) : dashboardError ? (
+                  <p className="text-sm mt-2" style={{ color: signal }}>{dashboardError}</p>
+                ) : (
+                  <>
+                    <p className="font-mono text-3xl font-bold mt-1">{getCampaignsDisplay(dashboardData?.campaigns_remaining ?? 0)}</p>
+                    <p className="text-xs mt-1" style={{ color: "#6b6250" }}>{dashboardData?.plan ? getPlanDisplay(dashboardData.plan.plan_type) : "No plan yet"}</p>
+                  </>
+                )}
+              </div>
+              <div className="p-5 sm:p-6" style={{ borderTop: `1px dashed ${paperMuted}`, borderLeft: `1px dashed ${paperMuted}` }}>
+                <p className="text-xs uppercase tracking-wide" style={{ color: "#5a523f" }}>Flyers made so far</p>
+                {dashboardLoading ? (
+                  <div className="h-8 w-16 rounded-lg mt-2 animate-pulse" style={{ background: paperMuted }} />
+                ) : (
+                  <>
+                    <p className="font-mono text-3xl font-bold mt-1">{dashboardData?.campaigns_generated ?? 0}</p>
+                    <p className="text-xs mt-1" style={{ color: "#6b6250" }}>Since you joined</p>
+                  </>
+                )}
+              </div>
+              <div className="p-5 sm:p-6" style={{ borderTop: `1px dashed ${paperMuted}` }}>
+                <p className="text-xs uppercase tracking-wide" style={{ color: "#5a523f" }}>Plan status</p>
+                {dashboardLoading ? (
+                  <div className="h-8 w-24 rounded-lg mt-2 animate-pulse" style={{ background: paperMuted }} />
+                ) : (
+                  <>
+                    <p className="font-mono text-xl font-bold mt-1 break-words">{dashboardData?.plan?.name || "Free trial"}</p>
+                    <p className="text-xs mt-1 flex items-center gap-1.5" style={{ color: "#6b6250" }}>
+                      <span className="inline-block w-2 h-2 rounded-full" style={{ background: dashboardData?.is_active ? "#5FA05F" : signal }} />
+                      {dashboardData?.is_active ? "Active" : "Inactive"}
+                    </p>
+                  </>
+                )}
+              </div>
+            </section>
+
+            {/* ── Recent Campaigns: contact sheet ── */}
             <section>
-              <div className="flex items-center justify-between mb-4 sm:mb-6">
-                <h2 className="text-lg sm:text-xl font-display font-semibold text-white tracking-tight">Recent Campaigns</h2>
+              <div className="flex items-center justify-between mb-4 sm:mb-5">
+                <h2 className="font-display text-lg sm:text-xl font-semibold tracking-tight">Recent campaigns</h2>
                 {recentCampaigns.length > 4 && (
                   <button
                     onClick={() => setShowAllCampaigns(v => !v)}
-                    className="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors px-3 py-2 -my-2 min-h-[44px] flex items-center"
+                    className="font-mono text-xs tracking-wide px-3 py-2 -my-2 min-h-[44px] flex items-center"
+                    style={{ color: marigold }}
                   >
-                    {showAllCampaigns ? "Show less" : "View All"}
+                    {showAllCampaigns ? "SHOW LESS" : "VIEW ALL →"}
                   </button>
                 )}
               </div>
 
               {recentCampaignsLoading ? (
-                <div className="grid grid-cols-2 min-[400px]:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+                <div className="grid grid-cols-2 min-[400px]:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                   {Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} className="space-y-2">
-                      <div className="aspect-[4/5] rounded-2xl bg-white/[0.04] animate-pulse" />
-                      <div className="h-3 w-3/4 bg-white/[0.04] rounded-full animate-pulse" />
+                      <div className="aspect-[4/5] rounded-xl animate-pulse" style={{ background: panel }} />
+                      <div className="h-3 w-3/4 rounded-full animate-pulse" style={{ background: panel }} />
                     </div>
                   ))}
                 </div>
               ) : recentCampaigns.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 sm:py-16 bg-white/[0.02] border border-white/5 border-dashed rounded-3xl">
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-                    <History className="w-7 h-7 sm:w-8 sm:h-8 text-slate-500" />
-                  </div>
-                  <h3 className="text-base sm:text-lg font-medium text-white mb-2">No campaigns yet</h3>
-                  <p className="text-slate-400 text-sm max-w-sm text-center px-4">
-                    Your generated flyers, captions, and videos will appear here once you create a campaign.
+                <div className="flex flex-col items-center justify-center py-12 sm:py-16 rounded-2xl" style={{ background: panel, border: `1px dashed ${rule}` }}>
+                  <History className="w-8 h-8 mb-4" style={{ color: textMuted }} />
+                  <h3 className="text-base sm:text-lg font-semibold mb-2">No jobs yet</h3>
+                  <p className="text-sm max-w-sm text-center px-4" style={{ color: textMuted }}>
+                    Start your first job above and it will show up here — flyer, caption and video together.
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 min-[400px]:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+                <div className="grid grid-cols-2 min-[400px]:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                   {(showAllCampaigns ? recentCampaigns : recentCampaigns.slice(0, 4)).map((c) => (
                     <Link
                       key={c.job_id}
                       href={`/dashboard/editor?job=${c.job_id}`}
-                      className="group flex flex-col gap-2"
+                      className="lift group flex flex-col gap-2 rounded-2xl p-2"
+                      style={{ background: panel, border: `1px solid ${rule}` }}
                     >
-                      <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-white/[0.03] ring-1 ring-white/5 group-hover:ring-cyan-400/40 transition-all duration-200 group-hover:-translate-y-0.5">
+                      <div className="relative aspect-[4/5] rounded-xl overflow-hidden">
                         {c.png_url ? (
-                          <Image src={c.png_url} alt={c.headline ?? "Campaign"} fill
-                            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+                          <Image src={c.png_url} alt={c.headline ?? "Campaign"} fill className="object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <History className="w-6 h-6 text-slate-600" />
+                          <div className="w-full h-full flex items-center justify-center" style={{ background: "#141210" }}>
+                            <History className="w-6 h-6" style={{ color: textMuted }} />
                           </div>
                         )}
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors duration-200 flex items-center justify-center">
-                          <div className="w-9 h-9 rounded-full bg-white/95 flex items-center justify-center opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-200 shadow-lg">
-                            <Pencil className="w-4 h-4 text-[#0a1128]" />
-                          </div>
-                        </div>
                         {c.template_category && (
-                          <span className="absolute top-2.5 left-2.5 text-[9px] font-semibold uppercase tracking-wider text-white/90 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
-                            {c.template_category}
+                          <span className="font-mono absolute top-2 left-2 text-[9px] tracking-wide px-2 py-1 rounded" style={{ background: `${ink}c0`, color: textPrimary }}>
+                            {c.template_category.toUpperCase()}
                           </span>
                         )}
+                        <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: marigold }}>
+                          <Pencil className="w-3.5 h-3.5" style={{ color: ink }} />
+                        </div>
                       </div>
                       <div className="px-0.5">
-                        <p className="text-[13px] font-medium text-slate-200 truncate group-hover:text-white transition-colors">
-                          {c.headline || "Untitled campaign"}
-                        </p>
-                        <p className="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
-                          <Clock className="w-3 h-3 shrink-0" />
-                          {timeAgo(c.created_at)}
+                        <p className="text-[13px] font-medium truncate">{c.headline || "Untitled campaign"}</p>
+                        <p className="font-mono flex items-center gap-1 text-[10.5px] mt-0.5" style={{ color: textMuted }}>
+                          <Clock className="w-3 h-3 shrink-0" /> {timeAgo(c.created_at)}
                         </p>
                       </div>
                     </Link>
@@ -686,45 +673,51 @@ export default function DashboardPage() {
               )}
             </section>
 
-            {/* ── Most Used Templates ── */}
+            {/* ── Templates people reach for ── */}
             <section>
-              <div className="flex items-center justify-between mb-4 sm:mb-6">
-                <h2 className="text-lg sm:text-xl font-display font-semibold text-white tracking-tight">Most Used Templates</h2>
-                <Link href="/dashboard/templates" className="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors px-3 py-2 -my-2 min-h-[44px] flex items-center">
-                  View All
+              <div className="flex items-center justify-between mb-4 sm:mb-5">
+                <h2 className="font-display text-lg sm:text-xl font-semibold tracking-tight">Templates people reach for</h2>
+                <Link href="/dashboard/templates" className="font-mono text-xs tracking-wide px-3 py-2 -my-2 min-h-[44px] flex items-center" style={{ color: marigold }}>
+                  VIEW ALL →
                 </Link>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                 {[
-                  { name: "Digital Agency",  category: "Premium Brand",  Comp: PremiumBrandTemplate,  data: PREMIUM_BRAND_VARIATIONS.find((v) => v.name === "Digital Agency")! },
-                  { name: "Black Gold",      category: "Luxury Product", Comp: LuxuryProductTemplate, data: LUXURY_VARIATIONS.find((v) => v.name === "Black Gold")! },
+                  { name: "Digital Agency",  category: "Premium brand",  Comp: PremiumBrandTemplate,  data: PREMIUM_BRAND_VARIATIONS.find((v) => v.name === "Digital Agency")! },
+                  { name: "Black Gold",      category: "Luxury product", Comp: LuxuryProductTemplate, data: LUXURY_VARIATIONS.find((v) => v.name === "Black Gold")! },
                 ].map(({ name, category, Comp, data }) => (
                   <div
                     key={name}
                     onClick={() => router.push(`/dashboard/editor?variant=${encodeURIComponent(name)}&category=${encodeURIComponent(category)}`)}
-                    className="group relative rounded-2xl overflow-hidden bg-white/5 border border-white/5 aspect-[4/3] cursor-pointer hover:border-cyan-400/50 transition-colors shadow-lg"
+                    className="lift rounded-2xl p-2 cursor-pointer"
+                    style={{ background: paper, border: "1px solid transparent" }}
                   >
-                    <div className="w-full h-[120%] pointer-events-none select-none relative -mt-[10%] opacity-80 group-hover:opacity-100 transition-opacity">
+                    <ScaledPreview>
                       <Comp {...(data as any)} />
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a1128] via-[#0a1128]/40 to-transparent flex flex-col justify-end p-4 sm:p-6 z-[60]">
-                      <span className="text-[10px] uppercase font-bold tracking-widest text-cyan-400 mb-1">{category}</span>
-                      <h3 className="text-base sm:text-lg font-medium text-white drop-shadow-md">{name}</h3>
+                    </ScaledPreview>
+                    <div className="flex items-center justify-between mt-2.5 px-1.5 pb-1">
+                      <div>
+                        <p className="text-sm font-bold" style={{ color: ink }}>{name}</p>
+                        <p className="font-mono text-[10px] tracking-wide mt-0.5" style={{ color: "#6b6250" }}>{category.toUpperCase()}</p>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             </section>
 
-            {/* ── NEW: Security Section ── */}
-            <section className="bg-white/[0.03] border border-white/5 backdrop-blur-md p-5 sm:p-6 rounded-3xl">
-              <h2 className="text-xl font-display font-semibold text-white mb-4">Security</h2>
+            {/* ── Security ── */}
+            <section className="rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4" style={{ background: panel, border: `1px solid ${rule}` }}>
+              <div>
+                <h2 className="font-display text-base font-semibold">Security</h2>
+                <p className="text-sm mt-1" style={{ color: textMuted }}>Sign out everywhere you&apos;re currently logged in.</p>
+              </div>
               <button
                 onClick={handleLogout}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 border border-white/20 rounded-xl hover:bg-white/5 transition-colors text-sm font-medium text-slate-300 hover:text-white min-h-[44px] touch-manipulation"
+                className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition-colors text-sm font-medium min-h-[44px]"
+                style={{ border: `1px solid ${rule}`, color: textPrimary }}
               >
-                <MonitorSmartphone className="w-4 h-4" />
-                Log out all devices
+                <LogOut className="w-4 h-4" /> Log out all devices
               </button>
             </section>
 
@@ -734,13 +727,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-function ArrowRight(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-      fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-    </svg>
-  );
-}
-
