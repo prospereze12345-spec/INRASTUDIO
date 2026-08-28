@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   Eye,
   EyeOff,
-  Sparkles,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { apiFetch } from "@/lib/auth";
@@ -373,10 +372,7 @@ export default function SignUpPage() {
               className="mt-6 flex items-center gap-2 font-mono text-[9px] tracking-[0.1em]"
               style={{ color: textMuted }}
             >
-              <Sparkles
-                className="h-3.5 w-3.5"
-                style={{ color: marigold }}
-              />
+              
 
               BUILT FOR BUSINESSES THAT NEED TO MOVE FAST
             </div>
