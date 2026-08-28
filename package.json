@@ -21,6 +21,7 @@
     "autoprefixer": "^10.4.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "edge-tts": "^1.0.1",
     "get-port": "^7.2.0",
     "html-to-image": "^1.11.13",
     "jspdf": "^4.2.1",
