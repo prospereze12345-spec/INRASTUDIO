@@ -1,22 +1,17 @@
 #!/usr/bin/env node
-
-
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { bundle } from "@remotion/bundler";
-
 import {
   renderMedia,
   renderStill,
   selectComposition,
 } from "@remotion/renderer";
-
 import getPort from "get-port";
 
 import { generateVoiceover } from "./tts.mjs";
-
 
 // ============================================================================
 // PATHS
@@ -26,51 +21,50 @@ const __dirname = path.dirname(
   fileURLToPath(import.meta.url)
 );
 
-const COMPOSITION_ENTRY =
-  path.join(
-    __dirname,
-    "PromoVideo.tsx"
-  );
+const COMPOSITION_ENTRY = path.join(
+  __dirname,
+  "PromoVideo.tsx"
+);
 
-const PUBLIC_DIR =
-  path.join(
-    __dirname,
-    "public"
-  );
+const PUBLIC_DIR = path.join(
+  __dirname,
+  "public"
+);
+
+// ============================================================================
+// DEFAULTS
+// ============================================================================
 
 const DEFAULT_MEDIA_ORIGIN =
   "https://inrabackend-docker.onrender.com";
 
+const DEFAULT_VOICE =
+  "en-US-AriaNeural";
+
+const DEFAULT_CONCURRENCY = 2;
+
+const RENDER_TIMEOUT = 120_000;
 
 // ============================================================================
 // LOGGING
 // ============================================================================
 
-function log(
-  verbose,
-  message
-) {
+function log(verbose, message) {
   if (verbose) {
-    console.log(
-      `[render] ${message}`
-    );
+    console.log(`[render] ${message}`);
   }
 }
 
-
 function warn(message) {
-  console.warn(
-    `[render] WARNING: ${message}`
-  );
+  console.warn(`[render] WARNING: ${message}`);
 }
-
 
 // ============================================================================
 // CLI
 // ============================================================================
 
 function parseArgs(argv) {
-  const result = {
+  const args = {
     verbose: false,
     configPath: null,
   };
@@ -80,64 +74,114 @@ function parseArgs(argv) {
     i < argv.length;
     i++
   ) {
-    const argument =
-      argv[i];
+    const argument = argv[i];
 
-    switch (argument) {
-      case "--config": {
-        const value =
-          argv[++i];
+    if (argument === "--verbose") {
+      args.verbose = true;
+      continue;
+    }
 
-        if (!value) {
-          throw new Error(
-            "--config requires a file path."
-          );
-        }
+    if (argument === "--config") {
+      const value = argv[++i];
 
-        result.configPath =
-          value;
-
-        break;
+      if (!value) {
+        throw new Error(
+          "--config requires a file path."
+        );
       }
 
-      case "--verbose":
-        result.verbose = true;
-        break;
-
-      default:
-        throw new Error(
-          `Unknown argument: ${argument}`
-        );
+      args.configPath = value;
+      continue;
     }
+
+    throw new Error(
+      `Unknown argument: ${argument}`
+    );
   }
 
-  if (!result.configPath) {
+  if (!args.configPath) {
     throw new Error(
       "Missing required argument: --config <config.json>"
     );
   }
 
-  return result;
+  return args;
 }
 
-
 // ============================================================================
-// CONFIGURATION
+// GENERIC HELPERS
 // ============================================================================
 
-function loadConfig(
-  configPath
-) {
-  const absolutePath =
-    path.resolve(
-      configPath
+function cleanText(value) {
+  return typeof value === "string"
+    ? value.trim()
+    : "";
+}
+
+function cleanArray(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => String(item).trim())
+    .filter(Boolean);
+}
+
+function ensureDirectory(filePath) {
+  const directory =
+    path.dirname(
+      path.resolve(filePath)
     );
 
-  if (
-    !fs.existsSync(
-      absolutePath
-    )
-  ) {
+  fs.mkdirSync(directory, {
+    recursive: true,
+  });
+}
+
+function ensurePublicFile(relativePath) {
+  const safePath = String(
+    relativePath || ""
+  ).replace(/^\/+/, "");
+
+  const absolutePath = path.join(
+    PUBLIC_DIR,
+    safePath
+  );
+
+  fs.mkdirSync(
+    path.dirname(absolutePath),
+    {
+      recursive: true,
+    }
+  );
+
+  return absolutePath;
+}
+
+function removeFileIfExists(filePath) {
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  } catch (error) {
+    warn(
+      `Could not remove file ${filePath}: ${
+        error?.message || error
+      }`
+    );
+  }
+}
+
+// ============================================================================
+// CONFIG
+// ============================================================================
+
+function loadConfig(configPath) {
+  const absolutePath =
+    path.resolve(configPath);
+
+  if (!fs.existsSync(absolutePath)) {
     throw new Error(
       `Config file not found: ${absolutePath}`
     );
@@ -146,13 +190,12 @@ function loadConfig(
   let config;
 
   try {
-    config =
-      JSON.parse(
-        fs.readFileSync(
-          absolutePath,
-          "utf8"
-        )
-      );
+    config = JSON.parse(
+      fs.readFileSync(
+        absolutePath,
+        "utf8"
+      )
+    );
   } catch (error) {
     throw new Error(
       `Could not parse config JSON: ${
@@ -163,14 +206,15 @@ function loadConfig(
 
   if (
     !config ||
-    typeof config !== "object"
+    typeof config !== "object" ||
+    Array.isArray(config)
   ) {
     throw new Error(
       "Render config must be a JSON object."
     );
   }
 
-  const requiredFields = [
+  const required = [
     "compositionId",
     "inputProps",
     "width",
@@ -179,87 +223,54 @@ function loadConfig(
     "outputPath",
   ];
 
-  const missingFields =
-    requiredFields.filter(
+  const missing =
+    required.filter(
       (field) =>
         config[field] === undefined ||
         config[field] === null
     );
 
-  if (
-    missingFields.length > 0
-  ) {
+  if (missing.length) {
     throw new Error(
-      `Render config is missing required fields: ${missingFields.join(
+      `Render config is missing required fields: ${missing.join(
         ", "
       )}`
     );
   }
 
+  validateDimensions(config);
+  validateInputProps(config);
+
   const isStill =
-    config.stillFrame !==
-    undefined;
+    config.stillFrame !== undefined;
 
   if (
     !isStill &&
-    (
-      config.durationInFrames ===
-        undefined ||
-      config.durationInFrames <= 0
-    )
+    config.compositionId !== "PromoVideo" &&
+    (!Number.isFinite(
+      Number(config.durationInFrames)
+    ) ||
+      Number(config.durationInFrames) <= 0)
   ) {
-    /*
-     * We allow PromoVideo's
-     * calculateMetadata() to determine
-     * the actual dynamic duration.
-     *
-     * Therefore durationInFrames is
-     * no longer mandatory for dynamic
-     * PromoVideo renders.
-     */
-    if (
-      config.compositionId !==
-      "PromoVideo"
-    ) {
-      throw new Error(
-        "Video render config requires a valid durationInFrames."
-      );
-    }
+    throw new Error(
+      "Video render config requires a valid durationInFrames."
+    );
   }
-
-  validateDimensions(
-    config
-  );
-
-  validateInputProps(
-    config
-  );
 
   return config;
 }
 
-
-function validateDimensions(
-  config
-) {
-  const numericFields = [
+function validateDimensions(config) {
+  for (const field of [
     "width",
     "height",
     "fps",
-  ];
-
-  for (
-    const field of numericFields
-  ) {
+  ]) {
     const value =
-      Number(
-        config[field]
-      );
+      Number(config[field]);
 
     if (
-      !Number.isFinite(
-        value
-      ) ||
+      !Number.isFinite(value) ||
       value <= 0
     ) {
       throw new Error(
@@ -278,9 +289,7 @@ function validateDimensions(
       );
 
     if (
-      !Number.isFinite(
-        duration
-      ) ||
+      !Number.isFinite(duration) ||
       duration <= 0
     ) {
       throw new Error(
@@ -290,14 +299,12 @@ function validateDimensions(
   }
 }
 
-
-function validateInputProps(
-  config
-) {
+function validateInputProps(config) {
   if (
     !config.inputProps ||
     typeof config.inputProps !==
-      "object"
+      "object" ||
+    Array.isArray(config.inputProps)
   ) {
     throw new Error(
       "inputProps must be a JSON object."
@@ -305,38 +312,11 @@ function validateInputProps(
   }
 }
 
-
 // ============================================================================
-// NORMALIZATION
+// PROPS
 // ============================================================================
 
-function text(
-  value
-) {
-  return typeof value === "string"
-    ? value.trim()
-    : "";
-}
-
-
-function array(
-  value
-) {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value
-    .map((item) =>
-      String(item).trim()
-    )
-    .filter(Boolean);
-}
-
-
-function cleanProps(
-  inputProps
-) {
+function cleanProps(inputProps) {
   const props = {
     ...(inputProps || {}),
   };
@@ -344,151 +324,118 @@ function cleanProps(
   return {
     ...props,
 
-    headline:
-      text(props.headline),
+    headline: cleanText(
+      props.headline
+    ),
 
-    subtext:
-      text(props.subtext),
+    subtext: cleanText(
+      props.subtext
+    ),
 
-    ctaText:
-      text(props.ctaText),
+    ctaText: cleanText(
+      props.ctaText
+    ),
 
-    price:
-      text(props.price),
+    price: cleanText(
+      props.price
+    ),
 
-    brandName:
-      text(props.brandName),
+    brandName: cleanText(
+      props.brandName
+    ),
 
-    website:
-      text(props.website),
+    website: cleanText(
+      props.website
+    ),
 
-    productImage:
-      text(props.productImage),
+    productImage: cleanText(
+      props.productImage
+    ),
 
-    phone:
-      text(props.phone),
+    logoImage: cleanText(
+      props.logoImage
+    ),
 
-    email:
-      text(props.email),
+    phone: cleanText(
+      props.phone
+    ),
 
-    logoImage:
-      text(props.logoImage),
+    email: cleanText(
+      props.email
+    ),
 
-    features:
-      array(
-        props.features
-      ).slice(0, 3),
+    voiceoverText: cleanText(
+      props.voiceoverText
+    ),
 
-    whyChooseUs:
-      array(
-        props.whyChooseUs
-      ).slice(0, 3),
+    voiceoverVoice: cleanText(
+      props.voiceoverVoice
+    ),
 
-    voiceoverText:
-      text(
-        props.voiceoverText
-      ),
+    voiceoverUrl: cleanText(
+      props.voiceoverUrl
+    ),
 
-    voiceoverVoice:
-      text(
-        props.voiceoverVoice
-      ),
+    musicUrl: cleanText(
+      props.musicUrl
+    ),
 
-    musicUrl:
-      text(props.musicUrl),
+    features: cleanArray(
+      props.features
+    ).slice(0, 3),
+
+    whyChooseUs: cleanArray(
+      props.whyChooseUs
+    ).slice(0, 3),
   };
 }
 
-
 // ============================================================================
-// DYNAMIC VOICEOVER TEXT
+// NARRATION
 // ============================================================================
 
-/*
- * This is deliberately generated from the SAME props used by PromoVideo.
- *
- * Do NOT manually hard-code Features / Why Choose Us into narration.
- *
- * The final flyer state decides what gets spoken.
- */
-
-function buildNarration(
-  props
-) {
+function buildNarration(props) {
   const parts = [];
 
-  const brand =
-    text(
-      props.brandName
-    );
+  const brand = cleanText(
+    props.brandName
+  );
 
-  const headline =
-    text(
-      props.headline
-    );
+  const headline = cleanText(
+    props.headline
+  );
 
-  const subtext =
-    text(
-      props.subtext
-    );
+  const subtext = cleanText(
+    props.subtext
+  );
 
-  const price =
-    text(
-      props.price
-    );
+  const price = cleanText(
+    props.price
+  );
 
-  const features =
-    array(
-      props.features
-    ).slice(0, 3);
+  const features = cleanArray(
+    props.features
+  ).slice(0, 3);
 
-  const benefits =
-    array(
-      props.whyChooseUs
-    ).slice(0, 3);
+  const benefits = cleanArray(
+    props.whyChooseUs
+  ).slice(0, 3);
 
-  const cta =
-    text(
-      props.ctaText
-    );
-
-
-  // --------------------------------------------------------------------------
-  // BRAND
-  // --------------------------------------------------------------------------
+  const cta = cleanText(
+    props.ctaText
+  );
 
   if (brand) {
-    parts.push(
-      brand
-    );
+    parts.push(brand);
   }
-
-
-  // --------------------------------------------------------------------------
-  // HEADLINE
-  // --------------------------------------------------------------------------
 
   if (headline) {
-    parts.push(
-      headline
-    );
+    parts.push(headline);
   }
-
-
-  // --------------------------------------------------------------------------
-  // SUBTEXT
-  // --------------------------------------------------------------------------
 
   if (subtext) {
-    parts.push(
-      subtext
-    );
+    parts.push(subtext);
   }
-
-
-  // --------------------------------------------------------------------------
-  // PRICE
-  // --------------------------------------------------------------------------
 
   if (price) {
     parts.push(
@@ -496,14 +443,7 @@ function buildNarration(
     );
   }
 
-
-  // --------------------------------------------------------------------------
-  // FEATURES
-  // --------------------------------------------------------------------------
-
-  if (
-    features.length > 0
-  ) {
+  if (features.length) {
     parts.push(
       `Key features include ${features.join(
         ", "
@@ -511,14 +451,7 @@ function buildNarration(
     );
   }
 
-
-  // --------------------------------------------------------------------------
-  // WHY CHOOSE US
-  // --------------------------------------------------------------------------
-
-  if (
-    benefits.length > 0
-  ) {
+  if (benefits.length) {
     parts.push(
       `Why choose us? ${benefits.join(
         ". "
@@ -526,98 +459,27 @@ function buildNarration(
     );
   }
 
-
-  // --------------------------------------------------------------------------
-  // CTA
-  // --------------------------------------------------------------------------
-
   if (cta) {
-    parts.push(
-      cta
-    );
+    parts.push(cta);
   }
 
-
-  /*
-   * Keep narration natural rather than
-   * returning a giant block with labels.
-   */
   return parts
     .join(". ")
-    .replace(
-      /\.{2,}/g,
-      "."
-    )
+    .replace(/\.{2,}/g, ".")
     .trim();
 }
-
-
-// ============================================================================
-// FILESYSTEM
-// ============================================================================
-
-function ensureDir(
-  filePath
-) {
-  const directory =
-    path.dirname(
-      path.resolve(
-        filePath
-      )
-    );
-
-  fs.mkdirSync(
-    directory,
-    {
-      recursive: true,
-    }
-  );
-}
-
-
-function ensurePublicDir(
-  relativePath
-) {
-  const safeRelative =
-    relativePath.replace(
-      /^\/+/,
-      ""
-    );
-
-  const absolutePath =
-    path.join(
-      PUBLIC_DIR,
-      safeRelative
-    );
-
-  fs.mkdirSync(
-    path.dirname(
-      absolutePath
-    ),
-    {
-      recursive: true,
-    }
-  );
-
-  return absolutePath;
-}
-
 
 // ============================================================================
 // MEDIA ORIGIN
 // ============================================================================
 
-function resolveMediaOrigin(
-  config
-) {
+function resolveMediaOrigin(config) {
   const candidates = [
     config.mediaOrigin,
 
-    process.env
-      .DJANGO_MEDIA_ORIGIN,
+    process.env.DJANGO_MEDIA_ORIGIN,
 
-    process.env
-      .REMOTION_MEDIA_ORIGIN,
+    process.env.REMOTION_MEDIA_ORIGIN,
 
     process.env
       .NEXT_PUBLIC_REMOTION_MEDIA_ORIGIN,
@@ -625,26 +487,19 @@ function resolveMediaOrigin(
     DEFAULT_MEDIA_ORIGIN,
   ];
 
-  for (
-    const candidate of candidates
-  ) {
+  for (const candidate of candidates) {
     if (
-      typeof candidate ===
-        "string" &&
+      typeof candidate === "string" &&
       candidate.trim()
     ) {
       return candidate
         .trim()
-        .replace(
-          /\/+$/,
-          ""
-        );
+        .replace(/\/+$/, "");
     }
   }
 
   return DEFAULT_MEDIA_ORIGIN;
 }
-
 
 // ============================================================================
 // VOICEOVER
@@ -654,142 +509,75 @@ async function prepareVoiceover(
   config,
   verbose
 ) {
-  const props =
-    cleanProps(
-      config.inputProps
-    );
-
-
-  // --------------------------------------------------------------------------
-  // CUSTOM / PRE-GENERATED VOICEOVER
-  // --------------------------------------------------------------------------
+  const props = cleanProps(
+    config.inputProps
+  );
 
   /*
-   * If voiceoverText exists, it means the narration belongs
-   * to the current flyer state.
-   *
-   * Therefore we regenerate it rather than blindly reusing
-   * an old MP3.
+   * If the caller explicitly provides an
+   * external voiceover URL and no narration
+   * should be generated, preserve it.
    */
-
-  const explicitNarration =
-    text(
-      props.voiceoverText
-    );
-
-
-  /*
-   * If there is no narration text but a voiceover URL exists,
-   * preserve it. This supports externally supplied/custom audio.
-   */
-
   if (
-    !explicitNarration &&
-    text(props.voiceoverUrl)
+    !props.voiceoverText &&
+    props.voiceoverUrl
   ) {
     log(
       verbose,
-      `Using externally supplied voiceover: ${props.voiceoverUrl}`
+      `Using external voiceover: ${props.voiceoverUrl}`
     );
 
     return props;
   }
 
-
-  // --------------------------------------------------------------------------
-  // AUTO-GENERATE NARRATION
-  // --------------------------------------------------------------------------
-
   const narration =
-    buildNarration(
-      props
-    );
-
+    buildNarration(props);
 
   if (!narration) {
     log(
       verbose,
-      "Voiceover disabled: final flyer contains no narratable text."
+      "Voiceover disabled: no narratable content."
     );
 
     return {
       ...props,
       voiceoverUrl: "",
+      voiceoverText: "",
     };
   }
 
-
-  // --------------------------------------------------------------------------
-  // VOICE
-  // --------------------------------------------------------------------------
-
   const voice =
-    text(
-      props.voiceoverVoice
-    ) ||
-    "en-US-AriaNeural";
-
-
-  // --------------------------------------------------------------------------
-  // JOB ID
-  // --------------------------------------------------------------------------
+    props.voiceoverVoice ||
+    DEFAULT_VOICE;
 
   const rawJobId =
     config.jobId ||
     props.jobId ||
     `voice-${Date.now()}`;
 
+  const jobId = String(
+    rawJobId
+  ).replace(
+    /[^a-zA-Z0-9_-]/g,
+    "-"
+  );
 
-  const jobId =
-    String(
-      rawJobId
-    ).replace(
-      /[^a-zA-Z0-9_-]/g,
-      "-"
-    );
-
-
-  // --------------------------------------------------------------------------
-  // OUTPUT
-  // --------------------------------------------------------------------------
-
-  const relativeVoicePath =
+  const relativePath =
     `voiceovers/${jobId}.mp3`;
 
-
-  const absoluteVoicePath =
-    ensurePublicDir(
-      relativeVoicePath
+  const absolutePath =
+    ensurePublicFile(
+      relativePath
     );
 
-
-  // --------------------------------------------------------------------------
-  // REMOVE OLD FILE
-  // --------------------------------------------------------------------------
-
-  /*
-   * Prevent stale audio from surviving
-   * a failed/changed generation.
-   */
-
-  if (
-    fs.existsSync(
-      absoluteVoicePath
-    )
-  ) {
-    fs.unlinkSync(
-      absoluteVoicePath
-    );
-  }
-
-
-  // --------------------------------------------------------------------------
-  // GENERATE
-  // --------------------------------------------------------------------------
+  // Never leave stale audio.
+  removeFileIfExists(
+    absolutePath
+  );
 
   log(
     verbose,
-    `Generating narration from FINAL flyer state...`
+    "Generating voiceover..."
   );
 
   log(
@@ -802,76 +590,55 @@ async function prepareVoiceover(
     `Narration: "${narration}"`
   );
 
-
   await generateVoiceover({
     text: narration,
-
     voice,
-
-    outputPath:
-      absoluteVoicePath,
+    outputPath: absolutePath,
   });
 
-
-  // --------------------------------------------------------------------------
-  // VALIDATE
-  // --------------------------------------------------------------------------
-
-  if (
-    !fs.existsSync(
-      absoluteVoicePath
-    )
-  ) {
+  if (!fs.existsSync(absolutePath)) {
     throw new Error(
-      `Voiceover generation completed but no file was created: ${absoluteVoicePath}`
+      `Voiceover generation completed but no file was created: ${absolutePath}`
     );
   }
 
-
   const stats =
     fs.statSync(
-      absoluteVoicePath
+      absolutePath
     );
 
-
-  if (
-    stats.size < 1_000
-  ) {
+  if (stats.size < 1000) {
     throw new Error(
       `Generated voiceover appears invalid. File size: ${stats.size} bytes`
     );
   }
 
-
   log(
     verbose,
-    `Voiceover generated: ${relativeVoicePath}`
+    `Voiceover created: ${(
+      stats.size / 1024
+    ).toFixed(1)} KB`
   );
 
-
-  // --------------------------------------------------------------------------
-  // RETURN
-  // --------------------------------------------------------------------------
-
+  /*
+   * IMPORTANT:
+   *
+   * This is deliberately a Remotion public
+   * path, NOT a Django /media path.
+   *
+   * PromoVideo.tsx detects voiceovers/*
+   * and resolves it through staticFile().
+   */
   return {
     ...props,
 
-    /*
-     * PromoVideo recognizes voiceovers/
-     * as a Remotion public asset.
-     */
     voiceoverUrl:
-      relativeVoicePath,
+      relativePath,
 
-    /*
-     * Store the exact narration used.
-     * This makes debugging much easier.
-     */
     voiceoverText:
       narration,
   };
 }
-
 
 // ============================================================================
 // CHROMIUM
@@ -881,11 +648,17 @@ function getChromiumOptions() {
   return {
     gl: "swiftshader",
 
-    disableWebSecurity:
-      false,
+    disableWebSecurity: false,
+
+    // Better reliability on GitHub runners.
+    args: [
+      "--disable-gpu",
+      "--disable-dev-shm-usage",
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+    ],
   };
 }
-
 
 // ============================================================================
 // BUNDLE
@@ -905,12 +678,10 @@ async function createBundle(
     );
   }
 
-
   log(
     verbose,
     "Bundling PromoVideo..."
   );
-
 
   const serveUrl =
     await bundle({
@@ -925,35 +696,28 @@ async function createBundle(
           mediaOrigin,
       },
 
-      onProgress:
-        verbose
-          ? (progress) => {
-              process.stdout.write(
-                `\r[bundle] ${Math.round(
-                  progress
-                )}%`
-              );
-            }
-          : undefined,
+      onProgress: verbose
+        ? (progress) => {
+            process.stdout.write(
+              `\r[bundle] ${Math.round(
+                progress
+              )}%`
+            );
+          }
+        : undefined,
     });
 
-
   if (verbose) {
-    process.stdout.write(
-      "\n"
-    );
+    process.stdout.write("\n");
   }
-
 
   log(
     verbose,
     "Bundle complete."
   );
 
-
   return serveUrl;
 }
-
 
 // ============================================================================
 // PORT
@@ -974,19 +738,16 @@ async function getRenderPort(
       ],
     });
 
-
   log(
     verbose,
     `Using Remotion port ${port}.`
   );
 
-
   return port;
 }
 
-
 // ============================================================================
-// SELECT COMPOSITION
+// COMPOSITION
 // ============================================================================
 
 async function selectRenderComposition({
@@ -1002,7 +763,6 @@ async function selectRenderComposition({
     `Selecting composition "${config.compositionId}"...`
   );
 
-
   const composition =
     await selectComposition({
       serveUrl,
@@ -1015,11 +775,10 @@ async function selectRenderComposition({
       port,
 
       timeoutInMilliseconds:
-        120_000,
+        RENDER_TIMEOUT,
 
       chromiumOptions,
     });
-
 
   if (!composition) {
     throw new Error(
@@ -1027,10 +786,8 @@ async function selectRenderComposition({
     );
   }
 
-
   return composition;
 }
-
 
 // ============================================================================
 // COMPOSITION OVERRIDES
@@ -1041,62 +798,43 @@ function buildComposition({
   config,
   isStill,
 }) {
-  /*
-   * IMPORTANT:
-   *
-   * For PromoVideo, Remotion's
-   * calculateMetadata() determines
-   * the dynamic duration.
-   *
-   * Therefore we do NOT blindly
-   * overwrite it with an old fixed
-   * duration.
-   */
-
-  const isDynamicPromo =
+  const isPromo =
     config.compositionId ===
     "PromoVideo";
 
+  const durationInFrames =
+    isStill
+      ? (
+          composition.durationInFrames ??
+          Number(config.stillFrame) + 1
+        )
+      : isPromo
+        ? composition.durationInFrames
+        : Number(
+            config.durationInFrames
+          );
 
   return {
     ...composition,
 
-    width:
-      Number(
-        config.width
-      ),
+    width: Number(
+      config.width
+    ),
 
-    height:
-      Number(
-        config.height
-      ),
+    height: Number(
+      config.height
+    ),
 
-    fps:
-      Number(
-        config.fps
-      ),
+    fps: Number(
+      config.fps
+    ),
 
-    durationInFrames:
-      isStill
-        ? (
-            composition.durationInFrames ??
-            Number(
-              config.stillFrame
-            ) + 1
-          )
-
-        : isDynamicPromo
-          ? composition.durationInFrames
-
-          : Number(
-              config.durationInFrames
-            ),
+    durationInFrames,
   };
 }
 
-
 // ============================================================================
-// STILL RENDER
+// STILL
 // ============================================================================
 
 async function renderStillFrame({
@@ -1113,7 +851,6 @@ async function renderStillFrame({
     `Rendering still frame ${config.stillFrame}...`
   );
 
-
   await renderStill({
     serveUrl,
 
@@ -1121,10 +858,9 @@ async function renderStillFrame({
 
     composition,
 
-    frame:
-      Number(
-        config.stillFrame
-      ),
+    frame: Number(
+      config.stillFrame
+    ),
 
     output:
       config.outputPath,
@@ -1140,15 +876,14 @@ async function renderStillFrame({
     inputProps,
 
     timeoutInMilliseconds:
-      120_000,
+      RENDER_TIMEOUT,
 
     chromiumOptions,
   });
 }
 
-
 // ============================================================================
-// VIDEO RENDER
+// VIDEO
 // ============================================================================
 
 async function renderVideo({
@@ -1161,65 +896,51 @@ async function renderVideo({
   verbose,
 }) {
   /*
-   * Conservative default for CI.
-   *
-   * Two concurrent frames is generally
-   * much safer than aggressively using
-   * every available CPU.
+   * GitHub Actions has enough CPU/memory,
+   * but keeping concurrency configurable
+   * avoids accidental memory explosions.
    */
   const concurrency =
     Math.max(
       1,
-      Number(
-        config.concurrency ??
-          2
+      Math.min(
+        3,
+        Number(
+          config.concurrency ??
+            DEFAULT_CONCURRENCY
+        )
       )
     );
-
 
   const x264Preset =
     config.x264Preset ||
     "fast";
 
+  const durationSeconds =
+    composition.durationInFrames /
+    composition.fps;
 
   log(
     verbose,
-    `Rendering ${composition.width}x${composition.height} @ ${composition.fps}fps...`
+    `Rendering ${composition.width}x${composition.height} @ ${composition.fps}fps`
   );
-
 
   log(
     verbose,
-    `Duration: ${composition.durationInFrames} frames`
+    `Duration: ${composition.durationInFrames} frames (${durationSeconds.toFixed(
+      2
+    )}s)`
   );
-
-
-  log(
-    verbose,
-    `Approx duration: ${(
-      composition.durationInFrames /
-      composition.fps
-    ).toFixed(2)} seconds`
-  );
-
 
   log(
     verbose,
     `Concurrency: ${concurrency}`
   );
 
-
-  log(
-    verbose,
-    "Codec: h264"
-  );
-
-
   log(
     verbose,
     `x264 preset: ${x264Preset}`
   );
-
 
   await renderMedia({
     serveUrl,
@@ -1228,8 +949,7 @@ async function renderVideo({
 
     composition,
 
-    codec:
-      "h264",
+    codec: "h264",
 
     outputLocation:
       config.outputPath,
@@ -1237,7 +957,7 @@ async function renderVideo({
     inputProps,
 
     timeoutInMilliseconds:
-      120_000,
+      RENDER_TIMEOUT,
 
     chromiumOptions,
 
@@ -1245,69 +965,55 @@ async function renderVideo({
 
     x264Preset,
 
-    onProgress:
-      verbose
-        ? ({ progress }) => {
-            process.stdout.write(
-              `\r[render] ${Math.round(
-                progress * 100
-              )}%`
-            );
-          }
-        : undefined,
+    onProgress: verbose
+      ? ({ progress }) => {
+          process.stdout.write(
+            `\r[render] ${Math.round(
+              progress * 100
+            )}%`
+          );
+        }
+      : undefined,
   });
 
-
   if (verbose) {
-    process.stdout.write(
-      "\n"
-    );
+    process.stdout.write("\n");
   }
 }
 
-
 // ============================================================================
-// OUTPUT VALIDATION
+// OUTPUT
 // ============================================================================
 
 function validateOutput(
   outputPath
 ) {
-  const absoluteOutput =
-    path.resolve(
-      outputPath
-    );
-
+  const absolutePath =
+    path.resolve(outputPath);
 
   if (
     !fs.existsSync(
-      absoluteOutput
+      absolutePath
     )
   ) {
     throw new Error(
-      `Render completed but output file was not created:\n${absoluteOutput}`
+      `Render completed but output file was not created:\n${absolutePath}`
     );
   }
 
-
   const stats =
     fs.statSync(
-      absoluteOutput
+      absolutePath
     );
 
-
-  if (
-    stats.size < 10_000
-  ) {
+  if (stats.size < 10_000) {
     throw new Error(
       `Render output appears invalid. File size: ${stats.size} bytes`
     );
   }
 
-
   return stats;
 }
-
 
 // ============================================================================
 // MAIN
@@ -1321,61 +1027,31 @@ async function main() {
     process.argv.slice(2)
   );
 
-
   log(
     verbose,
     "Starting INRASTUDIO Remotion renderer..."
   );
-
-
-  log(
-    verbose,
-    `Config: ${path.resolve(
-      configPath
-    )}`
-  );
-
-
-  // --------------------------------------------------------------------------
-  // LOAD CONFIG
-  // --------------------------------------------------------------------------
 
   const config =
     loadConfig(
       configPath
     );
 
-
-  // --------------------------------------------------------------------------
-  // MEDIA ORIGIN
-  // --------------------------------------------------------------------------
-
   const mediaOrigin =
     resolveMediaOrigin(
       config
     );
-
 
   log(
     verbose,
     `Media origin: ${mediaOrigin}`
   );
 
-
-  // --------------------------------------------------------------------------
-  // FINAL PROPS
-  // --------------------------------------------------------------------------
-
   const inputProps =
     await prepareVoiceover(
       config,
       verbose
     );
-
-
-  // --------------------------------------------------------------------------
-  // FINAL CONTENT LOG
-  // --------------------------------------------------------------------------
 
   log(
     verbose,
@@ -1385,55 +1061,36 @@ async function main() {
     }`
   );
 
-
   log(
     verbose,
     `Why Choose Us: ${
       inputProps.whyChooseUs?.length ||
       0
-    }`);
-
+    }`
+  );
 
   log(
     verbose,
     `Voiceover: ${
-      inputProps.voiceoverUrl
-        ? inputProps.voiceoverUrl
-        : "disabled"
+      inputProps.voiceoverUrl ||
+      "disabled"
     }`
   );
-
 
   log(
     verbose,
     `Music: ${
-      inputProps.musicUrl
-        ? inputProps.musicUrl
-        : "disabled"
+      inputProps.musicUrl ||
+      "disabled"
     }`
   );
 
-
-  // --------------------------------------------------------------------------
-  // OUTPUT DIRECTORY
-  // --------------------------------------------------------------------------
-
-  ensureDir(
+  ensureDirectory(
     config.outputPath
   );
 
-
-  // --------------------------------------------------------------------------
-  // CHROMIUM
-  // --------------------------------------------------------------------------
-
   const chromiumOptions =
     getChromiumOptions();
-
-
-  // --------------------------------------------------------------------------
-  // BUNDLE
-  // --------------------------------------------------------------------------
 
   const serveUrl =
     await createBundle(
@@ -1441,20 +1098,10 @@ async function main() {
       verbose
     );
 
-
-  // --------------------------------------------------------------------------
-  // PORT
-  // --------------------------------------------------------------------------
-
   const port =
     await getRenderPort(
       verbose
     );
-
-
-  // --------------------------------------------------------------------------
-  // SELECT
-  // --------------------------------------------------------------------------
 
   const composition =
     await selectRenderComposition({
@@ -1471,15 +1118,9 @@ async function main() {
       verbose,
     });
 
-
-  // --------------------------------------------------------------------------
-  // STILL / VIDEO
-  // --------------------------------------------------------------------------
-
   const isStill =
     config.stillFrame !==
     undefined;
-
 
   const finalComposition =
     buildComposition({
@@ -1490,6 +1131,16 @@ async function main() {
       isStill,
     });
 
+  if (
+    !finalComposition
+      .durationInFrames ||
+    finalComposition
+      .durationInFrames <= 0
+  ) {
+    throw new Error(
+      "Remotion returned an invalid composition duration."
+    );
+  }
 
   if (isStill) {
     await renderStillFrame({
@@ -1527,20 +1178,10 @@ async function main() {
     });
   }
 
-
-  // --------------------------------------------------------------------------
-  // VALIDATE
-  // --------------------------------------------------------------------------
-
   const stats =
     validateOutput(
       config.outputPath
     );
-
-
-  // --------------------------------------------------------------------------
-  // COMPLETE
-  // --------------------------------------------------------------------------
 
   log(
     verbose,
@@ -1551,12 +1192,10 @@ async function main() {
     ).toFixed(2)} MB`
   );
 
-
   console.log(
     `\n[render] SUCCESS → ${config.outputPath}`
   );
 }
-
 
 // ============================================================================
 // ERROR HANDLER
@@ -1581,7 +1220,6 @@ main().catch(
         error
     );
 
-
     if (error?.stack) {
       console.error(
         "\nStack trace:"
@@ -1591,7 +1229,6 @@ main().catch(
         error.stack
       );
     }
-
 
     process.exit(1);
   }
