@@ -444,7 +444,7 @@ export default function ContactRoute() {
                   02 / FIND US
                 </div>
 
-                {/* EMAIL */}
+                {/* Contact*/}
 
                 <div
                   className="mb-8 border-t pt-5"
@@ -463,14 +463,14 @@ export default function ContactRoute() {
                         className="mb-1.5 font-mono text-[9px] tracking-[0.14em]"
                         style={{ color: muted }}
                       >
-                        EMAIL
+                        CONTACT
                       </p>
 
                       <a
                         href="mailto:prospereze12345@gmail.com"
                         className="font-display text-lg transition-opacity hover:opacity-60 sm:text-xl"
                       >
-                        prospereze12345@gmail.com
+                        +234-901-836-7110.
                       </a>
                     </div>
                   </div>
@@ -495,7 +495,7 @@ export default function ContactRoute() {
                         className="mb-1.5 font-mono text-[9px] tracking-[0.14em]"
                         style={{ color: muted }}
                       >
-                        STUDIO
+                        LOCATION
                       </p>
 
                       <p className="font-display text-lg leading-[1.15] sm:text-xl">
