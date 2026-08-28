@@ -36,12 +36,11 @@ export function Navbar() {
     <>
       <style>{`
         .inra-nav {
-          --ink: #16140F;
-          --paper: #EEE7D8;
-          --paper-dark: #DCD2BD;
-          --signal: #D6491F;
-          --marigold: #E8A33D;
-          --muted: #8D836C;
+          --ink: #15130F;
+          --paper: #F2EEE2;
+          --paper-dim: #E7E1CF;
+          --signal: #FFC629;
+          --muted: #A79A82;
         }
 
         .inra-nav *,
@@ -57,6 +56,7 @@ export function Navbar() {
 
         .inra-nav-display {
           font-family:
+            "Archivo Black",
             "Space Grotesk",
             ui-sans-serif,
             system-ui,
@@ -85,10 +85,10 @@ export function Navbar() {
       `}</style>
 
       {/* =========================================================
-          NAVIGATION
+          MAIN NAVIGATION
       ========================================================== */}
 
-      <div className="inra-nav fixed top-0 left-0 right-0 z-50 px-3 sm:px-5 pt-3 sm:pt-5">
+      <div className="inra-nav fixed left-0 right-0 top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-5">
         <motion.nav
           initial={{ y: -24, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -107,23 +107,23 @@ export function Navbar() {
               duration-500
               ${
                 scrolled || isMenuOpen
-                  ? "rounded-[20px] shadow-[0_14px_40px_rgba(22,20,15,0.14)]"
-                  : "rounded-[24px]"
+                  ? "rounded-[18px] shadow-[0_14px_40px_rgba(21,19,15,0.16)]"
+                  : "rounded-[22px]"
               }
             `}
             style={{
-              background: "#EEE7D8",
-              borderColor: "rgba(22,20,15,0.16)",
+              background: "#F2EEE2",
+              borderColor: "rgba(21,19,15,0.14)",
             }}
           >
             {/* =====================================================
                 MAIN NAV ROW
             ====================================================== */}
 
-            <div className="h-[68px] sm:h-[74px] flex items-center">
+            <div className="flex h-[66px] items-center sm:h-[72px]">
               {/* BRAND */}
 
-              <div className="flex items-center pl-4 sm:pl-6 pr-4">
+              <div className="flex items-center pl-4 pr-4 sm:pl-6">
                 <Link
                   href="/"
                   aria-label="INRASTUDIO home"
@@ -141,7 +141,7 @@ export function Navbar() {
                   DESKTOP NAV
               ================================================== */}
 
-              <div className="hidden lg:flex flex-1 items-center justify-center gap-8">
+              <div className="hidden flex-1 items-center justify-center gap-8 lg:flex">
                 {navLinks.map((item) => (
                   <Link
                     key={item.href}
@@ -149,14 +149,12 @@ export function Navbar() {
                     className="
                       inra-nav-mono
                       text-[10px]
-                      tracking-[0.14em]
                       font-semibold
+                      tracking-[0.14em]
+                      text-[#514B3E]
                       transition-colors
-                      hover:text-[#D6491F]
+                      hover:text-[#15130F]
                     "
-                    style={{
-                      color: "#514B3E",
-                    }}
                   >
                     {item.label.toUpperCase()}
                   </Link>
@@ -167,58 +165,56 @@ export function Navbar() {
                   RIGHT ACTIONS
               ================================================== */}
 
-              <div className="ml-auto flex items-center gap-2 sm:gap-3 pr-3 sm:pr-4">
+              <div className="ml-auto flex items-center gap-2 pr-3 sm:gap-3 sm:pr-4">
                 {/* LOGIN */}
 
                 <Link
                   href="/login"
                   className="
                     hidden
-                    sm:inline-flex
-                    items-center
                     px-3
                     inra-nav-mono
                     text-[10px]
-                    tracking-[0.12em]
                     font-semibold
+                    tracking-[0.12em]
+                    text-[#514B3E]
                     transition-colors
-                    hover:text-[#D6491F]
+                    hover:text-[#15130F]
+                    sm:inline-flex
                   "
-                  style={{
-                    color: "#514B3E",
-                  }}
                 >
                   LOG IN
                 </Link>
 
-                {/* DESKTOP CTA */}
+                {/* PRIMARY CTA */}
 
                 <Link
                   href="/signup"
                   className="
                     hidden
-                    lg:inline-flex
+                    h-11
                     items-center
                     justify-center
                     gap-2
+                    rounded-[10px]
+                    bg-[#FFC629]
                     px-5
-                    h-11
-                    rounded-[11px]
                     inra-nav-display
                     text-xs
                     font-bold
+                    text-[#15130F]
+                    shadow-[3px_3px_0_0_rgba(21,19,15,0.22)]
                     transition-all
                     duration-300
                     hover:-translate-y-0.5
+                    hover:shadow-[4px_4px_0_0_rgba(21,19,15,0.25)]
                     active:translate-y-0
+                    active:shadow-[2px_2px_0_0_rgba(21,19,15,0.22)]
+                    lg:inline-flex
                   "
-                  style={{
-                    background: "#D6491F",
-                    color: "#F7F0E2",
-                  }}
                 >
                   START CREATING
-                  <ArrowUpRight className="w-3.5 h-3.5" />
+                  <ArrowUpRight className="h-3.5 w-3.5" />
                 </Link>
 
                 {/* MOBILE MENU BUTTON */}
@@ -233,25 +229,23 @@ export function Navbar() {
                   }
                   aria-expanded={isMenuOpen}
                   className="
-                    lg:hidden
-                    w-10
-                    h-10
-                    rounded-[10px]
                     flex
+                    h-10
+                    w-10
                     items-center
                     justify-center
+                    rounded-[10px]
+                    bg-[#15130F]
+                    text-[#F2EEE2]
                     transition-transform
                     active:scale-95
+                    lg:hidden
                   "
-                  style={{
-                    background: "#16140F",
-                    color: "#EEE7D8",
-                  }}
                 >
                   {isMenuOpen ? (
-                    <X className="w-5 h-5" />
+                    <X className="h-5 w-5" />
                   ) : (
-                    <Menu className="w-5 h-5" />
+                    <Menu className="h-5 w-5" />
                   )}
                 </button>
               </div>
@@ -265,7 +259,7 @@ export function Navbar() {
               className="h-[2px] w-full"
               style={{
                 background:
-                  "linear-gradient(90deg, #D6491F 0%, #D6491F 14%, #16140F 14%, #16140F 82%, #E8A33D 82%, #E8A33D 100%)",
+                  "linear-gradient(90deg, #FFC629 0%, #FFC629 18%, #15130F 18%, #15130F 82%, #FFC629 82%, #FFC629 100%)",
               }}
             />
           </div>
@@ -287,7 +281,7 @@ export function Navbar() {
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-40 lg:hidden"
               style={{
-                background: "rgba(22,20,15,0.35)",
+                background: "rgba(21,19,15,0.38)",
               }}
               onClick={closeMenu}
               aria-hidden="true"
@@ -317,25 +311,25 @@ export function Navbar() {
                 fixed
                 left-3
                 right-3
-                top-[86px]
+                top-[82px]
                 z-50
-                lg:hidden
                 overflow-hidden
-                rounded-[22px]
+                rounded-[20px]
                 border
-                shadow-[0_24px_60px_rgba(22,20,15,0.22)]
+                shadow-[0_24px_60px_rgba(21,19,15,0.22)]
+                lg:hidden
               "
               style={{
-                background: "#EEE7D8",
-                borderColor: "rgba(22,20,15,0.16)",
+                background: "#F2EEE2",
+                borderColor: "rgba(21,19,15,0.14)",
               }}
             >
               {/* MENU INTRO */}
 
               <div
-                className="px-5 pt-6 pb-5 border-b"
+                className="border-b px-5 pb-5 pt-6"
                 style={{
-                  borderColor: "rgba(22,20,15,0.13)",
+                  borderColor: "rgba(21,19,15,0.12)",
                 }}
               >
                 <div
@@ -345,7 +339,7 @@ export function Navbar() {
                     tracking-[0.2em]
                   "
                   style={{
-                    color: "#8D836C",
+                    color: "#A79A82",
                   }}
                 >
                   INRASTUDIO / NAVIGATION
@@ -354,16 +348,16 @@ export function Navbar() {
                 <div
                   className="
                     inra-nav-display
-                    text-[26px]
-                    sm:text-[30px]
+                    mt-2
+                    max-w-[330px]
+                    text-[25px]
                     font-semibold
                     leading-[1.05]
                     tracking-[-0.035em]
-                    mt-2
-                    max-w-[330px]
+                    sm:text-[29px]
                   "
                   style={{
-                    color: "#16140F",
+                    color: "#15130F",
                   }}
                 >
                   Make the next thing
@@ -375,9 +369,9 @@ export function Navbar() {
               {/* NAV LINKS */}
 
               <div
-                className="px-5 py-3 border-b"
+                className="border-b px-5 py-3"
                 style={{
-                  borderColor: "rgba(22,20,15,0.13)",
+                  borderColor: "rgba(21,19,15,0.12)",
                 }}
               >
                 {navLinks.map((item, index) => (
@@ -390,26 +384,26 @@ export function Navbar() {
                       flex
                       items-center
                       justify-between
-                      py-4
                       border-b
+                      py-4
                       last:border-b-0
                     "
                     style={{
-                      borderColor: "rgba(22,20,15,0.09)",
+                      borderColor: "rgba(21,19,15,0.09)",
                     }}
                   >
                     <span
                       className="
                         inra-nav-display
                         text-xl
-                        sm:text-2xl
                         font-medium
                         tracking-[-0.025em]
                         transition-colors
-                        group-hover:text-[#D6491F]
+                        group-hover:text-[#15130F]
+                        sm:text-2xl
                       "
                       style={{
-                        color: "#16140F",
+                        color: "#15130F",
                       }}
                     >
                       {item.label}
@@ -421,7 +415,7 @@ export function Navbar() {
                         text-[9px]
                       "
                       style={{
-                        color: "#A19883",
+                        color: "#A79A82",
                       }}
                     >
                       0{index + 1}
@@ -435,7 +429,7 @@ export function Navbar() {
               <div
                 className="px-5 py-5"
                 style={{
-                  background: "rgba(220,210,189,0.25)",
+                  background: "rgba(231,225,207,0.45)",
                 }}
               >
                 <div className="flex items-center justify-between gap-4">
@@ -445,14 +439,12 @@ export function Navbar() {
                     className="
                       inra-nav-mono
                       text-[10px]
-                      tracking-[0.15em]
                       font-semibold
-                      hover:text-[#D6491F]
+                      tracking-[0.15em]
+                      text-[#514B3E]
                       transition-colors
+                      hover:text-[#15130F]
                     "
-                    style={{
-                      color: "#514B3E",
-                    }}
                   >
                     LOG IN
                   </Link>
@@ -461,27 +453,26 @@ export function Navbar() {
                     href="/signup"
                     onClick={closeMenu}
                     className="
-                      flex-1
-                      max-w-[200px]
-                      h-12
-                      rounded-[11px]
                       flex
+                      h-12
+                      max-w-[200px]
+                      flex-1
                       items-center
                       justify-center
                       gap-2
+                      rounded-[10px]
+                      bg-[#FFC629]
                       inra-nav-display
                       text-sm
                       font-bold
+                      text-[#15130F]
+                      shadow-[3px_3px_0_0_rgba(21,19,15,0.22)]
                       transition-transform
                       active:scale-[0.98]
                     "
-                    style={{
-                      background: "#D6491F",
-                      color: "#F7F0E2",
-                    }}
                   >
                     START CREATING
-                    <ArrowUpRight className="w-4 h-4" />
+                    <ArrowUpRight className="h-4 w-4" />
                   </Link>
                 </div>
               </div>
@@ -490,15 +481,15 @@ export function Navbar() {
 
               <div
                 className="
-                  px-5
-                  py-3
                   flex
                   items-center
                   justify-between
+                  px-5
+                  py-3
                 "
                 style={{
-                  background: "#16140F",
-                  color: "#EEE7D8",
+                  background: "#15130F",
+                  color: "#F2EEE2",
                 }}
               >
                 <span
@@ -508,16 +499,16 @@ export function Navbar() {
                     tracking-[0.18em]
                   "
                   style={{
-                    color: "#9D947F",
+                    color: "#A79A82",
                   }}
                 >
                   ONE PHOTO
                 </span>
 
                 <span
-                  className="text-xs"
+                  className="text-sm font-bold"
                   style={{
-                    color: "#E8A33D",
+                    color: "#FFC629",
                   }}
                 >
                   →
@@ -528,6 +519,7 @@ export function Navbar() {
                     inra-nav-mono
                     text-[8px]
                     tracking-[0.18em]
+                    text-[#F2EEE2]
                   "
                 >
                   FULL CAMPAIGN
@@ -540,4 +532,5 @@ export function Navbar() {
     </>
   );
 }
+
 
