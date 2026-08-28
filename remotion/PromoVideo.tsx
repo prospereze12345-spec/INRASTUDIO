@@ -1,3 +1,4 @@
+
 import React from "react";
 
 import {
@@ -8,7 +9,6 @@ import {
   useVideoConfig,
   interpolate,
   spring,
-  Sequence,
   Img,
   Audio,
   staticFile,
@@ -80,7 +80,7 @@ export type PromoVideoProps = {
 };
 
 // ============================================================================
-// DEFAULTS
+// DEFAULT PROPS
 // ============================================================================
 
 const DEFAULT_PROPS: PromoVideoProps = {
@@ -109,8 +109,17 @@ const DEFAULT_PROPS: PromoVideoProps = {
 
   badge: null,
 
-  features: [],
-  whyChooseUs: [],
+  features: [
+    "Premium quality",
+    "Elegant modern design",
+    "Built to last",
+  ],
+
+  whyChooseUs: [
+    "Trusted quality",
+    "Fast delivery",
+    "Great customer service",
+  ],
 
   featuresVisible: true,
   whyChooseUsVisible: true,
@@ -135,81 +144,49 @@ const DEFAULT_PROPS: PromoVideoProps = {
 };
 
 // ============================================================================
-// TIMING
-// ============================================================================
-
-const TIMING = {
-  brandIntro: 24,
-
-  productEntrance: 18,
-
-  headline: 52,
-
-  price: 96,
-
-  subtext: 116,
-
-  featureItemGap: 16,
-
-  whyChooseItemGap: 16,
-
-  ctaGap: 22,
-
-  footerGap: 18,
-
-  outroLead: 30,
-};
-
-// ============================================================================
 // ASSET RESOLUTION
 // ============================================================================
 
 function resolveAsset(
   value: string | undefined | null,
-  mediaOrigin: string,
-  options?: {
-    staticSubdir?: string;
-  }
-) {
+  mediaOrigin: string
+): string {
   if (!value) {
     return "";
   }
 
-  const clean = value.trim();
+  const clean = String(value).trim();
 
   if (!clean) {
     return "";
   }
 
-  // Absolute remote URL
+  // Absolute URLs and browser-generated assets
   if (
     clean.startsWith("http://") ||
-    clean.startsWith("https://")
+    clean.startsWith("https://") ||
+    clean.startsWith("data:") ||
+    clean.startsWith("blob:")
   ) {
     return clean;
   }
 
-  // Local Remotion-generated voiceover
+  // Remotion public/static assets
   if (
     clean.startsWith("voiceovers/") ||
     clean.startsWith("/voiceovers/")
   ) {
-    return staticFile(
-      clean.replace(/^\/+/, "")
-    );
+    return staticFile(clean.replace(/^\/+/, ""));
   }
 
-  // Local Remotion music
   if (
     clean.startsWith("music/") ||
     clean.startsWith("/music/")
   ) {
-    return staticFile(
-      clean.replace(/^\/+/, "")
-    );
+    return staticFile(clean.replace(/^\/+/, ""));
   }
 
-  // Django media
+  // Backend media
   if (clean.startsWith("/media/")) {
     return `${mediaOrigin}${clean}`;
   }
@@ -218,70 +195,177 @@ function resolveAsset(
     return `${mediaOrigin}/${clean}`;
   }
 
-  // Explicit static directory
-  if (options?.staticSubdir) {
-    return staticFile(
-      `${options.staticSubdir}/${clean.replace(/^\/+/, "")}`
-    );
-  }
-
-  // Treat unknown relative assets as Django media.
   return `${mediaOrigin}/media/${clean.replace(/^\/+/, "")}`;
 }
 
 // ============================================================================
-// SAFE ARRAY
+// HELPERS
 // ============================================================================
 
-function safeArray(value?: string[]) {
+function safeArray(value?: string[]): string[] {
   if (!Array.isArray(value)) {
     return [];
   }
 
   return value
-    .map((item) => String(item).trim())
-    .filter(Boolean);
+    .map((item) => String(item ?? "").trim())
+    .filter(Boolean)
+    .slice(0, 3);
+}
+
+function clampText(
+  value: string,
+  maxLength: number
+): string {
+  const text = String(value || "").trim();
+
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength - 1).trim()}…`;
+}
+
+function splitHeadline(
+  text: string,
+  maxWords = 12
+): string[] {
+  return String(text || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, maxWords);
+}
+
+function fadeUp(
+  frame: number,
+  start: number,
+  duration = 18
+) {
+  const opacity = interpolate(
+    frame,
+    [start, start + duration],
+    [0, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
+  const y = interpolate(
+    frame,
+    [start, start + duration],
+    [22, 0],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
+  return {
+    opacity,
+    transform: `translateY(${y}px)`,
+  };
+}
+
+function springIn(
+  frame: number,
+  start: number,
+  fps: number
+): number {
+  return spring({
+    frame: Math.max(0, frame - start),
+    fps,
+    config: {
+      damping: 16,
+      stiffness: 140,
+      mass: 0.65,
+    },
+  });
 }
 
 // ============================================================================
-// BULLET ROW
+// SECTION TITLE
 // ============================================================================
 
-function BulletRow({
+function SectionTitle({
+  children,
+  accent,
+  color,
+}: {
+  children: React.ReactNode;
+  accent: string;
+  color: string;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 7,
+        marginBottom: 8,
+      }}
+    >
+      <div
+        style={{
+          width: 16,
+          height: 2,
+          borderRadius: 999,
+          background: accent,
+          flexShrink: 0,
+        }}
+      />
+
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 800,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
+          color,
+          opacity: 0.55,
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// FEATURE ROW
+// ============================================================================
+
+function FeatureRow({
   text,
   index,
-  startFrame,
-  gap,
+  start,
   accent,
   textColor,
-  fontSize = 15,
+  width,
+  fps,
 }: {
   text: string;
   index: number;
-  startFrame: number;
-  gap: number;
+  start: number;
   accent: string;
   textColor: string;
-  fontSize?: number;
+  width: number;
+  fps: number;
 }) {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
 
-  const delay = startFrame + index * gap;
+  const delay = start + index * 5;
 
-  const progress = spring({
-    frame: frame - delay,
-    fps,
-
-    config: {
-      damping: 20,
-      stiffness: 140,
-    },
-  });
+  const progress = springIn(
+    frame,
+    delay,
+    fps
+  );
 
   const opacity = interpolate(
     frame,
-    [delay, delay + 14],
+    [delay, delay + 12],
     [0, 1],
     {
       extrapolateLeft: "clamp",
@@ -299,67 +383,134 @@ function BulletRow({
     <div
       style={{
         display: "flex",
-        alignItems: "center",
-        gap: 10,
+        alignItems: "flex-start",
+        gap: 8,
+        marginBottom: 6,
         opacity,
         transform: `translateX(${x}px)`,
       }}
     >
-      <span
+      <div
         style={{
           width: 6,
           height: 6,
+          marginTop: 5,
           borderRadius: "50%",
           background: accent,
           flexShrink: 0,
         }}
       />
 
-      <span
+      <div
         style={{
-          fontSize,
+          fontSize: Math.max(
+            13,
+            Math.round(width * 0.014)
+          ),
           color: textColor,
-          opacity: 0.88,
-          fontWeight: 600,
+          fontWeight: 650,
           lineHeight: 1.25,
         }}
       >
-        {text}
-      </span>
+        {clampText(text, 85)}
+      </div>
     </div>
   );
 }
 
 // ============================================================================
-// SECTION LABEL
+// BENEFIT CARD
 // ============================================================================
 
-function SectionLabel({
-  children,
+function BenefitCard({
+  text,
+  index,
+  start,
+  accent,
   textColor,
+  primary,
+  width,
+  fps,
 }: {
-  children: React.ReactNode;
+  text: string;
+  index: number;
+  start: number;
+  accent: string;
   textColor: string;
+  primary: string;
+  width: number;
+  fps: number;
 }) {
+  const frame = useCurrentFrame();
+
+  const delay = start + index * 5;
+
+  const progress = springIn(
+    frame,
+    delay,
+    fps
+  );
+
+  const opacity = interpolate(
+    frame,
+    [delay, delay + 14],
+    [0, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
+  const y = interpolate(
+    progress,
+    [0, 1],
+    [12, 0]
+  );
+
   return (
     <div
       style={{
-        fontSize: 9,
-        fontWeight: 800,
-        letterSpacing: "0.18em",
-        textTransform: "uppercase",
-        color: textColor,
-        opacity: 0.38,
-        marginBottom: 7,
+        flex: 1,
+        minWidth: 0,
+        padding: "9px 10px",
+        borderRadius: 9,
+        border: `1px solid ${textColor}14`,
+        background: `${textColor}07`,
+        boxShadow: `0 7px 20px ${primary}40`,
+        opacity,
+        transform: `translateY(${y}px)`,
       }}
     >
-      {children}
+      <div
+        style={{
+          width: 5,
+          height: 5,
+          borderRadius: "50%",
+          background: accent,
+          marginBottom: 6,
+        }}
+      />
+
+      <div
+        style={{
+          fontSize: Math.max(
+            10,
+            Math.round(width * 0.0105)
+          ),
+          lineHeight: 1.25,
+          fontWeight: 650,
+          color: textColor,
+          opacity: 0.82,
+        }}
+      >
+        {clampText(text, 52)}
+      </div>
     </div>
   );
 }
 
 // ============================================================================
-// MAIN
+// PROMO VIDEO
 // ============================================================================
 
 export function PromoVideo({
@@ -394,6 +545,7 @@ export function PromoVideo({
   ctaVisible = true,
 
   voiceoverUrl,
+
   musicUrl,
   musicVolume = 0.12,
 }: PromoVideoProps) {
@@ -407,16 +559,22 @@ export function PromoVideo({
   } = useVideoConfig();
 
   // ==========================================================================
-  // MEDIA
+  // MEDIA ORIGIN
   // ==========================================================================
 
   const MEDIA_ORIGIN = (
     process.env.REMOTION_MEDIA_ORIGIN ||
+    process.env.NEXT_PUBLIC_REMOTION_MEDIA_ORIGIN ||
     "https://inrabackend-docker.onrender.com"
   ).replace(/\/+$/, "");
 
   const resolvedProductImage = resolveAsset(
     productImage,
+    MEDIA_ORIGIN
+  );
+
+  const resolvedLogo = resolveAsset(
+    logoImage,
     MEDIA_ORIGIN
   );
 
@@ -431,11 +589,11 @@ export function PromoVideo({
   );
 
   // ==========================================================================
-  // NORMALIZE CONTENT
+  // CONTENT
   // ==========================================================================
 
-  const safeFeatures = safeArray(features).slice(0, 3);
-  const safeBenefits = safeArray(whyChooseUs).slice(0, 3);
+  const safeFeatures = safeArray(features);
+  const safeBenefits = safeArray(whyChooseUs);
 
   const hasFeatures =
     featuresVisible &&
@@ -444,6 +602,10 @@ export function PromoVideo({
   const hasBenefits =
     whyChooseUsVisible &&
     safeBenefits.length > 0;
+
+  const hasCTA =
+    ctaVisible &&
+    Boolean(ctaText?.trim());
 
   const hasWebsite =
     websiteVisible &&
@@ -462,120 +624,148 @@ export function PromoVideo({
     hasPhone ||
     hasEmail;
 
-  const hasCTA =
-    ctaVisible &&
-    Boolean(ctaText?.trim());
-
   const hasLogo =
-    Boolean(logoImage?.trim());
+    Boolean(resolvedLogo);
 
   const hasBadge =
     Boolean(
-      badge &&
-      badge.visible
+      badge?.visible &&
+      badge.text?.trim()
     );
 
   // ==========================================================================
-  // RESPONSIVE SCALE
+  // COLORS
+  // ==========================================================================
+
+  const primary =
+    colors?.primary || "#0a0a0a";
+
+  const secondary =
+    colors?.secondary || "#ffffff";
+
+  const accent =
+    colors?.accent || "#c9a84c";
+
+  // ==========================================================================
+  // CANVAS
   // ==========================================================================
 
   const scale = width / 1080;
 
-  const horizontalPadding =
-    Math.round(width * 0.085);
+  const side = Math.round(
+    width * 0.065
+  );
 
-  const topPadding =
-    Math.round(height * 0.045);
+  const top = Math.round(
+    height * 0.035
+  );
 
-  const productHeight =
-    height >= 1700
-      ? "32%"
-      : height <= 1100
-        ? "30%"
-        : "32%";
-
-  // ==========================================================================
-  // DYNAMIC TIMELINE
-  // ==========================================================================
-
-  let cursor = TIMING.subtext + 28;
-
-  const featuresStart = hasFeatures
-    ? cursor
-    : -1;
-
-  if (hasFeatures) {
-    cursor +=
-      safeFeatures.length *
-        TIMING.featureItemGap +
-      30;
-  }
-
-  const whyChooseStart = hasBenefits
-    ? cursor
-    : -1;
-
-  if (hasBenefits) {
-    cursor +=
-      safeBenefits.length *
-        TIMING.whyChooseItemGap +
-      30;
-  }
-
-  const ctaStart = hasCTA
-    ? cursor
-    : -1;
-
-  if (hasCTA) {
-    cursor +=
-      TIMING.ctaGap + 25;
-  }
-
-  const footerStart = hasFooter
-    ? cursor
-    : -1;
-
-  if (hasFooter) {
-    cursor +=
-      TIMING.footerGap + 32;
-  }
-
-  // Keep outro safely toward the end.
-  const outroFrom = Math.min(
-    durationInFrames - 1,
-    Math.max(
-      durationInFrames - TIMING.outroLead,
-      cursor
-    )
+  const bottom = Math.round(
+    height * 0.035
   );
 
   // ==========================================================================
-  // SPRING
+  // CONTENT ZONES
   // ==========================================================================
 
-  const sp = (
-    frameValue: number,
-    delay = 0,
-    mass = 1
-  ) =>
-    spring({
-      frame: frameValue - delay,
-      fps,
+  const headerHeight = Math.round(
+    height * 0.065
+  );
 
-      config: {
-        damping: 18,
-        stiffness: 80,
-        mass,
-      },
-    });
+  const productHeight = Math.round(
+    height * 0.20
+  );
+
+  const headlineHeight = Math.round(
+    height * 0.105
+  );
+
+  const descriptionHeight = Math.round(
+    height * 0.075
+  );
+
+  const featuresHeight = hasFeatures
+    ? Math.round(height * 0.115)
+    : 0;
+
+  const benefitsHeight = hasBenefits
+    ? Math.round(height * 0.115)
+    : 0;
+
+  const ctaHeight = hasCTA
+    ? Math.round(height * 0.065)
+    : 0;
+
+  const footerHeight = hasFooter
+    ? Math.round(height * 0.055)
+    : 0;
 
   // ==========================================================================
-  // BRAND INTRO
+  // VERTICAL LAYOUT
   // ==========================================================================
 
-  const brandProgress = interpolate(
+  let currentY = top;
+
+  const headerY = currentY;
+  currentY += headerHeight;
+
+  const productSectionY = currentY;
+  currentY += productHeight;
+
+  const headlineY = currentY;
+  currentY += headlineHeight;
+
+  const descriptionY = currentY;
+  currentY += descriptionHeight;
+
+  const featuresY = currentY;
+  currentY += featuresHeight;
+
+  const benefitsY = currentY;
+  currentY += benefitsHeight;
+
+  const ctaY = currentY;
+
+  const footerY =
+    height -
+    footerHeight -
+    bottom;
+
+  // ==========================================================================
+  // TIMELINE
+  // ==========================================================================
+
+  const brandStart = 0;
+  const productStart = 12;
+  const headlineStart = 36;
+  const priceStart = 48;
+  const subtextStart = 62;
+  const featuresStart = 82;
+
+  const benefitsStart =
+    featuresStart +
+    Math.max(
+      16,
+      safeFeatures.length * 4
+    );
+
+  const ctaStart =
+    benefitsStart +
+    Math.max(
+      18,
+      safeBenefits.length * 4
+    );
+
+  const footerStart =
+    ctaStart + 12;
+
+  // ==========================================================================
+  // BACKGROUND ANIMATION
+  // ==========================================================================
+
+  const glowProgress = interpolate(
     frame,
-    [0, 20],
+    [0, durationInFrames],
     [0, 1],
     {
       extrapolateLeft: "clamp",
@@ -583,9 +773,19 @@ export function PromoVideo({
     }
   );
 
+  const glowScale = interpolate(
+    glowProgress,
+    [0, 1],
+    [1, 1.08]
+  );
+
+  // ==========================================================================
+  // BRAND INTRO
+  // ==========================================================================
+
   const brandOpacity = interpolate(
     frame,
-    [0, 16, TIMING.brandIntro],
+    [0, 7, 20],
     [0, 1, 0],
     {
       extrapolateLeft: "clamp",
@@ -593,32 +793,38 @@ export function PromoVideo({
     }
   );
 
-  // ==========================================================================
-  // PRODUCT
-  // ==========================================================================
-
-  const productProgress = sp(
+  const brandScale = interpolate(
     frame,
-    TIMING.productEntrance
+    [0, 18],
+    [0.8, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
   );
 
-  const productY = interpolate(
-    productProgress,
-    [0, 1],
-    [60, 0]
-  );
+  // ==========================================================================
+  // PRODUCT ANIMATION
+  // ==========================================================================
 
-  const productScale = interpolate(
-    productProgress,
-    [0, 1],
-    [0.84, 1]
-  );
+  const productProgress = spring({
+    frame: Math.max(
+      0,
+      frame - productStart
+    ),
+    fps,
+    config: {
+      damping: 17,
+      stiffness: 100,
+      mass: 0.8,
+    },
+  });
 
   const productOpacity = interpolate(
     frame,
     [
-      TIMING.productEntrance,
-      TIMING.productEntrance + 24,
+      productStart,
+      productStart + 18,
     ],
     [0, 1],
     {
@@ -627,29 +833,37 @@ export function PromoVideo({
     }
   );
 
-  const productElapsed = Math.max(
-    0,
-    frame - TIMING.productEntrance
+  // IMPORTANT:
+  // This is an animation offset, not the layout position.
+  // Keeping a separate name avoids the original productY
+  // redeclaration bug.
+  const productOffsetY = interpolate(
+    productProgress,
+    [0, 1],
+    [55, 0]
   );
 
-  const bobY =
-    productElapsed > 0
-      ? Math.sin(productElapsed / 18) * 5
-      : 0;
+  const productScale = interpolate(
+    productProgress,
+    [0, 1],
+    [0.78, 1]
+  );
 
-  const wobbleDeg =
-    productElapsed > 0
-      ? Math.sin(productElapsed / 42) * 1.4
-      : 0;
+  const productElapsed = Math.max(
+    0,
+    frame - productStart
+  );
 
-  // ==========================================================================
-  // KEN BURNS
-  // ==========================================================================
+  const productBob =
+    Math.sin(productElapsed / 20) * 2;
 
-  const kbProgress = interpolate(
+  const productRotate =
+    Math.sin(productElapsed / 45) * 0.35;
+
+  const cameraProgress = interpolate(
     frame,
     [
-      TIMING.productEntrance,
+      productStart,
       durationInFrames,
     ],
     [0, 1],
@@ -659,46 +873,32 @@ export function PromoVideo({
     }
   );
 
-  const kbScale = interpolate(
-    kbProgress,
+  const cameraScale = interpolate(
+    cameraProgress,
     [0, 1],
-    [1, 1.08]
-  );
-
-  const kbX = interpolate(
-    kbProgress,
-    [0, 1],
-    [0, -8]
-  );
-
-  const kbY = interpolate(
-    kbProgress,
-    [0, 1],
-    [0, 5]
+    [1, 1.035]
   );
 
   // ==========================================================================
   // HEADLINE
   // ==========================================================================
 
-  const headlineWords = String(
-    headline || ""
-  )
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 7);
+  const headlineWords =
+    splitHeadline(headline);
 
   // ==========================================================================
   // PRICE
   // ==========================================================================
 
   const priceProgress = spring({
-    frame: frame - TIMING.price,
+    frame: Math.max(
+      0,
+      frame - priceStart
+    ),
     fps,
-
     config: {
       damping: 12,
-      stiffness: 200,
+      stiffness: 190,
       mass: 0.5,
     },
   });
@@ -706,8 +906,8 @@ export function PromoVideo({
   const priceOpacity = interpolate(
     frame,
     [
-      TIMING.price,
-      TIMING.price + 15,
+      priceStart,
+      priceStart + 14,
     ],
     [0, 1],
     {
@@ -716,27 +916,20 @@ export function PromoVideo({
     }
   );
 
+  const priceScale = interpolate(
+    priceProgress,
+    [0, 1],
+    [0.8, 1]
+  );
+
   // ==========================================================================
-  // SUBTEXT
+  // DESCRIPTION
   // ==========================================================================
 
-  const subOpacity = interpolate(
+  const subtextStyle = fadeUp(
     frame,
-    [
-      TIMING.subtext,
-      TIMING.subtext + 20,
-    ],
-    [0, 1],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    }
-  );
-
-  const subY = interpolate(
-    sp(frame, TIMING.subtext),
-    [0, 1],
-    [18, 0]
+    subtextStart,
+    16
   );
 
   // ==========================================================================
@@ -745,13 +938,15 @@ export function PromoVideo({
 
   const ctaProgress = hasCTA
     ? spring({
-        frame: frame - ctaStart,
+        frame: Math.max(
+          0,
+          frame - ctaStart
+        ),
         fps,
-
         config: {
-          damping: 10,
+          damping: 12,
           stiffness: 180,
-          mass: 0.4,
+          mass: 0.5,
         },
       })
     : 0;
@@ -761,7 +956,7 @@ export function PromoVideo({
         frame,
         [
           ctaStart,
-          ctaStart + 18,
+          ctaStart + 14,
         ],
         [0, 1],
         {
@@ -771,18 +966,20 @@ export function PromoVideo({
       )
     : 0;
 
-  const ctaScale = interpolate(
-    ctaProgress,
-    [0, 1],
-    [0.9, 1]
-  );
+  const ctaScale = hasCTA
+    ? interpolate(
+        ctaProgress,
+        [0, 1],
+        [0.92, 1]
+      )
+    : 1;
 
   const ctaLine = hasCTA
     ? interpolate(
         frame,
         [
-          ctaStart + 12,
-          ctaStart + 38,
+          ctaStart + 5,
+          ctaStart + 22,
         ],
         [0, 100],
         {
@@ -796,79 +993,83 @@ export function PromoVideo({
   // FOOTER
   // ==========================================================================
 
-  const footerOpacity = hasFooter
-    ? interpolate(
-        frame,
-        [
-          footerStart,
-          footerStart + 18,
-        ],
-        [0, 1],
-        {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        }
-      )
-    : 0;
-
-  const footerY = hasFooter
-    ? interpolate(
-        sp(frame, footerStart),
-        [0, 1],
-        [14, 0]
-      )
-    : 0;
+  const footerStyle = fadeUp(
+    frame,
+    footerStart,
+    16
+  );
 
   // ==========================================================================
   // BADGE
   // ==========================================================================
 
   const badgeProgress = spring({
-    frame:
-      frame -
-      (TIMING.productEntrance + 18),
-
+    frame: Math.max(
+      0,
+      frame - (productStart + 18)
+    ),
     fps,
-
     config: {
-      damping: 9,
-      stiffness: 220,
+      damping: 10,
+      stiffness: 210,
       mass: 0.5,
     },
   });
 
+  const badgeScale = badge
+    ? badge.transform.scale *
+      interpolate(
+        badgeProgress,
+        [0, 1],
+        [0.5, 1]
+      )
+    : 1;
+
   // ==========================================================================
-  // OUTRO
+  // AUDIO
   // ==========================================================================
 
-  const outroOpacity = interpolate(
-    frame,
-    [
-      outroFrom,
-      Math.min(
-        durationInFrames,
-        outroFrom + 15
-      ),
-    ],
-    [0, 1],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    }
+  const musicBaseVolume = Math.max(
+    0,
+    Math.min(
+      1,
+      Number(musicVolume ?? 0.12)
+    )
   );
 
-  // ==========================================================================
-  // COLORS
-  // ==========================================================================
+  const musicFadeStart = Math.max(
+    0,
+    durationInFrames - 30
+  );
 
-  const accent =
-    colors?.accent || "#c9a84c";
+  const musicVolumeAtFrame = (
+    audioFrame: number
+  ) => {
+    const fade = interpolate(
+      audioFrame,
+      [
+        0,
+        15,
+        musicFadeStart,
+        durationInFrames,
+      ],
+      [
+        0,
+        musicBaseVolume,
+        musicBaseVolume,
+        0,
+      ],
+      {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      }
+    );
 
-  const primary =
-    colors?.primary || "#0a0a0a";
-
-  const textColor =
-    colors?.secondary || "#ffffff";
+    return Math.min(
+      musicBaseVolume,
+      fade
+    );
+  };
 
   // ==========================================================================
   // RENDER
@@ -878,11 +1079,9 @@ export function PromoVideo({
     <AbsoluteFill
       style={{
         background: primary,
-
+        color: secondary,
         fontFamily:
-          "-apple-system, BlinkMacSystemFont, " +
-          "'Helvetica Neue', Arial, sans-serif",
-
+          "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif",
         overflow: "hidden",
       }}
     >
@@ -890,42 +1089,19 @@ export function PromoVideo({
       {/* AUDIO */}
       {/* ================================================================== */}
 
-      {resolvedMusic && (
-        <Audio
-          src={resolvedMusic}
-          volume={(audioFrame) =>
-            interpolate(
-              audioFrame,
-              [
-                0,
-                30,
-                Math.max(
-                  30,
-                  outroFrom - 15
-                ),
-                outroFrom + 10,
-              ],
-              [
-                0,
-                musicVolume,
-                musicVolume,
-                0,
-              ],
-              {
-                extrapolateLeft: "clamp",
-                extrapolateRight: "clamp",
-              }
-            )
-          }
-        />
-      )}
-
-      {resolvedVoiceover && (
+      {resolvedVoiceover ? (
         <Audio
           src={resolvedVoiceover}
           volume={1}
         />
-      )}
+      ) : null}
+
+      {resolvedMusic ? (
+        <Audio
+          src={resolvedMusic}
+          volume={musicVolumeAtFrame}
+        />
+      ) : null}
 
       {/* ================================================================== */}
       {/* BACKGROUND */}
@@ -939,41 +1115,39 @@ export function PromoVideo({
         <div
           style={{
             position: "absolute",
-
-            width: 620 * scale,
-            height: 620 * scale,
-
+            width: 700 * scale,
+            height: 700 * scale,
+            right: -280 * scale,
+            top: -260 * scale,
             borderRadius: "50%",
-
             background:
-              `radial-gradient(circle, ${accent}18 0%, transparent 70%)`,
-
-            top: -220 * scale,
-            right: -160 * scale,
-
-            transform:
-              `scale(${interpolate(
-                frame,
-                [0, durationInFrames],
-                [1, 1.12]
-              )})`,
+              `radial-gradient(circle, ${accent}22 0%, ${accent}08 32%, transparent 72%)`,
+            transform: `scale(${glowScale})`,
           }}
         />
 
         <div
           style={{
             position: "absolute",
-
-            width: 420 * scale,
-            height: 420 * scale,
-
+            width: 550 * scale,
+            height: 550 * scale,
+            left: -260 * scale,
+            bottom: -250 * scale,
             borderRadius: "50%",
-
             background:
-              `radial-gradient(circle, ${accent}0d 0%, transparent 70%)`,
+              `radial-gradient(circle, ${accent}14 0%, transparent 72%)`,
+          }}
+        />
 
-            bottom: -120 * scale,
-            left: -120 * scale,
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            left: "50%",
+            width: 1,
+            background:
+              `linear-gradient(to bottom, transparent, ${accent}12, transparent)`,
           }}
         />
       </AbsoluteFill>
@@ -982,223 +1156,334 @@ export function PromoVideo({
       {/* BRAND INTRO */}
       {/* ================================================================== */}
 
-      <Sequence
-        from={0}
-        durationInFrames={TIMING.brandIntro}
-      >
+      {brandName ? (
         <AbsoluteFill
           style={{
             alignItems: "center",
             justifyContent: "center",
-            flexDirection: "column",
-            gap: 9,
             opacity: brandOpacity,
+            pointerEvents: "none",
+            zIndex: 90,
           }}
         >
           <div
             style={{
-              fontSize: 13 * scale,
-              fontWeight: 800,
-              letterSpacing: "0.3em",
-              textTransform: "uppercase",
-              color: textColor,
-
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 9,
               transform:
-                `scale(${interpolate(
-                  brandProgress,
-                  [0, 1],
-                  [0.65, 1]
-                )})`,
+                `scale(${brandScale})`,
             }}
           >
-            {brandName}
-          </div>
-
-          <div
-            style={{
-              width: interpolate(
-                brandProgress,
-                [0, 1],
-                [0, 44]
-              ),
-
-              height: 1,
-              background: accent,
-            }}
-          />
-        </AbsoluteFill>
-      </Sequence>
-
-      {/* ================================================================== */}
-      {/* MAIN */}
-      {/* ================================================================== */}
-
-      <Sequence
-        from={TIMING.productEntrance}
-        durationInFrames={Math.max(
-          1,
-          outroFrom - TIMING.productEntrance
-        )}
-      >
-        <AbsoluteFill
-          style={{
-            paddingTop: topPadding,
-            paddingLeft: horizontalPadding,
-            paddingRight: horizontalPadding,
-
-            paddingBottom:
-              Math.round(height * 0.035),
-
-            flexDirection: "column",
-          }}
-        >
-          {/* BRAND */}
-
-          {brandName && (
             <div
               style={{
-                fontSize: 9 * scale,
-                fontWeight: 700,
-                letterSpacing: "0.2em",
+                fontSize: 14 * scale,
+                fontWeight: 850,
+                letterSpacing: "0.30em",
                 textTransform: "uppercase",
-                color: textColor,
-                opacity: 0.42,
-                marginBottom: 7,
+                color: secondary,
               }}
             >
               {brandName}
             </div>
+
+            <div
+              style={{
+                width: 55 * scale,
+                height: 2,
+                background: accent,
+              }}
+            />
+          </div>
+        </AbsoluteFill>
+      ) : null}
+
+      {/* ================================================================== */}
+      {/* MAIN CONTENT */}
+      {/* ================================================================== */}
+
+      <AbsoluteFill
+        style={{
+          zIndex: 5,
+        }}
+      >
+        {/* ================================================================ */}
+        {/* HEADER */}
+        {/* ================================================================ */}
+
+        <div
+          style={{
+            position: "absolute",
+            top: headerY,
+            left: side,
+            right: side,
+            height: headerHeight,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            zIndex: 20,
+          }}
+        >
+          {brandName ? (
+            <div
+              style={{
+                fontSize: 10 * scale,
+                fontWeight: 800,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: secondary,
+                opacity: 0.5,
+              }}
+            >
+              {brandName}
+            </div>
+          ) : (
+            <div />
           )}
 
-          {/* PRODUCT */}
+          {hasLogo ? (
+            <Img
+              src={resolvedLogo}
+              style={{
+                width: 46 * scale,
+                height: 46 * scale,
+                objectFit: "contain",
+              }}
+            />
+          ) : null}
+        </div>
 
+        {/* ================================================================ */}
+        {/* PRODUCT */}
+        {/* ================================================================ */}
+
+        <div
+          style={{
+            position: "absolute",
+            top: productSectionY,
+            left: side,
+            right: side,
+            height: productHeight,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: productOpacity,
+            transform:
+              `translateY(${productOffsetY + productBob}px) scale(${productScale}) rotate(${productRotate}deg)`,
+            zIndex: 4,
+          }}
+        >
           <div
             style={{
-              height: productHeight,
+              position: "absolute",
+              width: "68%",
+              height: "90%",
+              borderRadius: "50%",
+              background:
+                `radial-gradient(circle, ${accent}18 0%, transparent 68%)`,
+              filter: "blur(18px)",
+            }}
+          />
 
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+          {resolvedProductImage ? (
+            <Img
+              src={resolvedProductImage}
+              style={{
+                maxWidth: "60%",
+                maxHeight: "92%",
+                objectFit: "contain",
+                transform:
+                  `scale(${cameraScale})`,
+                filter:
+                  "drop-shadow(0 22px 40px rgba(0,0,0,0.65))",
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 150 * scale,
+                height: 150 * scale,
+                borderRadius: 26,
+                border:
+                  `1px solid ${accent}44`,
+                background:
+                  `${accent}12`,
+              }}
+            />
+          )}
+        </div>
 
-              opacity: productOpacity,
+        {/* ================================================================ */}
+        {/* BADGE */}
+        {/* ================================================================ */}
 
-              overflow: "visible",
-
+        {hasBadge && badge ? (
+          <div
+            style={{
+              position: "absolute",
+              right: side * 0.1,
+              top:
+                productSectionY +
+                productHeight * 0.1,
+              width: 94 * scale,
+              height: 94 * scale,
               transform:
-                `translateY(${productY + bobY}px) ` +
-                `scale(${productScale}) ` +
-                `rotate(${wobbleDeg}deg)`,
+                `translate(${badge.transform.x}px, ${badge.transform.y}px) scale(${badgeScale}) rotate(-8deg)`,
+              zIndex: 25,
             }}
           >
-            {resolvedProductImage ? (
-              <Img
-                src={resolvedProductImage}
-                style={{
-                  maxWidth: "70%",
-                  maxHeight: "100%",
-                  objectFit: "contain",
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "50%",
+                background: badge.bgColor,
+                boxShadow:
+                  "0 15px 35px rgba(0,0,0,0.4)",
+              }}
+            />
 
-                  filter:
-                    "drop-shadow(0 24px 40px rgba(0,0,0,0.6))",
+            <div
+              style={{
+                position: "absolute",
+                inset: 7,
+                border:
+                  `1px dashed ${badge.textColor}80`,
+                borderRadius: "50%",
+              }}
+            />
 
-                  transform:
-                    `scale(${kbScale}) ` +
-                    `translate(${kbX}px, ${kbY}px)`,
-                }}
-              />
-            ) : (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 10,
+                boxSizing: "border-box",
+              }}
+            >
               <div
                 style={{
-                  width: 120 * scale,
-                  height: 120 * scale,
-
-                  borderRadius: 18,
-
-                  background: `${accent}22`,
-
-                  border:
-                    `1px solid ${accent}44`,
+                  fontSize: 20 * scale,
+                  fontWeight: 950,
+                  color: badge.textColor,
+                  lineHeight: 1,
+                  textAlign: "center",
                 }}
-              />
-            )}
+              >
+                {clampText(
+                  badge.text,
+                  18
+                )}
+              </div>
+
+              {badge.subText ? (
+                <div
+                  style={{
+                    marginTop: 4,
+                    fontSize: 8 * scale,
+                    fontWeight: 800,
+                    letterSpacing: "0.08em",
+                    color: badge.textColor,
+                    opacity: 0.85,
+                    textAlign: "center",
+                  }}
+                >
+                  {clampText(
+                    badge.subText,
+                    25
+                  )}
+                </div>
+              ) : null}
+            </div>
           </div>
+        ) : null}
 
-          {/* HEADLINE */}
+        {/* ================================================================ */}
+        {/* HEADLINE */}
+        {/* ================================================================ */}
 
+        <div
+          style={{
+            position: "absolute",
+            top: headlineY,
+            left: side,
+            right: side,
+            height: headlineHeight,
+            zIndex: 10,
+            overflow: "hidden",
+          }}
+        >
           <div
             style={{
-              marginTop: 12,
-              marginBottom: 7,
-              maxWidth: "92%",
+              maxWidth: "96%",
+              lineHeight: 0.98,
             }}
           >
             {headlineWords.map(
               (word, index) => {
                 const delay =
-                  TIMING.headline +
-                  index * 6;
+                  headlineStart +
+                  index * 3;
+
+                const progress =
+                  springIn(
+                    frame,
+                    delay,
+                    fps
+                  );
 
                 const opacity =
                   interpolate(
                     frame,
                     [
                       delay,
-                      delay + 14,
+                      delay + 9,
                     ],
                     [0, 1],
                     {
-                      extrapolateLeft: "clamp",
-                      extrapolateRight: "clamp",
+                      extrapolateLeft:
+                        "clamp",
+                      extrapolateRight:
+                        "clamp",
                     }
                   );
 
                 const y =
                   interpolate(
-                    spring({
-                      frame:
-                        frame - delay,
-
-                      fps,
-
-                      config: {
-                        damping: 20,
-                        stiffness: 120,
-                      },
-                    }),
+                    progress,
                     [0, 1],
-                    [20, 0]
+                    [18, 0]
                   );
 
                 return (
                   <span
                     key={`${word}-${index}`}
                     style={{
-                      display: "inline-block",
-
-                      marginRight: 7,
+                      display:
+                        "inline-block",
+                      marginRight:
+                        6 * scale,
                       marginBottom: 2,
-
                       fontSize:
                         Math.max(
-                          24,
+                          26,
                           Math.round(
-                            width * 0.026
+                            width * 0.03
                           )
                         ),
-
-                      fontWeight: 850,
-                      lineHeight: 1.05,
-
+                      fontWeight: 950,
                       letterSpacing:
-                        "-0.035em",
-
+                        "-0.045em",
                       color:
                         index === 0
                           ? accent
-                          : textColor,
-
+                          : secondary,
                       opacity,
-
                       transform:
                         `translateY(${y}px)`,
                     }}
@@ -1209,532 +1494,374 @@ export function PromoVideo({
               }
             )}
           </div>
+        </div>
 
-          {/* PRICE */}
+        {/* ================================================================ */}
+        {/* PRICE */}
+        {/* ================================================================ */}
 
-          {price && (
+        {price ? (
+          <div
+            style={{
+              position: "absolute",
+              top:
+                headlineY +
+                headlineHeight -
+                Math.round(
+                  height * 0.012
+                ),
+              left: side,
+              opacity: priceOpacity,
+              transform:
+                `scale(${priceScale})`,
+              transformOrigin:
+                "left center",
+              zIndex: 11,
+            }}
+          >
             <div
               style={{
-                opacity: priceOpacity,
-
-                transform:
-                  `scale(${interpolate(
-                    priceProgress,
-                    [0, 1],
-                    [0.6, 1]
-                  )})`,
-
-                transformOrigin:
-                  "left center",
-
-                marginBottom: 7,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
               }}
             >
+              <div
+                style={{
+                  width: 18,
+                  height: 2,
+                  background: accent,
+                }}
+              />
+
               <span
                 style={{
                   fontSize:
                     Math.max(
-                      27,
+                      21,
                       Math.round(
-                        width * 0.030
+                        width * 0.025
                       )
                     ),
-
-                  fontWeight: 900,
-
+                  fontWeight: 950,
                   letterSpacing:
-                    "-0.045em",
-
+                    "-0.04em",
                   color: accent,
                 }}
               >
-                {price}
+                {clampText(
+                  price,
+                  35
+                )}
               </span>
             </div>
-          )}
+          </div>
+        ) : null}
 
-          {/* SUBTEXT */}
+        {/* ================================================================ */}
+        {/* DESCRIPTION */}
+        {/* ================================================================ */}
 
-          {subtext && (
-            <div
-              style={{
-                fontSize:
-                  Math.max(
-                    11,
-                    Math.round(
-                      width * 0.011
-                    )
-                  ),
-
-                lineHeight: 1.45,
-
-                color: textColor,
-
-                opacity:
-                  subOpacity * 0.72,
-
-                transform:
-                  `translateY(${subY}px)`,
-
-                maxWidth: "88%",
-
-                marginBottom: 12,
-              }}
-            >
-              {subtext}
-            </div>
-          )}
-
-          {/* FEATURES */}
-
-          {hasFeatures && (
-            <div
-              style={{
-                marginBottom: 11,
-              }}
-            >
-              <SectionLabel
-                textColor={textColor}
-              >
-                Features
-              </SectionLabel>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 5,
-                }}
-              >
-                {safeFeatures.map(
-                  (feature, index) => (
-                    <BulletRow
-                      key={`feature-${index}`}
-                      text={feature}
-                      index={index}
-                      startFrame={
-                        featuresStart
-                      }
-                      gap={
-                        TIMING.featureItemGap
-                      }
-                      accent={accent}
-                      textColor={
-                        textColor
-                      }
-                      fontSize={Math.max(
-                        12,
-                        Math.round(
-                          width * 0.014
-                        )
-                      )}
-                    />
-                  )
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* WHY CHOOSE US */}
-
-          {hasBenefits && (
-            <div
-              style={{
-                marginBottom: 10,
-              }}
-            >
-              <SectionLabel
-                textColor={textColor}
-              >
-                Why Choose Us
-              </SectionLabel>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 5,
-                }}
-              >
-                {safeBenefits.map(
-                  (benefit, index) => (
-                    <BulletRow
-                      key={`benefit-${index}`}
-                      text={benefit}
-                      index={index}
-                      startFrame={
-                        whyChooseStart
-                      }
-                      gap={
-                        TIMING.whyChooseItemGap
-                      }
-                      accent={accent}
-                      textColor={
-                        textColor
-                      }
-                      fontSize={Math.max(
-                        12,
-                        Math.round(
-                          width * 0.014
-                        )
-                      )}
-                    />
-                  )
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* FLEX SPACE */}
-
+        {subtext ? (
           <div
             style={{
-              flex: 1,
+              position: "absolute",
+              top: descriptionY,
+              left: side,
+              right: side,
+              height: descriptionHeight,
+              maxWidth: "90%",
+              fontSize:
+                Math.max(
+                  12,
+                  Math.round(
+                    width * 0.012
+                  )
+                ),
+              lineHeight: 1.35,
+              color: secondary,
+              opacity:
+                Number(
+                  subtextStyle.opacity
+                ) * 0.75,
+              transform:
+                subtextStyle.transform,
+              zIndex: 10,
+              overflow: "hidden",
             }}
-          />
+          >
+            {clampText(
+              subtext,
+              180
+            )}
+          </div>
+        ) : null}
 
-          {/* CTA */}
+        {/* ================================================================ */}
+        {/* FEATURES */}
+        {/* ================================================================ */}
 
-          {hasCTA && (
+        {hasFeatures ? (
+          <div
+            style={{
+              position: "absolute",
+              top: featuresY,
+              left: side,
+              right: side,
+              height: featuresHeight,
+              zIndex: 10,
+              overflow: "hidden",
+            }}
+          >
+            <SectionTitle
+              accent={accent}
+              color={secondary}
+            >
+              Features
+            </SectionTitle>
+
+            {safeFeatures.map(
+              (feature, index) => (
+                <FeatureRow
+                  key={`feature-${index}`}
+                  text={feature}
+                  index={index}
+                  start={featuresStart}
+                  accent={accent}
+                  textColor={secondary}
+                  width={width}
+                  fps={fps}
+                />
+              )
+            )}
+          </div>
+        ) : null}
+
+        {/* ================================================================ */}
+        {/* WHY CHOOSE US */}
+        {/* ================================================================ */}
+
+        {hasBenefits ? (
+          <div
+            style={{
+              position: "absolute",
+              top: benefitsY,
+              left: side,
+              right: side,
+              height: benefitsHeight,
+              zIndex: 10,
+              overflow: "hidden",
+            }}
+          >
+            <SectionTitle
+              accent={accent}
+              color={secondary}
+            >
+              Why Choose Us
+            </SectionTitle>
+
             <div
               style={{
-                opacity: ctaOpacity,
+                display: "flex",
+                gap: 8,
+                width: "100%",
+              }}
+            >
+              {safeBenefits.map(
+                (benefit, index) => (
+                  <BenefitCard
+                    key={`benefit-${index}`}
+                    text={benefit}
+                    index={index}
+                    start={benefitsStart}
+                    accent={accent}
+                    textColor={secondary}
+                    primary={primary}
+                    width={width}
+                    fps={fps}
+                  />
+                )
+              )}
+            </div>
+          </div>
+        ) : null}
 
-                transform:
-                  `scale(${ctaScale})`,
+        {/* ================================================================ */}
+        {/* CTA */}
+        {/* ================================================================ */}
 
-                transformOrigin:
-                  "left center",
+        {hasCTA ? (
+          <div
+            style={{
+              position: "absolute",
+              left: side,
+              right: side,
+              top: ctaY,
+              height: ctaHeight,
+              opacity: ctaOpacity,
+              transform:
+                `scale(${ctaScale})`,
+              transformOrigin:
+                "left center",
+              zIndex: 15,
+            }}
+          >
+            <div
+              style={{
+                display: "inline-flex",
+                flexDirection: "column",
+                gap: 6,
               }}
             >
               <div
                 style={{
-                  display: "inline-flex",
-
-                  flexDirection: "column",
-
-                  gap: 5,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
                 }}
               >
                 <span
                   style={{
-                    fontSize: 14 * scale,
-
-                    fontWeight: 800,
-
+                    fontSize:
+                      14 * scale,
+                    fontWeight: 900,
                     letterSpacing:
-                      "0.045em",
-
-                    color: textColor,
-
+                      "0.07em",
                     textTransform:
                       "uppercase",
+                    color: secondary,
                   }}
                 >
-                  {ctaText}
+                  {clampText(
+                    ctaText,
+                    60
+                  )}
                 </span>
 
-                <div
+                <span
                   style={{
-                    height: 2,
+                    fontSize:
+                      16 * scale,
+                    color: accent,
+                  }}
+                >
+                  →
+                </span>
+              </div>
 
-                    width:
-                      `${ctaLine}%`,
+              <div
+                style={{
+                  height: 2,
+                  width: `${ctaLine}%`,
+                  background: accent,
+                  borderRadius: 3,
+                }}
+              />
+            </div>
+          </div>
+        ) : null}
 
+        {/* ================================================================ */}
+        {/* FOOTER */}
+        {/* ================================================================ */}
+
+        {hasFooter ? (
+          <div
+            style={{
+              position: "absolute",
+              left: side,
+              right: side,
+              top: footerY,
+              height: footerHeight,
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "7px 10px",
+              borderRadius: 9,
+              border:
+                `1px solid ${secondary}16`,
+              background:
+                `${secondary}05`,
+              opacity:
+                footerStyle.opacity,
+              transform:
+                footerStyle.transform,
+              zIndex: 20,
+              overflow: "hidden",
+              boxSizing: "border-box",
+            }}
+          >
+            {hasWebsite ? (
+              <span
+                style={{
+                  fontSize: 9 * scale,
+                  color: secondary,
+                  opacity: 0.65,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {website}
+              </span>
+            ) : null}
+
+            {hasPhone ? (
+              <>
+                <span
+                  style={{
+                    width: 3,
+                    height: 3,
+                    borderRadius: "50%",
                     background: accent,
-
-                    borderRadius: 2,
+                    flexShrink: 0,
                   }}
                 />
-              </div>
-            </div>
-          )}
 
-          {/* FOOTER */}
-
-          {hasFooter && (
-            <div
-              style={{
-                marginTop: 11,
-
-                opacity: footerOpacity,
-
-                transform:
-                  `translateY(${footerY}px)`,
-
-                display: "flex",
-
-                alignItems: "center",
-
-                gap: 13,
-
-                flexWrap: "wrap",
-
-                padding: "9px 13px",
-
-                borderRadius: 12,
-
-                border:
-                  `1px solid ${textColor}18`,
-              }}
-            >
-              {hasWebsite && (
                 <span
                   style={{
                     fontSize: 9 * scale,
-                    letterSpacing: "0.07em",
-                    color: textColor,
-                    opacity: 0.56,
-                  }}
-                >
-                  {website}
-                </span>
-              )}
-
-              {hasPhone && (
-                <span
-                  style={{
-                    fontSize: 9 * scale,
-                    letterSpacing: "0.07em",
-                    color: textColor,
-                    opacity: 0.56,
+                    color: secondary,
+                    opacity: 0.55,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                   }}
                 >
                   {phone}
                 </span>
-              )}
+              </>
+            ) : null}
 
-              {hasEmail && (
+            {hasEmail ? (
+              <>
+                <span
+                  style={{
+                    width: 3,
+                    height: 3,
+                    borderRadius: "50%",
+                    background: accent,
+                    flexShrink: 0,
+                  }}
+                />
+
                 <span
                   style={{
                     fontSize: 9 * scale,
-                    letterSpacing: "0.07em",
-                    color: textColor,
-                    opacity: 0.56,
+                    color: secondary,
+                    opacity: 0.55,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                   }}
                 >
                   {email}
                 </span>
-              )}
-            </div>
-          )}
-
-          {/* LOGO + BADGE */}
-
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              pointerEvents: "none",
-            }}
-          >
-            {hasLogo && (
-              <Img
-                src={resolveAsset(
-                  logoImage,
-                  MEDIA_ORIGIN
-                )}
-                style={{
-                  position: "absolute",
-
-                  left: "13%",
-                  top: "12%",
-
-                  transform:
-                    "translate(-50%, -50%)",
-
-                  width: 72 * scale,
-                  height: 72 * scale,
-
-                  objectFit: "contain",
-
-                  opacity: 0.96,
-                }}
-              />
-            )}
-
-            {hasBadge && badge && (
-              <div
-                style={{
-                  position: "absolute",
-
-                  left:
-                    `${badge.transform.x}%`,
-
-                  top:
-                    `${badge.transform.y}%`,
-
-                  transform:
-                    `translate(-50%, -50%) ` +
-                    `scale(${
-                      badge.transform.scale *
-                      interpolate(
-                        badgeProgress,
-                        [0, 1],
-                        [0.4, 1]
-                      )
-                    })`,
-
-                  width: 112 * scale,
-                  height: 112 * scale,
-                }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-
-                    background:
-                      badge.bgColor,
-
-                    clipPath:
-                      "polygon(50% 0%, 61% 12%, 75% 2%, 80% 18%, 95% 15%, 92% 32%, 100% 42%, 88% 50%, 100% 58%, 92% 68%, 95% 85%, 80% 82%, 75% 98%, 61% 88%, 50% 100%, 39% 88%, 25% 98%, 20% 82%, 5% 85%, 8% 68%, 0% 58%, 12% 50%, 0% 42%, 8% 32%, 5% 15%, 20% 18%, 25% 2%, 39% 12%)",
-
-                    transform:
-                      "rotate(-10deg)",
-
-                    boxShadow:
-                      "0 12px 26px rgba(0,0,0,0.35)",
-                  }}
-                />
-
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 7,
-
-                    border:
-                      `2px dashed ${badge.textColor}50`,
-
-                    clipPath:
-                      "polygon(50% 0%, 61% 12%, 75% 2%, 80% 18%, 95% 15%, 92% 32%, 100% 42%, 88% 50%, 100% 58%, 92% 68%, 95% 85%, 80% 82%, 75% 98%, 61% 88%, 50% 100%, 39% 88%, 25% 98%, 20% 82%, 5% 85%, 8% 68%, 0% 58%, 12% 50%, 0% 42%, 8% 32%, 5% 15%, 20% 18%, 25% 2%, 39% 12%)",
-
-                    transform:
-                      "rotate(-10deg)",
-                  }}
-                />
-
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-
-                    display: "flex",
-
-                    flexDirection: "column",
-
-                    alignItems: "center",
-                    justifyContent: "center",
-
-                    gap: 1,
-
-                    padding: "0 8px",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontWeight: 900,
-
-                      fontSize:
-                        22 * scale,
-
-                      lineHeight: 1,
-
-                      letterSpacing:
-                        "-0.03em",
-
-                      color:
-                        badge.textColor,
-
-                      textAlign: "center",
-                    }}
-                  >
-                    {badge.text}
-                  </div>
-
-                  <div
-                    style={{
-                      fontWeight: 800,
-
-                      fontSize:
-                        10 * scale,
-
-                      letterSpacing:
-                        "0.11em",
-
-                      color:
-                        badge.textColor,
-
-                      opacity: 0.85,
-
-                      textAlign: "center",
-                    }}
-                  >
-                    {badge.subText}
-                  </div>
-                </div>
-              </div>
-            )}
+              </>
+            ) : null}
           </div>
-        </AbsoluteFill>
-      </Sequence>
-
-      {/* ================================================================== */}
-      {/* OUTRO */}
-      {/* ================================================================== */}
-
-      <Sequence from={outroFrom}>
-        <AbsoluteFill
-          style={{
-            background: primary,
-
-            opacity: outroOpacity,
-
-            alignItems: "center",
-            justifyContent: "center",
-
-            flexDirection: "column",
-
-            gap: 8,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 18 * scale,
-
-              fontWeight: 900,
-
-              letterSpacing: "0.2em",
-
-              textTransform: "uppercase",
-
-              color: accent,
-
-              textAlign: "center",
-            }}
-          >
-            {brandName}
-          </div>
-
-          {hasWebsite && (
-            <div
-              style={{
-                fontSize: 9 * scale,
-
-                letterSpacing: "0.16em",
-
-                color: textColor,
-
-                opacity: 0.45,
-
-                textAlign: "center",
-              }}
-            >
-              {website}
-            </div>
-          )}
-        </AbsoluteFill>
-      </Sequence>
+        ) : null}
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 }
@@ -1758,3 +1885,4 @@ function RemotionRoot() {
 }
 
 registerRoot(RemotionRoot);
+
