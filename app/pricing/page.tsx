@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import {
   CheckCircle,
-  Facebook,
+  TikTok,
   Instagram,
   Loader2,
   AlertCircle,
@@ -127,8 +127,8 @@ function Footer() {
               className="transition-colors flex items-center gap-2 group"
               style={{ color: paperMuted }}
             >
-              <Facebook className="w-4 h-4" />
-              FACEBOOK
+              <Music2 className="w-4 h-4" />
+              TikTok
               <ArrowRight className="w-3 h-3 -rotate-45 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
             </a>
 
@@ -157,7 +157,7 @@ function Footer() {
           className="text-sm font-mono"
           style={{ color: textMuted }}
         >
-          © 2026 INRASTUDIO AI Marketing Studio.
+          Â© 2026 INRASTUDIO AI Marketing Studio.
         </p>
       </div>
     </footer>

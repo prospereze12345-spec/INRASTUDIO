@@ -246,7 +246,7 @@ type RsbTab = "design" | "content" | "video" | "captions";
 
 type BackendCaptions = {
   instagram?: string;
-  facebook?: string;
+  TikTok?: string;
   whatsapp?: string;
   tiktok?: string;
   twitter?: string;
@@ -305,7 +305,7 @@ const PLATFORM_META: { key: keyof BackendCaptions; label: string; color: string 
   { key: "instagram", label: "Instagram", color: "text-[#D6491F]" },
   { key: "tiktok", label: "TikTok", color: "text-[#8C8368]" },
   { key: "twitter", label: "Twitter/X", color: "text-[#E8A33D]" },
-  { key: "facebook", label: "Facebook", color: "text-[#C9BFA4]" },
+  { key: "TikTok", label: "TikTok", color: "text-[#C9BFA4]" },
   { key: "whatsapp", label: "WhatsApp", color: "text-[#8C8368]" },
 ];
 

@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import {
   ArrowUpRight,
   Instagram,
-  Facebook,
+  TikTok,
   Mail,
   MapPin,
   Send,
@@ -21,7 +21,7 @@ const signal = "#D6491F";
 const marigold = "#E8A33D";
 const muted = "#756D5C";
 
-// ─── Footer ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function Footer() {
   return (
@@ -101,8 +101,8 @@ function Footer() {
                 className="group flex items-center gap-2 font-display text-base transition-opacity hover:opacity-70"
                 style={{ color: paper }}
               >
-                <Facebook className="h-4 w-4" />
-                Facebook
+                <Music2 className="h-4 w-4" />
+                TikTok
                 <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </a>
 
@@ -176,7 +176,7 @@ function Footer() {
             className="font-mono text-[9px] tracking-[0.08em]"
             style={{ color: "#77705F" }}
           >
-            © 2026 INRASTUDIO AI MARKETING STUDIO.
+            Â© 2026 INRASTUDIO AI MARKETING STUDIO.
           </p>
         </div>
       </div>
@@ -184,7 +184,7 @@ function Footer() {
   );
 }
 
-// ─── Form Field ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Form Field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function Field({
   label,
@@ -237,7 +237,7 @@ function Field({
   );
 }
 
-// ─── Main Page ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function ContactRoute() {
   const [sending, setSending] = useState(false);
@@ -787,3 +787,4 @@ export default function ContactRoute() {
     </div>
   );
 }
+
