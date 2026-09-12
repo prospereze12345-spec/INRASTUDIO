@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   ArrowUpRight,
   Instagram,
-  TikTok,
+
   Mail,
   MapPin,
   Send,
