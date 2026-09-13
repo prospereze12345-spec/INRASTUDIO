@@ -740,7 +740,7 @@ function Pricing() {
                       style={{ color: textMuted }}
                     >
                       <ShieldCheck className="h-3.5 w-3.5" />
-                      SECURE PAYMENT VIA FLUTTERWAVE
+                      SECURE PAYMENT VIA PAYSTACK
                     </div>
                   )}
                 </div>
