@@ -1,111 +1,213 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { CheckCircle, XCircle, Loader2, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { apiFetch } from "@/lib/auth";
 
-type VerifyResponse = {
-  status: "success" | "failed" | "pending" | string;
+interface VerifyPaymentResponse {
+  status: "success" | "pending" | "failed";
   message?: string;
-};
+  transaction_id: string;
+}
 
-type ViewState = "verifying" | "error";
+const ink = "#16140F";
+const panel = "#1D1A14";
+const rule = "#38321F";
+const marigold = "#E8A33D";
+const signal = "#D6491F";
+const textPrimary = "#F3ECDD";
+const textMuted = "#8C8368";
 
-function PaymentVerifyContent() {
+type ViewState = "verifying" | "success" | "pending" | "failed";
+
+// Paystack retries a webhook, and a payment can briefly sit as "pending" on
+// their end even after the customer sees a success screen. Poll a few times
+// with a short backoff before telling the person something actually failed.
+const POLL_ATTEMPTS = 5;
+const POLL_DELAY_MS = 2500;
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export default function PaymentVerifyPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const hasRun = useRef(false);
-  const [viewState, setViewState] = useState<ViewState>("verifying");
+  const [view, setView] = useState<ViewState>("verifying");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (hasRun.current) return;
-    hasRun.current = true;
+    const run = async () => {
+      const transactionId = sessionStorage.getItem("pending_transaction_id");
 
-    const status = searchParams.get("status");
-    const flutterwaveTransactionId = searchParams.get("transaction_id");
-    const transactionId = sessionStorage.getItem("pending_transaction_id");
-
-    const redirectWithError = (message: string) => {
-      router.replace(`/pricing?payment_error=${encodeURIComponent(message)}`);
-    };
-
-    const verify = async () => {
-      if (status === "cancelled") {
-        router.replace("/pricing");
-        return;
-      }
-
-      if (status === "failed") {
-        redirectWithError("Payment failed");
-        return;
-      }
-
-      if (!flutterwaveTransactionId || !transactionId) {
-        redirectWithError("Missing transaction reference");
-        return;
-      }
-
-      try {
-        const res = await apiFetch<VerifyResponse>(
-          "/api/pricing/verify_payment/",
-          {
-            method: "POST",
-            body: JSON.stringify({
-              transaction_id: transactionId,
-              flutterwave_transaction_id: flutterwaveTransactionId,
-            }),
-          }
+      if (!transactionId) {
+        // No record of a transaction we started -- most likely the page was
+        // opened directly, or storage was cleared. Nothing to verify.
+        setView("failed");
+        setErrorMessage(
+          "We couldn't find a payment to verify. If you were charged, contact support with your email so we can look it up."
         );
-
-        sessionStorage.removeItem("pending_transaction_id");
-
-        if (res.status === "success") {
-          router.replace("/dashboard");
-        } else {
-          setViewState("error");
-          redirectWithError(res.message || "Payment not completed");
-        }
-      } catch (err) {
-        console.error("Payment verification failed:", err);
-        setViewState("error");
-        redirectWithError("Verification failed. Please contact support if you were charged.");
+        return;
       }
+
+      for (let attempt = 0; attempt < POLL_ATTEMPTS; attempt++) {
+        try {
+          const result = await apiFetch<VerifyPaymentResponse>(
+            "/api/pricing/verify_payment/",
+            {
+              method: "POST",
+              body: JSON.stringify({ transaction_id: transactionId }),
+            }
+          );
+
+          if (result.status === "success") {
+            sessionStorage.removeItem("pending_transaction_id");
+            setView("success");
+            return;
+          }
+
+          if (result.status === "failed") {
+            setView("failed");
+            setErrorMessage(
+              result.message || "The payment could not be confirmed."
+            );
+            return;
+          }
+
+          // status === "pending" -- wait and retry rather than giving up
+        } catch (err) {
+          // A network hiccup on one attempt shouldn't fail the whole check --
+          // only surface an error once every attempt is exhausted.
+          if (attempt === POLL_ATTEMPTS - 1) {
+            setView("failed");
+            setErrorMessage(
+              err instanceof Error
+                ? err.message
+                : "Something went wrong while confirming your payment."
+            );
+            return;
+          }
+        }
+
+        if (attempt < POLL_ATTEMPTS - 1) {
+          await sleep(POLL_DELAY_MS);
+        }
+      }
+
+      // Exhausted all attempts and it's still pending.
+      setView("pending");
     };
 
-    verify();
-  }, [router, searchParams]);
+    run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <h2 className="text-xl font-semibold">
-          {viewState === "verifying" ? "Verifying your payment..." : "Redirecting..."}
-        </h2>
-        <p className="mt-2 text-gray-500">
-          {viewState === "verifying"
-            ? "Please wait while we confirm your payment."
-            : "There was an issue confirming your payment."}
-        </p>
+    <div
+      className="flex min-h-screen items-center justify-center px-6"
+      style={{ background: ink }}
+    >
+      <div
+        className="w-full max-w-md rounded-3xl p-10 text-center"
+        style={{ background: panel, border: `1px solid ${rule}` }}
+      >
+        {view === "verifying" && (
+          <>
+            <Loader2
+              className="mx-auto mb-6 h-12 w-12 animate-spin"
+              style={{ color: marigold }}
+            />
+            <h1
+              className="mb-2 text-xl font-semibold"
+              style={{ color: textPrimary }}
+            >
+              Confirming your payment
+            </h1>
+            <p className="text-sm" style={{ color: textMuted }}>
+              This usually takes a few seconds. Don't close this tab.
+            </p>
+          </>
+        )}
+
+        {view === "success" && (
+          <>
+            <CheckCircle
+              className="mx-auto mb-6 h-12 w-12"
+              style={{ color: marigold }}
+            />
+            <h1
+              className="mb-2 text-xl font-semibold"
+              style={{ color: textPrimary }}
+            >
+              Payment confirmed
+            </h1>
+            <p className="mb-8 text-sm" style={{ color: textMuted }}>
+              Your plan is active. You're ready to start your next campaign.
+            </p>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"
+              style={{ background: marigold, color: ink }}
+            >
+              Go to dashboard
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </>
+        )}
+
+        {view === "pending" && (
+          <>
+            <Loader2
+              className="mx-auto mb-6 h-12 w-12"
+              style={{ color: marigold }}
+            />
+            <h1
+              className="mb-2 text-xl font-semibold"
+              style={{ color: textPrimary }}
+            >
+              Still processing
+            </h1>
+            <p className="mb-8 text-sm" style={{ color: textMuted }}>
+              Paystack hasn't confirmed this payment yet. This can take a
+              minute for bank transfers. Check your dashboard shortly, or
+              refresh this page to check again.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"
+              style={{ background: marigold, color: ink }}
+            >
+              Check again
+            </button>
+          </>
+        )}
+
+        {view === "failed" && (
+          <>
+            <XCircle
+              className="mx-auto mb-6 h-12 w-12"
+              style={{ color: signal }}
+            />
+            <h1
+              className="mb-2 text-xl font-semibold"
+              style={{ color: textPrimary }}
+            >
+              We couldn't confirm this payment
+            </h1>
+            <p className="mb-8 text-sm" style={{ color: textMuted }}>
+              {errorMessage}
+            </p>
+            <Link
+              href="/pricing"
+              className="flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"
+              style={{ background: marigold, color: ink }}
+            >
+              Back to pricing
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );
 }
-
-export default function PaymentVerifyPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold">Loading...</h2>
-          </div>
-        </div>
-      }
-    >
-      <PaymentVerifyContent />
-    </Suspense>
-  );
-}
-
-
-
