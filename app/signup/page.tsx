@@ -46,9 +46,7 @@ const textMuted = "#8C8368";
 
 const COUNTRIES = [
   { value: "NG", label: "Nigeria" },
-  { value: "KE", label: "Kenya" },
-  { value: "GH", label: "Ghana" },
-  { value: "OTHER", label: "Other" },
+  
 ] as const;
 
 const INCLUDED = [

@@ -1052,10 +1052,7 @@ function FAQ() {
       q: "What if I don't like the result?",
       a: "Editing text, colour or your logo updates instantly, no regenerating needed. You only need to regenerate if you want to swap the product photo itself.",
     },
-    {
-      q: "Do you support naira pricing and local payment?",
-      a: "Yes — pricing shows in naira, cedis, Kenyan shillings or US dollars depending on the country you select at sign-up, and you can pay by card or bank transfer.",
-    },
+    
   ];
 
   return (
