@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import { Globe, Mail, Phone, Plus } from "lucide-react";
@@ -663,3 +663,4 @@ export function ContactBar({
     </section>
   );
 }
+

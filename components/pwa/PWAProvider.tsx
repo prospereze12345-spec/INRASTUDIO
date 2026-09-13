@@ -30,3 +30,4 @@ export function PWAProvider({
 
   return <>{children}</>;
 }
+

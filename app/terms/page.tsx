@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { ArrowUpRight, TikTok, Instagram } from "lucide-react";
 import { Logo } from "@/components/Logo";
@@ -79,7 +79,7 @@ function Footer() {
                 href="#"
                 className="group inline-flex items-center gap-2 text-sm text-[#c9c1b0] transition-colors hover:text-[#d6491f]"
               >
-                <Music2 className="h-4 w-4 text-[#77705f]" />
+                <ArrowUpRight className="h-4 w-4 text-[#77705f]" />
                 TikTok
                 <ArrowUpRight className="h-3 w-3 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
               </a>
@@ -110,7 +110,7 @@ function Footer() {
           </Link>
 
           <p className="font-mono text-[10px] tracking-wide">
-            Â© 2026 INRASTUDIO AI Marketing Studio.
+            © 2026 INRASTUDIO AI Marketing Studio.
           </p>
         </div>
       </div>
@@ -532,7 +532,7 @@ export default function TermsRoute() {
                     "
                     style={{ color: muted }}
                   >
-                    â† PRIVACY POLICY
+                    ← PRIVACY POLICY
                   </Link>
 
                   <Link
@@ -628,3 +628,5 @@ export default function TermsRoute() {
     </div>
   );
 }
+
+

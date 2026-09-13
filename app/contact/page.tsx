@@ -1,10 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import {
   ArrowUpRight,
   Instagram,
-
   Mail,
   MapPin,
   Send,
@@ -21,7 +20,9 @@ const signal = "#D6491F";
 const marigold = "#E8A33D";
 const muted = "#756D5C";
 
-// ─── Footer ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
+// FOOTER
+// -----------------------------------------------------------------------------
 
 function Footer() {
   return (
@@ -101,7 +102,9 @@ function Footer() {
                 className="group flex items-center gap-2 font-display text-base transition-opacity hover:opacity-70"
                 style={{ color: paper }}
               >
-                <Music2 className="h-4 w-4" />
+                <span className="flex h-4 w-4 items-center justify-center text-[11px] font-bold">
+                  ♪
+                </span>
                 TikTok
                 <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </a>
@@ -184,7 +187,9 @@ function Footer() {
   );
 }
 
-// ─── Form Field ─────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
+// FORM FIELD
+// -----------------------------------------------------------------------------
 
 function Field({
   label,
@@ -237,7 +242,9 @@ function Field({
   );
 }
 
-// ─── Main Page ──────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
+// MAIN PAGE
+// -----------------------------------------------------------------------------
 
 export default function ContactRoute() {
   const [sending, setSending] = useState(false);
@@ -278,9 +285,7 @@ export default function ContactRoute() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data?.error || "Unable to send your message."
-        );
+        throw new Error(data?.error || "Unable to send your message.");
       }
 
       setStatus("success");
@@ -312,13 +317,9 @@ export default function ContactRoute() {
       <Navbar />
 
       <main>
-        {/* =========================================================
-            HERO
-        ========================================================== */}
-
+        {/* HERO */}
         <section className="px-5 pt-[112px] sm:px-8 sm:pt-[138px]">
           <div className="mx-auto max-w-[1180px]">
-            {/* TOP LABEL */}
             <div className="mb-6 flex items-center gap-4 sm:mb-8">
               <span
                 className="font-mono text-[9px] tracking-[0.2em]"
@@ -342,7 +343,6 @@ export default function ContactRoute() {
               </span>
             </div>
 
-            {/* HERO */}
             <div className="grid grid-cols-1 items-end gap-8 lg:grid-cols-[1fr_300px] lg:gap-16">
               <h1
                 className="
@@ -357,9 +357,7 @@ export default function ContactRoute() {
                 LET&apos;S MAKE
                 <br />
 
-                <span style={{ color: signal }}>
-                  SOMETHING
-                </span>
+                <span style={{ color: signal }}>SOMETHING</span>
 
                 <br />
 
@@ -386,7 +384,6 @@ export default function ContactRoute() {
               </div>
             </div>
 
-            {/* HERO BASELINE */}
             <div
               className="mt-8 border-t sm:mt-10"
               style={{
@@ -427,15 +424,11 @@ export default function ContactRoute() {
           </div>
         </section>
 
-        {/* =========================================================
-            CONTACT AREA
-        ========================================================== */}
-
+        {/* CONTACT AREA */}
         <section className="mt-16 px-5 pb-20 sm:mt-20 sm:px-8 sm:pb-20">
           <div className="mx-auto max-w-[1180px]">
             <div className="grid grid-cols-1 gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
               {/* LEFT INFORMATION */}
-
               <aside>
                 <div
                   className="mb-6 font-mono text-[9px] tracking-[0.2em]"
@@ -444,8 +437,7 @@ export default function ContactRoute() {
                   02 / FIND US
                 </div>
 
-                {/* Contact*/}
-
+                {/* CONTACT */}
                 <div
                   className="mb-8 border-t pt-5"
                   style={{
@@ -470,14 +462,20 @@ export default function ContactRoute() {
                         href="mailto:prospereze12345@gmail.com"
                         className="font-display text-lg transition-opacity hover:opacity-60 sm:text-xl"
                       >
-                        +234-901-836-7110.
+                        prospereze12345@gmail.com
+                      </a>
+
+                      <a
+                        href="tel:+2349018367110"
+                        className="mt-1 block font-display text-lg transition-opacity hover:opacity-60 sm:text-xl"
+                      >
+                        +234 901 836 7110
                       </a>
                     </div>
                   </div>
                 </div>
 
                 {/* LOCATION */}
-
                 <div
                   className="mb-8 border-t pt-5"
                   style={{
@@ -508,7 +506,6 @@ export default function ContactRoute() {
                 </div>
 
                 {/* QUICK NOTE */}
-
                 <div
                   className="mt-8 border p-5 sm:p-6"
                   style={{
@@ -535,7 +532,6 @@ export default function ContactRoute() {
               </aside>
 
               {/* FORM */}
-
               <div>
                 <div
                   className="mb-6 font-mono text-[9px] tracking-[0.2em]"
@@ -615,7 +611,6 @@ export default function ContactRoute() {
                     </div>
 
                     {/* STATUS */}
-
                     {status !== "idle" && (
                       <div
                         className="mt-6 border px-4 py-4 font-mono text-[10px] leading-[1.5]"
@@ -624,12 +619,10 @@ export default function ContactRoute() {
                             status === "success"
                               ? "rgba(40,120,70,0.08)"
                               : "rgba(214,73,31,0.08)",
-
                           borderColor:
                             status === "success"
                               ? "rgba(40,120,70,0.2)"
                               : "rgba(214,73,31,0.2)",
-
                           color:
                             status === "success"
                               ? "#285C3A"
@@ -641,7 +634,6 @@ export default function ContactRoute() {
                     )}
 
                     {/* SUBMIT */}
-
                     <div
                       className="
                         mt-7
@@ -713,10 +705,7 @@ export default function ContactRoute() {
           </div>
         </section>
 
-        {/* =========================================================
-            CLOSING STATEMENT
-        ========================================================== */}
-
+        {/* CLOSING STATEMENT */}
         <section
           className="border-t"
           style={{
@@ -746,9 +735,7 @@ export default function ContactRoute() {
                   HAVE SOMETHING
                   <br />
 
-                  <span style={{ color: signal }}>
-                    IN MIND?
-                  </span>
+                  <span style={{ color: signal }}>IN MIND?</span>
                 </h2>
               </div>
 
@@ -787,4 +774,3 @@ export default function ContactRoute() {
     </div>
   );
 }
-

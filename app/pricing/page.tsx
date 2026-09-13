@@ -1,10 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import {
   CheckCircle,
-  TikTok,
   Instagram,
   Loader2,
   AlertCircle,
@@ -52,26 +51,30 @@ const signal = "#D6491F";
 const textPrimary = "#F3ECDD";
 const textMuted = "#8C8368";
 
+// -----------------------------------------------------------------------------
+// FOOTER
+// -----------------------------------------------------------------------------
+
 function Footer() {
   return (
     <footer
-      className="pt-24 pb-12 px-6 relative overflow-hidden mt-12 w-full"
+      className="relative mt-12 w-full overflow-hidden px-6 pb-12 pt-24"
       style={{
         background: ink,
         borderTop: `1px solid ${rule}`,
       }}
     >
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-start gap-16 pb-40 relative z-20">
-        <div className="flex-1 max-w-3xl">
+      <div className="relative z-20 mx-auto flex max-w-7xl flex-col items-start justify-between gap-16 pb-40 lg:flex-row">
+        <div className="max-w-3xl flex-1">
           <div
-            className="font-mono text-[11px] tracking-[0.2em] mb-6"
+            className="mb-6 font-mono text-[11px] tracking-[0.2em]"
             style={{ color: textMuted }}
           >
             INRASTUDIO / AI MARKETING STUDIO
           </div>
 
           <h2
-            className="font-display text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight leading-[1.05]"
+            className="font-display text-4xl font-medium leading-[1.05] tracking-tight md:text-5xl lg:text-6xl"
             style={{ color: textPrimary }}
           >
             Make your next campaign
@@ -80,7 +83,8 @@ function Footer() {
           </h2>
         </div>
 
-        <div className="flex flex-wrap gap-12 sm:gap-24 uppercase text-xs tracking-widest font-mono shrink-0">
+        <div className="flex shrink-0 flex-wrap gap-12 font-mono text-xs uppercase tracking-widest sm:gap-24">
+          {/* EXPLORE */}
           <div className="flex flex-col gap-5">
             <span
               className="mb-2 font-bold"
@@ -91,7 +95,7 @@ function Footer() {
 
             <Link
               href="/privacy"
-              className="transition-colors"
+              className="transition-colors hover:opacity-80"
               style={{ color: paperMuted }}
             >
               Privacy Policy
@@ -99,21 +103,22 @@ function Footer() {
 
             <Link
               href="/terms"
-              className="transition-colors"
+              className="transition-colors hover:opacity-80"
               style={{ color: paperMuted }}
             >
-              Terms and Condition
+              Terms and Conditions
             </Link>
 
             <Link
               href="/disclosure"
-              className="transition-colors"
+              className="transition-colors hover:opacity-80"
               style={{ color: paperMuted }}
             >
               Disclosure
             </Link>
           </div>
 
+          {/* CONNECT */}
           <div className="flex flex-col gap-5">
             <span
               className="mb-2 font-bold"
@@ -124,45 +129,55 @@ function Footer() {
 
             <a
               href="#"
-              className="transition-colors flex items-center gap-2 group"
+              className="group flex items-center gap-2 transition-colors"
               style={{ color: paperMuted }}
             >
-              <Music2 className="w-4 h-4" />
+              <span className="flex h-4 w-4 items-center justify-center text-[11px] font-bold">
+                ♪
+              </span>
+
               TikTok
-              <ArrowRight className="w-3 h-3 -rotate-45 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
+
+              <ArrowRight className="h-3 w-3 -rotate-45 transition-all group-hover:translate-x-1 group-hover:-translate-y-1" />
             </a>
 
             <a
               href="#"
-              className="transition-colors flex items-center gap-2 group"
+              className="group flex items-center gap-2 transition-colors"
               style={{ color: paperMuted }}
             >
-              <Instagram className="w-4 h-4" />
-              INSTAGRAM
-              <ArrowRight className="w-3 h-3 -rotate-45 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
+              <Instagram className="h-4 w-4" />
+
+              Instagram
+
+              <ArrowRight className="h-3 w-3 -rotate-45 transition-all group-hover:translate-x-1 group-hover:-translate-y-1" />
             </a>
           </div>
         </div>
       </div>
 
       <div
-        className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between pt-12 mt-12 relative z-30 gap-4"
-        style={{ borderTop: `1px solid ${rule}` }}
+        className="relative z-30 mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-4 border-t pt-12 md:flex-row"
+        style={{ borderColor: rule }}
       >
         <div className="flex items-center gap-3">
-          <Logo className="w-8 h-8 rounded-lg" />
+          <Logo className="h-8 w-8 rounded-lg" />
         </div>
 
         <p
-          className="text-sm font-mono"
+          className="font-mono text-sm"
           style={{ color: textMuted }}
         >
-          Â© 2026 INRASTUDIO AI Marketing Studio.
+          © 2026 INRASTUDIO AI Marketing Studio.
         </p>
       </div>
     </footer>
   );
 }
+
+// -----------------------------------------------------------------------------
+// PRICING
+// -----------------------------------------------------------------------------
 
 function Pricing() {
   const router = useRouter();
@@ -289,13 +304,13 @@ function Pricing() {
     return (
       <section
         id="pricing"
-        className="py-32 px-6 max-w-6xl mx-auto"
+        className="mx-auto max-w-6xl px-6 py-32"
         style={{ background: ink }}
       >
-        <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex min-h-[400px] items-center justify-center">
           <div className="text-center">
             <Loader2
-              className="w-10 h-10 animate-spin mx-auto mb-5"
+              className="mx-auto mb-5 h-10 w-10 animate-spin"
               style={{ color: marigold }}
             />
 
@@ -315,17 +330,17 @@ function Pricing() {
     return (
       <section
         id="pricing"
-        className="py-32 px-6 max-w-6xl mx-auto"
+        className="mx-auto max-w-6xl px-6 py-32"
       >
         <div
           className="rounded-2xl p-8 text-center"
           style={{
             background: panel,
-            border: `1px solid rgba(214,73,31,0.35)`,
+            border: "1px solid rgba(214,73,31,0.35)",
           }}
         >
           <AlertCircle
-            className="w-10 h-10 mx-auto mb-4"
+            className="mx-auto mb-4 h-10 w-10"
             style={{ color: signal }}
           />
 
@@ -333,7 +348,7 @@ function Pricing() {
 
           <button
             onClick={fetchPlans}
-            className="mt-5 px-6 py-3 rounded-full font-semibold"
+            className="mt-5 rounded-full px-6 py-3 font-semibold"
             style={{
               background: marigold,
               color: ink,
@@ -349,14 +364,14 @@ function Pricing() {
   return (
     <section
       id="pricing"
-      className="py-20 md:py-28 px-4 sm:px-6 max-w-7xl mx-auto"
+      className="mx-auto max-w-7xl px-4 py-20 sm:px-6 md:py-28"
     >
       {/* HEADER */}
-      <div className="max-w-4xl mx-auto text-center mb-14 md:mb-20">
+      <div className="mx-auto mb-14 max-w-4xl text-center md:mb-20">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="font-mono text-[11px] tracking-[0.22em] mb-5"
+          className="mb-5 font-mono text-[11px] tracking-[0.22em]"
           style={{ color: textMuted }}
         >
           CAMPAIGN ACCESS / PRICING
@@ -366,19 +381,21 @@ function Pricing() {
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[0.95]"
+          className="font-display text-4xl font-semibold leading-[0.95] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl"
           style={{ color: textPrimary }}
         >
           Pay for the campaigns
           <br />
-          <span style={{ color: marigold }}>you actually need.</span>
+          <span style={{ color: marigold }}>
+            you actually need.
+          </span>
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="max-w-xl mx-auto mt-6 text-sm sm:text-base leading-relaxed"
+          className="mx-auto mt-6 max-w-xl text-sm leading-relaxed sm:text-base"
           style={{ color: textMuted }}
         >
           Start free. Buy one campaign when you need it,
@@ -387,22 +404,23 @@ function Pricing() {
         </motion.p>
       </div>
 
+      {/* PAYMENT ERROR */}
       {paymentError && (
         <div
-          className="mb-8 p-4 rounded-2xl flex items-start sm:items-center gap-3 text-sm"
+          className="mb-8 flex items-start gap-3 rounded-2xl p-4 text-sm sm:items-center"
           style={{
             background: "rgba(214,73,31,0.08)",
             border: "1px solid rgba(214,73,31,0.3)",
             color: signal,
           }}
         >
-          <AlertCircle className="w-5 h-5 shrink-0" />
+          <AlertCircle className="h-5 w-5 shrink-0" />
 
           <span className="flex-1">{paymentError}</span>
 
           <button
             onClick={() => setPaymentError(null)}
-            className="text-xs underline shrink-0"
+            className="shrink-0 text-xs underline"
           >
             Dismiss
           </button>
@@ -410,11 +428,12 @@ function Pricing() {
       )}
 
       {/* PLANS */}
-      <div className="grid md:grid-cols-3 gap-5 lg:gap-6 items-stretch">
+      <div className="grid items-stretch gap-5 md:grid-cols-3 lg:gap-6">
         {plans.map((plan, index) => {
           const isPro = plan.plan_type === "pro";
           const isFree = plan.plan_type === "free";
           const isPayg = plan.plan_type === "payg";
+
           const isPurchasing =
             purchasingPlanType === plan.plan_type;
 
@@ -427,7 +446,7 @@ function Pricing() {
                 delay: 0.08 * index,
                 duration: 0.45,
               }}
-              className={`relative flex flex-col rounded-3xl overflow-hidden transition-all duration-300 ${
+              className={`relative flex flex-col overflow-hidden rounded-3xl transition-all duration-300 ${
                 isPro
                   ? "md:-translate-y-3"
                   : "hover:-translate-y-1"
@@ -455,15 +474,15 @@ function Pricing() {
                     RECOMMENDED
                   </span>
 
-                  <Crown className="w-4 h-4" />
+                  <Crown className="h-4 w-4" />
                 </div>
               )}
 
-              <div className="p-6 sm:p-8 lg:p-9 flex flex-col flex-1">
+              <div className="flex flex-1 flex-col p-6 sm:p-8 lg:p-9">
                 {/* PLAN HEADER */}
                 <div>
                   <div
-                    className="font-mono text-[10px] tracking-[0.18em] mb-3"
+                    className="mb-3 font-mono text-[10px] tracking-[0.18em]"
                     style={{ color: textMuted }}
                   >
                     {isFree
@@ -474,14 +493,14 @@ function Pricing() {
                   </div>
 
                   <h3
-                    className="font-display text-2xl sm:text-3xl font-semibold"
+                    className="font-display text-2xl font-semibold sm:text-3xl"
                     style={{ color: textPrimary }}
                   >
                     {plan.name}
                   </h3>
 
                   <p
-                    className="text-sm mt-2 min-h-[40px]"
+                    className="mt-2 min-h-[40px] text-sm"
                     style={{ color: textMuted }}
                   >
                     {isFree
@@ -495,19 +514,21 @@ function Pricing() {
                 {/* PRICE */}
                 <div
                   className="mt-8 pb-8"
-                  style={{ borderBottom: `1px dashed ${rule}` }}
+                  style={{
+                    borderBottom: `1px dashed ${rule}`,
+                  }}
                 >
                   {isFree ? (
                     <>
                       <div
-                        className="font-display text-5xl sm:text-6xl font-semibold"
+                        className="font-display text-5xl font-semibold sm:text-6xl"
                         style={{ color: textPrimary }}
                       >
                         Free
                       </div>
 
                       <div
-                        className="font-mono text-[10px] tracking-[0.15em] mt-3"
+                        className="mt-3 font-mono text-[10px] tracking-[0.15em]"
                         style={{ color: textMuted }}
                       >
                         TO GET STARTED
@@ -517,7 +538,7 @@ function Pricing() {
                     <>
                       {plan.old_price_display && (
                         <div
-                          className="font-mono text-sm line-through mb-1"
+                          className="mb-1 font-mono text-sm line-through"
                           style={{ color: "#655D4C" }}
                         >
                           {plan.old_price_display}
@@ -525,14 +546,18 @@ function Pricing() {
                       )}
 
                       <div
-                        className="font-display text-5xl sm:text-6xl font-semibold leading-none"
-                        style={{ color: isPro ? marigold : textPrimary }}
+                        className="font-display text-5xl font-semibold leading-none sm:text-6xl"
+                        style={{
+                          color: isPro
+                            ? marigold
+                            : textPrimary,
+                        }}
                       >
                         {plan.price_display}
                       </div>
 
                       <div
-                        className="font-mono text-[10px] tracking-[0.15em] mt-3"
+                        className="mt-3 font-mono text-[10px] tracking-[0.15em]"
                         style={{ color: textMuted }}
                       >
                         / {isPayg ? "CAMPAIGN" : "MONTH"}
@@ -542,9 +567,9 @@ function Pricing() {
                 </div>
 
                 {/* FEATURES */}
-                <div className="py-8 flex-1">
+                <div className="flex-1 py-8">
                   <div
-                    className="font-mono text-[10px] tracking-[0.16em] mb-5"
+                    className="mb-5 font-mono text-[10px] tracking-[0.16em]"
                     style={{ color: textMuted }}
                   >
                     THIS INCLUDES
@@ -555,9 +580,10 @@ function Pricing() {
                       <>
                         <li className="flex gap-3 text-sm">
                           <CheckCircle
-                            className="w-4 h-4 shrink-0 mt-0.5"
+                            className="mt-0.5 h-4 w-4 shrink-0"
                             style={{ color: textMuted }}
                           />
+
                           <span style={{ color: paperMuted }}>
                             1 Campaign Free
                           </span>
@@ -565,9 +591,10 @@ function Pricing() {
 
                         <li className="flex gap-3 text-sm">
                           <CheckCircle
-                            className="w-4 h-4 shrink-0 mt-0.5"
+                            className="mt-0.5 h-4 w-4 shrink-0"
                             style={{ color: textMuted }}
                           />
+
                           <span style={{ color: paperMuted }}>
                             AI-powered marketing content
                           </span>
@@ -577,9 +604,10 @@ function Pricing() {
                       <>
                         <li className="flex gap-3 text-sm">
                           <CheckCircle
-                            className="w-4 h-4 shrink-0 mt-0.5"
+                            className="mt-0.5 h-4 w-4 shrink-0"
                             style={{ color: marigold }}
                           />
+
                           <span style={{ color: textPrimary }}>
                             1 Full Campaign
                           </span>
@@ -587,9 +615,10 @@ function Pricing() {
 
                         <li className="flex gap-3 text-sm">
                           <CheckCircle
-                            className="w-4 h-4 shrink-0 mt-0.5"
+                            className="mt-0.5 h-4 w-4 shrink-0"
                             style={{ color: marigold }}
                           />
+
                           <span style={{ color: textPrimary }}>
                             AI-powered marketing content
                           </span>
@@ -597,9 +626,10 @@ function Pricing() {
 
                         <li className="flex gap-3 text-sm">
                           <CheckCircle
-                            className="w-4 h-4 shrink-0 mt-0.5"
+                            className="mt-0.5 h-4 w-4 shrink-0"
                             style={{ color: marigold }}
                           />
+
                           <span style={{ color: textPrimary }}>
                             High resolution exports
                           </span>
@@ -609,9 +639,10 @@ function Pricing() {
                       <>
                         <li className="flex gap-3 text-sm">
                           <CheckCircle
-                            className="w-4 h-4 shrink-0 mt-0.5"
+                            className="mt-0.5 h-4 w-4 shrink-0"
                             style={{ color: marigold }}
                           />
+
                           <span style={{ color: textPrimary }}>
                             Unlimited Campaigns
                           </span>
@@ -619,9 +650,10 @@ function Pricing() {
 
                         <li className="flex gap-3 text-sm">
                           <CheckCircle
-                            className="w-4 h-4 shrink-0 mt-0.5"
+                            className="mt-0.5 h-4 w-4 shrink-0"
                             style={{ color: marigold }}
                           />
+
                           <span style={{ color: textPrimary }}>
                             AI-powered marketing content
                           </span>
@@ -629,9 +661,10 @@ function Pricing() {
 
                         <li className="flex gap-3 text-sm">
                           <CheckCircle
-                            className="w-4 h-4 shrink-0 mt-0.5"
+                            className="mt-0.5 h-4 w-4 shrink-0"
                             style={{ color: marigold }}
                           />
+
                           <span style={{ color: textPrimary }}>
                             Priority queue generation
                           </span>
@@ -639,9 +672,10 @@ function Pricing() {
 
                         <li className="flex gap-3 text-sm">
                           <CheckCircle
-                            className="w-4 h-4 shrink-0 mt-0.5"
+                            className="mt-0.5 h-4 w-4 shrink-0"
                             style={{ color: marigold }}
                           />
+
                           <span style={{ color: textPrimary }}>
                             Complete campaign creation
                           </span>
@@ -660,7 +694,7 @@ function Pricing() {
                         : () => handlePurchase(plan)
                     }
                     disabled={isPurchasing}
-                    className="w-full min-h-[52px] rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-60"
+                    className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full text-sm font-semibold transition-all duration-300 disabled:opacity-60"
                     style={{
                       background: isPro
                         ? marigold
@@ -679,33 +713,33 @@ function Pricing() {
                   >
                     {isPurchasing ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="h-4 w-4 animate-spin" />
                         Redirecting...
                       </>
                     ) : isFree ? (
                       <>
                         Start for free
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowRight className="h-4 w-4" />
                       </>
                     ) : isPro ? (
                       <>
                         Upgrade to Pro
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowRight className="h-4 w-4" />
                       </>
                     ) : (
                       <>
                         Buy campaign
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowRight className="h-4 w-4" />
                       </>
                     )}
                   </button>
 
                   {!isFree && (
                     <div
-                      className="flex items-center justify-center gap-2 mt-4 font-mono text-[9px] tracking-[0.12em]"
+                      className="mt-4 flex items-center justify-center gap-2 font-mono text-[9px] tracking-[0.12em]"
                       style={{ color: textMuted }}
                     >
-                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <ShieldCheck className="h-3.5 w-3.5" />
                       SECURE PAYMENT VIA FLUTTERWAVE
                     </div>
                   )}
@@ -724,12 +758,13 @@ function Pricing() {
           border: `1px solid ${rule}`,
         }}
       >
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
           <div className="flex items-center gap-3">
             <ShieldCheck
-              className="w-4 h-4 shrink-0"
+              className="h-4 w-4 shrink-0"
               style={{ color: marigold }}
             />
+
             <span
               className="font-mono text-[9px] tracking-[0.1em]"
               style={{ color: textMuted }}
@@ -740,9 +775,10 @@ function Pricing() {
 
           <div className="flex items-center gap-3">
             <Zap
-              className="w-4 h-4 shrink-0"
+              className="h-4 w-4 shrink-0"
               style={{ color: marigold }}
             />
+
             <span
               className="font-mono text-[9px] tracking-[0.1em]"
               style={{ color: textMuted }}
@@ -753,9 +789,10 @@ function Pricing() {
 
           <div className="flex items-center gap-3">
             <CheckCircle
-              className="w-4 h-4 shrink-0"
+              className="h-4 w-4 shrink-0"
               style={{ color: marigold }}
             />
+
             <span
               className="font-mono text-[9px] tracking-[0.1em]"
               style={{ color: textMuted }}
@@ -766,9 +803,10 @@ function Pricing() {
 
           <div className="flex items-center gap-3">
             <CheckCircle
-              className="w-4 h-4 shrink-0"
+              className="h-4 w-4 shrink-0"
               style={{ color: marigold }}
             />
+
             <span
               className="font-mono text-[9px] tracking-[0.1em]"
               style={{ color: textMuted }}
@@ -782,10 +820,14 @@ function Pricing() {
   );
 }
 
+// -----------------------------------------------------------------------------
+// PAGE
+// -----------------------------------------------------------------------------
+
 export default function PricingRoute() {
   return (
     <div
-      className="min-h-screen relative font-sans overflow-x-hidden"
+      className="relative min-h-screen overflow-x-hidden font-sans"
       style={{
         background: ink,
         color: textPrimary,
@@ -802,12 +844,14 @@ export default function PricingRoute() {
           font-family: 'IBM Plex Mono', ui-monospace, monospace;
         }
 
-        html, body {
+        html,
+        body {
           overflow-x: hidden;
           max-width: 100%;
         }
 
-        button, a {
+        button,
+        a {
           touch-action: manipulation;
         }
 

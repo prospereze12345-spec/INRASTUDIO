@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView, AnimatePresence } from "motion/react";
@@ -17,7 +17,7 @@ import {
   Type,
   UtensilsCrossed,
   Video,
-  Music2,
+  ArrowUpRight,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -53,7 +53,7 @@ import { InstallButton } from "@/components/pwa/InstallButton";
  * ---------------------------------------------------------------------------
  */
 
-// â”€â”€â”€ Copy & data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Copy & data ────────────────────────────────────────────────────────────
 
 type Caption = {
   platform: string;
@@ -66,23 +66,23 @@ const CAPTION_CYCLE_MS = CYCLE_SECONDS * 1000;
 const CAPTIONS: Caption[] = [
   {
     platform: "Instagram",
-    text: "My skin used to get oily by midday â€” not since I switched to Cetaphil Daily Facial Cleanser. Clinically proven to clean without stripping. DM to order, we deliver today. #cetaphil #oilyskin #skincare",
+    text: "My skin used to get oily by midday — not since I switched to Cetaphil Daily Facial Cleanser. Clinically proven to clean without stripping. DM to order, we deliver today. #cetaphil #oilyskin #skincare",
   },
   {
     platform: "TikTok",
-    text: "POV: you wake up and your skin isn't shiny by 10am ðŸ‘€ Cetaphil Daily Facial Cleanser did that. #cetaphil #skincaretok #glowup",
+    text: "POV: you wake up and your skin isn't shiny by 10am 👀 Cetaphil Daily Facial Cleanser did that. #cetaphil #skincaretok #glowup",
   },
   {
     platform: "Twitter",
-    text: "Cetaphil Daily Facial Cleanser, 20 FL OZ â€” â‚¦850. Clinically proven to deep clean oily skin. DM to order, delivered today.",
+    text: "Cetaphil Daily Facial Cleanser, 20 FL OZ — ₦850. Clinically proven to deep clean oily skin. DM to order, delivered today.",
   },
   {
     platform: "TikTok",
-    text: "â‚¦850 instead of â‚¦1,200 elsewhere â€” Cetaphil Daily Facial Cleanser, 20 FL OZ, suited to normal and oily skin. Comment 'ORDER' or WhatsApp 08012345678 to get yours.",
+    text: "₦850 instead of ₦1,200 elsewhere — Cetaphil Daily Facial Cleanser, 20 FL OZ, suited to normal and oily skin. Comment 'ORDER' or WhatsApp 08012345678 to get yours.",
   },
   {
     platform: "WhatsApp",
-    text: "5 left today. Cetaphil Daily Facial Cleanser, 20 FL OZ â€” â‚¦850. Reply 'ORDER' to this number and we'll sort delivery.",
+    text: "5 left today. Cetaphil Daily Facial Cleanser, 20 FL OZ — ₦850. Reply 'ORDER' to this number and we'll sort delivery.",
   },
 ];
 
@@ -100,7 +100,7 @@ function useCaptionCycle(length: number) {
   return index;
 }
 
-// â”€â”€â”€ Deferred video â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Deferred video ─────────────────────────────────────────────────────────
 
 function useDeferredVideo(shouldConsider: boolean) {
   const [canLoad, setCanLoad] = useState(false);
@@ -180,7 +180,7 @@ function LazyReveal({
   );
 }
 
-// â”€â”€â”€ Decorative tape â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Decorative tape ───────────────────────────────────────────────────────
 
 function TapeCorner({ className = "" }: { className?: string }) {
   return (
@@ -194,7 +194,7 @@ function TapeCorner({ className = "" }: { className?: string }) {
   );
 }
 
-// â”€â”€â”€ Hero product preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Hero product preview ──────────────────────────────────────────────────
 
 function FlyerHero({
   activeIndex,
@@ -295,7 +295,7 @@ function FlyerHero({
           <div className="mt-4 border-t border-dashed border-[#15130F]/30 pt-4">
             <div className="mb-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-[#15130F]/60">
               <Type className="h-3 w-3" />
-              Caption â€” {active.platform}
+              Caption — {active.platform}
             </div>
 
             <AnimatePresence mode="wait">
@@ -357,7 +357,7 @@ function FlyerHero({
   );
 }
 
-// â”€â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Hero ───────────────────────────────────────────────────────────────────
 
 function Hero() {
   const activeIndex = useCaptionCycle(CAPTIONS.length);
@@ -399,7 +399,7 @@ function Hero() {
         >
           Send a photo of what you're selling. You'll get a flyer with your
           logo already on it, captions written for each platform, and a short
-          video for your Status â€” most orders are ready in under five minutes.
+          video for your Status — most orders are ready in under five minutes.
         </motion.p>
 
         <motion.div
@@ -435,7 +435,7 @@ function Hero() {
   );
 }
 
-// â”€â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Stats ──────────────────────────────────────────────────────────────────
 
 function StatsBar() {
   return (
@@ -454,7 +454,7 @@ function StatsBar() {
   );
 }
 
-// â”€â”€â”€ Who it's for â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Who it's for ───────────────────────────────────────────────────────────
 
 const USE_CASES: {
   icon: typeof ShoppingBag;
@@ -522,7 +522,7 @@ function WhoItsFor() {
           </h2>
 
           <p className="mt-3 max-w-xl text-base leading-relaxed text-[#A79A82] md:text-lg">
-            Not a storefront with a marketing budget â€” someone selling through
+            Not a storefront with a marketing budget — someone selling through
             WhatsApp, Instagram or TikTok, one product at a time.
           </p>
         </div>
@@ -565,7 +565,7 @@ function WhoItsFor() {
   );
 }
 
-// â”€â”€â”€ How it works â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── How it works ──────────────────────────────────────────────────────────
 
 function HowItWorks() {
   return (
@@ -594,7 +594,7 @@ function HowItWorks() {
               n: "01",
               title: "You upload",
               body:
-                "Take a photo with your phone. Ordinary indoor light is fine â€” most people shoot in their shop.",
+                "Take a photo with your phone. Ordinary indoor light is fine — most people shoot in their shop.",
             },
             {
               n: "02",
@@ -606,7 +606,7 @@ function HowItWorks() {
               n: "03",
               title: "You post or edit first",
               body:
-                "Download the flyer, captions and video as they are, or change the text, colour or logo â€” nothing needs regenerating unless you swap the photo.",
+                "Download the flyer, captions and video as they are, or change the text, colour or logo — nothing needs regenerating unless you swap the photo.",
             },
           ].map((step) => (
             <div
@@ -638,7 +638,7 @@ function HowItWorks() {
   );
 }
 
-// â”€â”€â”€ Workflow product showcase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Workflow product showcase ─────────────────────────────────────────────
 
 function VideoCard({
   src,
@@ -768,7 +768,7 @@ function Workflow() {
                 </span>
 
                 <span className="font-mono text-[9px] text-[#A79A82]">
-                  1080 Ã— 1350
+                  1080 × 1350
                 </span>
               </div>
             </div>
@@ -799,7 +799,7 @@ function Workflow() {
                 </span>
 
                 <span className="font-mono text-[9px] text-[#15130F]/50">
-                  Ã—5
+                  ×5
                 </span>
               </div>
 
@@ -812,13 +812,13 @@ function Workflow() {
                   <p className="mt-3 text-sm leading-relaxed text-[#15130F]/85">
                     Tired of plain handbags? This vibrant red patent-leather
                     top-handle bag goes from the office to a wedding without
-                    looking out of place. From â‚¦12,000, free delivery today.
+                    looking out of place. From ₦12,000, free delivery today.
                     DM to order.
                   </p>
                 </div>
 
                 <div className="mt-8 border-t border-dashed border-[#15130F]/20 pt-4 font-mono text-[9px] uppercase tracking-wider text-[#15130F]/55">
-                  Instagram Â· TikTok Â· TikTok Â· X Â· WhatsApp
+                  Instagram · TikTok · TikTok · X · WhatsApp
                 </div>
               </div>
             </div>
@@ -840,7 +840,7 @@ function Workflow() {
   );
 }
 
-// â”€â”€â”€ Video demo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Video demo ─────────────────────────────────────────────────────────────
 
 function VideoDemo() {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -871,7 +871,7 @@ function VideoDemo() {
         </h2>
 
         <p className="mx-auto mt-3 max-w-2xl text-base text-[#A79A82] md:text-lg">
-          Two minutes, start to finish â€” from a phone photo to a finished post.
+          Two minutes, start to finish — from a phone photo to a finished post.
         </p>
       </div>
 
@@ -911,7 +911,7 @@ function VideoDemo() {
   );
 }
 
-// â”€â”€â”€ Testimonials â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Testimonials ───────────────────────────────────────────────────────────
 
 function Testimonials() {
   const reviews = [
@@ -1029,13 +1029,13 @@ function Testimonials() {
   );
 }
 
-// â”€â”€â”€ FAQ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── FAQ ────────────────────────────────────────────────────────────────────
 
 function FAQ() {
   const faqs = [
     {
       q: "My photos are taken on an ordinary phone, not a proper camera. Does that matter?",
-      a: "Not much. Most sellers upload photos taken indoors on a mid-range Android phone. It works fine â€” it just won't rescue a badly blurred shot.",
+      a: "Not much. Most sellers upload photos taken indoors on a mid-range Android phone. It works fine — it just won't rescue a badly blurred shot.",
     },
     {
       q: "Does this use a lot of data?",
@@ -1043,11 +1043,11 @@ function FAQ() {
     },
     {
       q: "Can I edit the caption before I post it?",
-      a: "Yes. Treat what's generated as a first draft â€” most people change a line or two before sending it.",
+      a: "Yes. Treat what's generated as a first draft — most people change a line or two before sending it.",
     },
     {
       q: "Can I add my own logo?",
-      a: "Yes â€” upload it once and drag it into place on your flyer. Resize it however you like, and it carries over automatically across formats.",
+      a: "Yes — upload it once and drag it into place on your flyer. Resize it however you like, and it carries over automatically across formats.",
     },
     {
       q: "What if I don't like the result?",
@@ -1055,7 +1055,7 @@ function FAQ() {
     },
     {
       q: "Do you support naira pricing and local payment?",
-      a: "Yes â€” pricing shows in naira, cedis, Kenyan shillings or US dollars depending on the country you select at sign-up, and you can pay by card or bank transfer.",
+      a: "Yes — pricing shows in naira, cedis, Kenyan shillings or US dollars depending on the country you select at sign-up, and you can pay by card or bank transfer.",
     },
   ];
 
@@ -1095,7 +1095,7 @@ function FAQ() {
   );
 }
 
-// â”€â”€â”€ Final CTA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Final CTA ──────────────────────────────────────────────────────────────
 
 function CallToAction() {
   return (
@@ -1139,7 +1139,7 @@ function CallToAction() {
   );
 }
 
-// â”€â”€â”€ Footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Footer ─────────────────────────────────────────────────────────────────
 
 function Footer() {
   return (
@@ -1150,7 +1150,7 @@ function Footer() {
             We're software, not a design agency.
             <br />
             Give it one photo and it hands back a flyer, five captions and a
-            video â€” no brief, no back-and-forth.
+            video — no brief, no back-and-forth.
           </h2>
         </div>
 
@@ -1184,7 +1184,7 @@ function Footer() {
               href="#"
               className="flex items-center gap-2 text-[#F2EEE2] hover:text-[#FFC629]"
             >
-              <Music2 className="h-4 w-4" />
+              <ArrowUpRight className="h-4 w-4" />
               TikTok
             </a>
 
@@ -1209,13 +1209,13 @@ function Footer() {
 
       <div className="mx-auto mt-4 flex max-w-7xl flex-col items-center justify-between gap-4 border-t border-[#F2EEE2]/10 pt-8 text-sm text-[#A79A82] md:flex-row">
         <Logo size="sm" className="h-8 w-8" />
-        <p>Â© 2026 Inrastudio. Made in Lagos.</p>
+        <p>© 2026 Inrastudio. Made in Lagos.</p>
       </div>
     </footer>
   );
 }
 
-// â”€â”€â”€ Main export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Main export ────────────────────────────────────────────────────────────
 
 export default function LandingPage() {
   return (
@@ -1246,4 +1246,6 @@ export default function LandingPage() {
     </div>
   );
 }
+
+
 
