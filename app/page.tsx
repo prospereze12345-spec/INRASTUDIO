@@ -1,10 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView, AnimatePresence } from "motion/react";
 import {
   ArrowRight,
-  TikTok,
   Home,
   Instagram,
   Mail,

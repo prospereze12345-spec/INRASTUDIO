@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { ArrowUpRight, TikTok, Instagram } from "lucide-react";
+﻿import Link from "next/link";
+import { ArrowUpRight, Instagram } from "lucide-react";
 
 import { Logo } from "@/components/Logo";
 import { Navbar } from "@/components/Navbar";
@@ -103,7 +103,7 @@ function Footer() {
           </Link>
 
           <p className="font-mono text-[10px] tracking-wide">
-            © 2026 INRASTUDIO AI Marketing Studio.
+            Â© 2026 INRASTUDIO AI Marketing Studio.
           </p>
         </div>
       </div>
@@ -190,7 +190,7 @@ export default function PrivacyPolicyRoute() {
                 title="Introduction"
               >
                 <p>
-                  At INRASTUDIO AI Marketing Studio (“we”, “our”, or “us”),
+                  At INRASTUDIO AI Marketing Studio (â€œweâ€, â€œourâ€, or â€œusâ€),
                   we respect your privacy and are committed to handling your
                   information responsibly.
                 </p>
@@ -360,5 +360,6 @@ function PolicySection({
     </section>
   );
 }
+
 
 

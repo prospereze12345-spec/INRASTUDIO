@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { ArrowUpRight, TikTok, Instagram } from "lucide-react";
+import { ArrowUpRight, Instagram } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Navbar } from "@/components/Navbar";
 import Link from "next/link";
@@ -110,7 +110,7 @@ function Footer() {
           </Link>
 
           <p className="font-mono text-[10px] tracking-wide">
-            © 2026 INRASTUDIO AI Marketing Studio.
+            Â© 2026 INRASTUDIO AI Marketing Studio.
           </p>
         </div>
       </div>
@@ -532,7 +532,7 @@ export default function TermsRoute() {
                     "
                     style={{ color: muted }}
                   >
-                    ← PRIVACY POLICY
+                    â† PRIVACY POLICY
                   </Link>
 
                   <Link
@@ -628,5 +628,6 @@ export default function TermsRoute() {
     </div>
   );
 }
+
 
 
