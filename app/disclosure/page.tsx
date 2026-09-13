@@ -1,13 +1,13 @@
 "use client";
 
-import { ArrowUpRight, TikTok, Instagram, Mail } from "lucide-react";
+import { ArrowUpRight, Instagram, Mail } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Navbar } from "@/components/Navbar";
 import Link from "next/link";
 
-// ────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 // DESIGN TOKENS
-// ────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 
 const ink = "#16140F";
 const paper = "#EEE7D8";
@@ -16,9 +16,9 @@ const signal = "#D6491F";
 const marigold = "#E8A33D";
 const muted = "#756D5C";
 
-// ────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 // FOOTER
-// ────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 
 function Footer() {
   return (
@@ -40,6 +40,8 @@ function Footer() {
         </div>
 
         <div className="flex shrink-0 flex-wrap gap-12 font-mono text-xs uppercase tracking-widest sm:gap-24">
+          {/* LEGAL */}
+
           <div className="flex flex-col gap-4">
             <span className="mb-2 font-bold text-[#A79A82]">Legal</span>
 
@@ -65,6 +67,8 @@ function Footer() {
             </Link>
           </div>
 
+          {/* CONTACT */}
+
           <div className="flex flex-col gap-4">
             <span className="mb-2 font-bold text-[#A79A82]">Contact</span>
 
@@ -72,7 +76,9 @@ function Footer() {
               href="#"
               className="flex items-center gap-2 text-[#F2EEE2] transition-colors hover:text-[#FFC629]"
             >
-              <ArrowUpRight className="h-4 w-4" />
+              <span className="flex h-4 w-4 items-center justify-center text-[12px] font-bold">
+                ♪
+              </span>
               TikTok
             </a>
 
@@ -95,6 +101,8 @@ function Footer() {
         </div>
       </div>
 
+      {/* FOOTER BOTTOM */}
+
       <div className="mx-auto mt-4 flex max-w-7xl flex-col items-center justify-between gap-4 border-t border-[#F2EEE2]/10 pt-8 text-sm text-[#A79A82] md:flex-row">
         <Logo
           size="sm"
@@ -108,9 +116,9 @@ function Footer() {
   );
 }
 
-// ────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 // DISCLOSURE CONTENT
-// ────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 
 const disclosureSections = [
   {
@@ -162,9 +170,9 @@ const disclosureSections = [
   },
 ];
 
-// ────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 // MAIN PAGE
-// ────────────────────────────────────────────────────────────────────────────
+// ============================================================================
 
 export default function DisclosureRoute() {
   const updatedDate = new Intl.DateTimeFormat("en-GB", {
@@ -184,9 +192,9 @@ export default function DisclosureRoute() {
       <Navbar />
 
       <main>
-        {/* ────────────────────────────────────────────────────────────────
+        {/* ==================================================================
             HEADER
-        ───────────────────────────────────────────────────────────────── */}
+        ================================================================== */}
 
         <section className="px-5 pt-[120px] sm:px-8 sm:pt-[150px]">
           <div className="mx-auto max-w-[1000px]">
@@ -314,9 +322,9 @@ export default function DisclosureRoute() {
           </div>
         </section>
 
-        {/* ────────────────────────────────────────────────────────────────
+        {/* ==================================================================
             DISCLOSURE CONTENT
-        ───────────────────────────────────────────────────────────────── */}
+        ================================================================== */}
 
         <section className="mt-16 px-5 pb-24 sm:mt-24 sm:px-8">
           <div className="mx-auto max-w-[1000px]">
@@ -510,9 +518,9 @@ export default function DisclosureRoute() {
           </div>
         </section>
 
-        {/* ────────────────────────────────────────────────────────────────
+        {/* ==================================================================
             FINAL CTA
-        ───────────────────────────────────────────────────────────────── */}
+        ================================================================== */}
 
         <section
           className="border-t"
@@ -580,5 +588,3 @@ export default function DisclosureRoute() {
     </div>
   );
 }
-
-
