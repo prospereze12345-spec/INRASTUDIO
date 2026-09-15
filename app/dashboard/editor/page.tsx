@@ -1,21 +1,5 @@
 ﻿"use client";
 
-/* ════════════════════════════════════════════════════════════════════════
-   FIX SUMMARY (mobile export bug)
-   ────────────────────────────────────────────────────────────────────────
-   1. Export runs on a CLONE of the export node, never on the React tree.
-   2. Images are inlined to data: URLs with a hardened fetcher (timeouts,
-      dual CORS path, no hanging promises).
-   3. background-image URLs are inlined too (belt-and-braces for templates
-      that use CSS backgrounds).
-   4. All <img> are decoded before capture (img.decode()).
-   5. document.fonts.ready + 2× requestAnimationFrame before capture.
-   6. cacheBust disabled (nothing external to bust) — avoids the mobile
-      re-fetch-without-CORS path that was blanking the product image.
-   7. Hidden export node no longer uses left:-9999px — it's now behind the
-      editor with real layout/paint so mobile compositors don't skip it.
-   ════════════════════════════════════════════════════════════════════════ */
-
 import {
   useState,
   useEffect,
@@ -70,7 +54,7 @@ import { SleekFlyerTemplate as MinimalProductTemplate } from "@/components/templ
 import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
 
 /* ════════════════════════════════════════════════════════════════════════
-   DESIGN TOKENS
+   DESIGN TOKENS — "job ticket" print-shop system, shared with the dashboard.
    ════════════════════════════════════════════════════════════════════════ */
 const T = {
   ink: "#16140F",
@@ -291,7 +275,7 @@ type FlyerState = {
 };
 
 // ============================================================================
-// CONSTANTS
+// CONSTANTS & HELPERS
 // ============================================================================
 const SOCIAL_FORMATS = [
   { id: "ig", label: "Instagram", icon: ImageIcon, ratio: "4:5", rw: 4, rh: 5, fps: 30, durationS: 12, exportW: 1080, exportH: 1350 },
@@ -343,7 +327,7 @@ const COLOR_SWATCHES = [
 ];
 
 // ============================================================================
-// EDITABLE
+// EDITABLE COMPONENT (only used for badge)
 // ============================================================================
 type EditableProps = {
   id: string;
@@ -375,7 +359,11 @@ function Editable({
       suppressContentEditableWarning
       data-placeholder={placeholder}
       className={`outline-none select-text touch-manipulation -m-1.5 p-1.5 ${className}`}
-      style={{ cursor: "text", WebkitTapHighlightColor: "transparent", ...style }}
+      style={{
+        cursor: "text",
+        WebkitTapHighlightColor: "transparent",
+        ...style,
+      }}
       onInput={(e) => onChange((e.target as HTMLElement).textContent || "")}
       onFocus={(e) => onFocus?.(e.currentTarget)}
       onBlur={onBlur}
@@ -385,7 +373,7 @@ function Editable({
 }
 
 // ============================================================================
-// MOVABLE
+// MOVABLE / OVERLAY (only for logo and badge)
 // ============================================================================
 type Transform = { x: number; y: number; scale: number };
 
@@ -467,7 +455,14 @@ function Movable({
       onPointerCancel={endInteraction}
       onClick={(e) => e.stopPropagation()}
     >
-      <div style={{ outline: selected ? `2px dashed ${T.marigold}` : "none", outlineOffset: 6, borderRadius: 10, cursor: dragHandleOnly ? "default" : "grab" }}>
+      <div
+        style={{
+          outline: selected ? `2px dashed ${T.marigold}` : "none",
+          outlineOffset: 6,
+          borderRadius: 10,
+          cursor: dragHandleOnly ? "default" : "grab",
+        }}
+      >
         {children}
       </div>
 
@@ -477,7 +472,8 @@ function Movable({
             <div
               onPointerDown={(e) => { e.stopPropagation(); beginDrag(e); }}
               title="Drag to move"
-              className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full flex items-center justify-center shadow-lg cursor-grab touch-none"
+              className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full
+                         flex items-center justify-center shadow-lg cursor-grab touch-none"
               style={{ touchAction: "none", background: T.marigold, color: T.ink }}
             >
               <GripVertical size={14} />
@@ -488,7 +484,8 @@ function Movable({
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onDelete(); }}
               title="Remove"
-              className="absolute -top-3 -left-3 w-6 h-6 rounded-full text-white text-[12px] flex items-center justify-center shadow-lg touch-manipulation"
+              className="absolute -top-3 -left-3 w-6 h-6 rounded-full text-white text-[12px]
+                         flex items-center justify-center shadow-lg touch-manipulation"
               style={{ background: T.signal }}
             >
               <X size={12} />
@@ -546,36 +543,81 @@ function DiscountBadgeSticker({
 
   return (
     <div style={{ width: SIZE, height: SIZE, position: "relative" }}>
-      <div style={{ position: "absolute", inset: 0, background: badge.bgColor, clipPath: BURST_CLIP_PATH, transform: "rotate(-10deg)", boxShadow: "0 12px 26px rgba(0,0,0,0.35)" }} />
-      <div style={{ position: "absolute", inset: 7, border: `2px dashed ${badge.textColor}50`, clipPath: BURST_CLIP_PATH, transform: "rotate(-10deg)" }} />
-      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1, padding: "0 8px" }}>
-        <Editable id="badge-text" value={badge.text} onChange={onChangeText} onFocus={onFocus} onBlur={onBlur} className="text-center"
-          style={{ fontWeight: 900, fontSize: "calc(var(--ci) * 5)", lineHeight: 1, letterSpacing: "-0.03em", color: badge.textColor, textShadow: "0 1px 2px rgba(0,0,0,.12)", minWidth: 10 }} />
-        <Editable id="badge-subtext" value={badge.subText} onChange={onChangeSubText} onFocus={onFocus} onBlur={onBlur} className="text-center"
-          style={{ fontWeight: 800, fontSize: "calc(var(--ci) * 2.4)", letterSpacing: "0.12em", color: badge.textColor, opacity: 0.85, minWidth: 10 }} />
+      <div style={{
+        position: "absolute", inset: 0, background: badge.bgColor,
+        clipPath: BURST_CLIP_PATH, transform: "rotate(-10deg)",
+        boxShadow: "0 12px 26px rgba(0,0,0,0.35)",
+      }} />
+      <div style={{
+        position: "absolute", inset: 7, border: `2px dashed ${badge.textColor}50`,
+        clipPath: BURST_CLIP_PATH, transform: "rotate(-10deg)",
+      }} />
+      <div style={{
+        position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center", gap: 1, padding: "0 8px",
+      }}>
+        <Editable
+          id="badge-text"
+          value={badge.text}
+          onChange={onChangeText}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          className="text-center"
+          style={{
+            fontWeight: 900, fontSize: "calc(var(--ci) * 5)", lineHeight: 1, letterSpacing: "-0.03em",
+            color: badge.textColor, textShadow: "0 1px 2px rgba(0,0,0,.12)",
+            minWidth: 10,
+          }}
+        />
+        <Editable
+          id="badge-subtext"
+          value={badge.subText}
+          onChange={onChangeSubText}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          className="text-center"
+          style={{
+            fontWeight: 800, fontSize: "calc(var(--ci) * 2.4)", letterSpacing: "0.12em",
+            color: badge.textColor, opacity: 0.85, minWidth: 10,
+          }}
+        />
       </div>
     </div>
   );
 }
 
 // ============================================================================
-// PANEL PRIMITIVES
+// PANEL COMPONENTS
 // ============================================================================
 function Label({ children }: { children: React.ReactNode }) {
-  return <p className="mono text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.muted }}>{children}</p>;
+  return (
+    <p className="mono text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.muted }}>
+      {children}
+    </p>
+  );
 }
 function Divider() {
   return <div style={{ height: 1, background: T.rule }} />;
 }
 
-function SectionToggle({ title, active, onToggle }: { title: string; active: boolean; onToggle: (v: boolean) => void; }) {
+function SectionToggle({ title, active, onToggle }: {
+  title: string; active: boolean; onToggle: (v: boolean) => void;
+}) {
   return (
-    <button onClick={() => onToggle(!active)}
+    <button
+      onClick={() => onToggle(!active)}
       className="w-full flex items-center justify-between px-3 py-3 rounded-lg mb-2 touch-manipulation"
-      style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}>
+      style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}
+    >
       <span className="text-[13px]" style={{ color: T.text }}>{title}</span>
-      <span className="w-9 h-5 rounded-full relative transition-colors" style={{ background: active ? T.signal : T.rule }}>
-        <span className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all" style={{ left: active ? 18 : 2 }} />
+      <span
+        className="w-9 h-5 rounded-full relative transition-colors"
+        style={{ background: active ? T.signal : T.rule }}
+      >
+        <span
+          className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all"
+          style={{ left: active ? 18 : 2 }}
+        />
       </span>
     </button>
   );
@@ -587,18 +629,25 @@ function TextField({ label, value, onChange, placeholder, type = "text" }: {
   return (
     <label className="block mb-3">
       <span className="text-[11px] mb-1 block" style={{ color: T.muted }}>{label}</span>
-      <input type={type} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)}
+      <input
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
         className="w-full rounded-lg px-3 py-2.5 text-[16px] focus:outline-none"
         style={{ background: T.panelRaised, border: `1px solid ${T.rule}`, color: T.text }}
         onFocus={(e) => (e.currentTarget.style.borderColor = T.marigold)}
-        onBlur={(e) => (e.currentTarget.style.borderColor = T.rule)} />
+        onBlur={(e) => (e.currentTarget.style.borderColor = T.rule)}
+      />
     </label>
   );
 }
 
 // ======== DesignPanel ========
 const DesignPanel = memo(function DesignPanel({
-  data, onUpdate, onLogoUpload,
+  data,
+  onUpdate,
+  onLogoUpload,
 }: {
   data: FlyerState;
   onUpdate: (k: keyof FlyerState, v: any) => void;
@@ -633,10 +682,17 @@ const DesignPanel = memo(function DesignPanel({
         <Label>Template theme</Label>
         <div className="grid grid-cols-3 gap-2">
           {TEMPLATE_THEMES.map((t, i) => (
-            <button key={t.label} onClick={() => applyTheme(i)}
+            <button
+              key={t.label}
+              onClick={() => applyTheme(i)}
               className="h-14 rounded-lg overflow-hidden border-2 relative transition-all text-left touch-manipulation"
-              style={{ background: t.bg, borderColor: activeTheme === i ? T.marigold : "transparent" }}>
-              <span style={{ position: "absolute", bottom: 5, left: 7, fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: t.text, textShadow: "0 1px 3px rgba(0,0,0,.6)" }}>{t.label}</span>
+              style={{ background: t.bg, borderColor: activeTheme === i ? T.marigold : "transparent" }}
+            >
+              <span style={{
+                position: "absolute", bottom: 5, left: 7,
+                fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em",
+                color: t.text, textShadow: "0 1px 3px rgba(0,0,0,.6)",
+              }}>{t.label}</span>
             </button>
           ))}
         </div>
@@ -648,33 +704,50 @@ const DesignPanel = memo(function DesignPanel({
         <Label>Brand colours</Label>
         <div className="flex rounded-lg p-0.5 gap-0.5 mb-3" style={{ background: T.panelRaised }}>
           {(["bg", "accent", "text"] as const).map((l) => (
-            <button key={l} onClick={() => setColorLayer(l)}
+            <button
+              key={l}
+              onClick={() => setColorLayer(l)}
               className="flex-1 py-2 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors touch-manipulation"
-              style={{ background: colorLayer === l ? `${T.marigold}26` : "transparent", color: colorLayer === l ? T.marigold : T.muted }}>
+              style={{
+                background: colorLayer === l ? `${T.marigold}26` : "transparent",
+                color: colorLayer === l ? T.marigold : T.muted,
+              }}
+            >
               {l === "bg" ? "BG" : l === "accent" ? "Accent" : "Text"}
             </button>
           ))}
         </div>
         <div className="flex flex-wrap gap-2 mb-3">
           {COLOR_SWATCHES.map((hex) => (
-            <button key={hex} onClick={() => applyColor(hex)}
+            <button
+              key={hex}
+              onClick={() => applyColor(hex)}
               className="w-7 h-7 md:w-6 md:h-6 rounded-full border-2 hover:scale-110 transition-transform touch-manipulation shrink-0"
               style={{
                 background: hex,
                 borderColor: currentLayerColor === hex ? T.paper : "transparent",
                 boxShadow: currentLayerColor === hex ? `0 0 0 1px ${T.marigold}` : "none",
                 outline: hex === "#ffffff" ? `1px solid ${T.rule}` : "none",
-              }} />
+              }}
+            />
           ))}
         </div>
         <div className="flex gap-2 items-center">
-          <input type="color" value={currentLayerColor} onChange={(e) => applyColor(e.target.value)}
+          <input
+            type="color"
+            value={currentLayerColor}
+            onChange={(e) => applyColor(e.target.value)}
             className="w-10 h-10 rounded-lg cursor-pointer p-1 shrink-0"
-            style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }} />
-          <input type="text" value={currentLayerColor} inputMode="text"
+            style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}
+          />
+          <input
+            type="text"
+            value={currentLayerColor}
+            inputMode="text"
             onChange={(e) => /^#[0-9a-fA-F]{6}$/.test(e.target.value) && applyColor(e.target.value)}
             className="mono flex-1 rounded-lg px-3 py-2.5 text-[16px] md:text-[12px] focus:outline-none"
-            style={{ background: T.panelRaised, border: `1px solid ${T.rule}`, color: T.text }} />
+            style={{ background: T.panelRaised, border: `1px solid ${T.rule}`, color: T.text }}
+          />
         </div>
       </div>
 
@@ -682,8 +755,10 @@ const DesignPanel = memo(function DesignPanel({
 
       <div>
         <Label>Logo</Label>
-        <label className="flex flex-col items-center gap-1.5 rounded-xl p-4 cursor-pointer transition-all touch-manipulation"
-          style={{ border: `1.5px dashed ${T.rule}` }}>
+        <label
+          className="flex flex-col items-center gap-1.5 rounded-xl p-4 cursor-pointer transition-all touch-manipulation"
+          style={{ border: `1.5px dashed ${T.rule}` }}
+        >
           <UploadCloud size={18} style={{ color: T.muted }} />
           <span className="text-[11px] text-center" style={{ color: T.muted }}>Upload a logo — PNG works best</span>
           <input type="file" accept="image/*" className="hidden"
@@ -696,7 +771,7 @@ const DesignPanel = memo(function DesignPanel({
   );
 });
 
-// ======== ContentPanel ========
+// ======== ContentPanel – includes badge controls ========
 const ContentPanel = memo(function ContentPanel({
   data, onUpdate, badge, onBadgeChange,
 }: {
@@ -734,26 +809,42 @@ const ContentPanel = memo(function ContentPanel({
           <div className="flex gap-4">
             <div className="flex-1">
               <Label>Text colour</Label>
-              <input type="color" value={badge.textColor} onChange={(e) => onBadgeChange({ ...badge, textColor: e.target.value })}
+              <input
+                type="color"
+                value={badge.textColor}
+                onChange={(e) => onBadgeChange({ ...badge, textColor: e.target.value })}
                 className="w-full h-10 rounded-lg cursor-pointer p-1"
-                style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }} />
+                style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}
+              />
             </div>
             <div className="flex-1">
               <Label>Background colour</Label>
-              <input type="color" value={badge.bgColor} onChange={(e) => onBadgeChange({ ...badge, bgColor: e.target.value })}
+              <input
+                type="color"
+                value={badge.bgColor}
+                onChange={(e) => onBadgeChange({ ...badge, bgColor: e.target.value })}
                 className="w-full h-10 rounded-lg cursor-pointer p-1"
-                style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }} />
+                style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}
+              />
             </div>
           </div>
           <div className="flex gap-2">
-            <input type="text" value={badge.textColor}
+            <input
+              type="text"
+              value={badge.textColor}
               onChange={(e) => /^#[0-9a-fA-F]{6}$/.test(e.target.value) && onBadgeChange({ ...badge, textColor: e.target.value })}
               className="mono flex-1 rounded-lg px-3 py-2 text-[12px] focus:outline-none"
-              style={{ background: T.panelRaised, border: `1px solid ${T.rule}`, color: T.text }} placeholder="#000000" />
-            <input type="text" value={badge.bgColor}
+              style={{ background: T.panelRaised, border: `1px solid ${T.rule}`, color: T.text }}
+              placeholder="#000000"
+            />
+            <input
+              type="text"
+              value={badge.bgColor}
               onChange={(e) => /^#[0-9a-fA-F]{6}$/.test(e.target.value) && onBadgeChange({ ...badge, bgColor: e.target.value })}
               className="mono flex-1 rounded-lg px-3 py-2 text-[12px] focus:outline-none"
-              style={{ background: T.panelRaised, border: `1px solid ${T.rule}`, color: T.text }} placeholder="#ffffff" />
+              style={{ background: T.panelRaised, border: `1px solid ${T.rule}`, color: T.text }}
+              placeholder="#ffffff"
+            />
           </div>
         </div>
       </div>
@@ -764,7 +855,15 @@ const ContentPanel = memo(function ContentPanel({
 // ============================================================================
 // VOICEOVER CARD
 // ============================================================================
-function VoiceoverCard({ url, enabled, onToggle }: { url: string; enabled: boolean; onToggle: (v: boolean) => void; }) {
+function VoiceoverCard({
+  url,
+  enabled,
+  onToggle,
+}: {
+  url: string;
+  enabled: boolean;
+  onToggle: (v: boolean) => void;
+}) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -787,14 +886,22 @@ function VoiceoverCard({ url, enabled, onToggle }: { url: string; enabled: boole
   }, [url]);
 
   useEffect(() => {
-    if (!enabled && audioRef.current) { audioRef.current.pause(); setPlaying(false); }
+    if (!enabled && audioRef.current) {
+      audioRef.current.pause();
+      setPlaying(false);
+    }
   }, [enabled]);
 
   const toggle = () => {
     const audio = audioRef.current;
     if (!audio || !enabled) return;
-    if (playing) { audio.pause(); setPlaying(false); }
-    else { audio.play(); setPlaying(true); }
+    if (playing) {
+      audio.pause();
+      setPlaying(false);
+    } else {
+      audio.play();
+      setPlaying(true);
+    }
   };
 
   const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -813,32 +920,74 @@ function VoiceoverCard({ url, enabled, onToggle }: { url: string; enabled: boole
   };
 
   return (
-    <div className="rounded-2xl p-4" style={{ background: T.paper, opacity: enabled ? 1 : 0.6, transition: "opacity .18s ease" }}>
+    <div
+      className="rounded-2xl p-4"
+      style={{ background: T.paper, opacity: enabled ? 1 : 0.6, transition: "opacity .18s ease" }}
+    >
       <audio ref={audioRef} src={url} preload="auto" />
+
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Volume2 size={13} color={T.ink} />
-          <span className="mono text-[10.5px] font-bold tracking-widest" style={{ color: T.ink }}>AI VOICEOVER</span>
+          <span className="mono text-[10.5px] font-bold tracking-widest" style={{ color: T.ink }}>
+            AI VOICEOVER
+          </span>
         </div>
-        <button type="button" onClick={() => onToggle(!enabled)} className="flex items-center gap-2 touch-manipulation"
+        <button
+          type="button"
+          onClick={() => onToggle(!enabled)}
+          className="flex items-center gap-2 touch-manipulation"
           style={{ border: "none", background: "transparent", cursor: "pointer" }}
-          aria-label={enabled ? "Turn voiceover off" : "Turn voiceover on"}>
-          <span className="mono text-[9.5px] tracking-wider" style={{ color: "#5a523f" }}>{enabled ? "ON" : "OFF"}</span>
-          <span className="w-8 h-[18px] rounded-full relative transition-colors" style={{ background: enabled ? T.signal : "#B7AC8E" }}>
-            <span className="absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white transition-all" style={{ left: enabled ? 16 : 2 }} />
+          aria-label={enabled ? "Turn voiceover off" : "Turn voiceover on"}
+        >
+          <span className="mono text-[9.5px] tracking-wider" style={{ color: "#5a523f" }}>
+            {enabled ? "ON" : "OFF"}
+          </span>
+          <span
+            className="w-8 h-[18px] rounded-full relative transition-colors"
+            style={{ background: enabled ? T.signal : "#B7AC8E" }}
+          >
+            <span
+              className="absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white transition-all"
+              style={{ left: enabled ? 16 : 2 }}
+            />
           </span>
         </button>
       </div>
+
       <div className="flex items-center gap-2.5">
-        <button type="button" onClick={toggle} disabled={!enabled}
+        <button
+          type="button"
+          onClick={toggle}
+          disabled={!enabled}
           className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 touch-manipulation"
-          style={{ background: T.ink, color: T.paper, cursor: enabled ? "pointer" : "not-allowed", border: "none" }}>
+          style={{
+            background: T.ink,
+            color: T.paper,
+            cursor: enabled ? "pointer" : "not-allowed",
+            border: "none",
+          }}
+        >
           {playing ? <Pause size={13} /> : <Play size={13} style={{ marginLeft: 1 }} />}
         </button>
-        <input type="range" min={0} max={duration || 0} step={0.01} value={currentTime} onChange={seek} disabled={!enabled} className="voice-range flex-1" />
-        <span className="mono text-[10.5px] shrink-0" style={{ color: "#5a523f", minWidth: 34, textAlign: "right" }}>{fmt(currentTime)}</span>
+        <input
+          type="range"
+          min={0}
+          max={duration || 0}
+          step={0.01}
+          value={currentTime}
+          onChange={seek}
+          disabled={!enabled}
+          className="voice-range flex-1"
+        />
+        <span className="mono text-[10.5px] shrink-0" style={{ color: "#5a523f", minWidth: 34, textAlign: "right" }}>
+          {fmt(currentTime)}
+        </span>
       </div>
-      <p className="mono text-[9.5px] tracking-wider mt-2.5 mb-0" style={{ color: "#6b6250" }}>VOICE: INFRA STUDIO</p>
+
+      <p className="mono text-[9.5px] tracking-wider mt-2.5 mb-0" style={{ color: "#6b6250" }}>
+        VOICE: INFRA STUDIO
+      </p>
     </div>
   );
 }
@@ -854,7 +1003,12 @@ interface VideoPanelProps {
 }
 
 const VideoPanel = memo(function VideoPanel({
-  flyer, activeFormatId, jobId, logoOverlay, badgeOverlay, voiceoverUrl,
+  flyer,
+  activeFormatId,
+  jobId,
+  logoOverlay,
+  badgeOverlay,
+  voiceoverUrl,
 }: VideoPanelProps) {
   const [selectedFormat, setSelectedFormat] = useState<FormatId>(activeFormatId);
   const [downloading, setDownloading] = useState(false);
@@ -888,12 +1042,16 @@ const VideoPanel = memo(function VideoPanel({
 
   const POLL_INTERVAL_MS = 3000;
 
-  const pollJobStatus = useCallback(async (videoJobId: string, onTick: (seconds: number) => void): Promise<string> => {
+  const pollJobStatus = useCallback(async (
+    videoJobId: string,
+    onTick: (seconds: number) => void
+  ): Promise<string> => {
     let seconds = 0;
     while (true) {
       await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
       seconds += POLL_INTERVAL_MS / 1000;
       onTick(seconds);
+
       const statusRes = await fetch(`/api/campaign/render-video/${videoJobId}/`);
       if (!statusRes.ok) throw new Error(`Status check failed (${statusRes.status})`);
       const statusData = await statusRes.json();
@@ -909,8 +1067,12 @@ const VideoPanel = memo(function VideoPanel({
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;
+    a.style.display = "none";
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    // Delayed revoke — see downloadBlob() below for the reason.
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
   };
 
   const handleDownload = async () => {
@@ -930,6 +1092,7 @@ const VideoPanel = memo(function VideoPanel({
         throw new Error(err.error || `Render failed (${res.status})`);
       }
       const { job_id: videoJobId } = await res.json();
+
       const videoUrl = await pollJobStatus(videoJobId, setElapsedSeconds);
       await downloadFromUrl(videoUrl, `promo-${selectedFormat}.mp4`);
     } catch (err) {
@@ -948,9 +1111,16 @@ const VideoPanel = memo(function VideoPanel({
           const Icon = f.icon;
           const active = selectedFormat === f.id;
           return (
-            <button key={f.id} onClick={() => setSelectedFormat(f.id)}
+            <button
+              key={f.id}
+              onClick={() => setSelectedFormat(f.id)}
               className="py-2.5 px-1 rounded-lg border text-center transition-all touch-manipulation"
-              style={{ borderColor: active ? T.marigold : T.rule, background: active ? `${T.marigold}1a` : "transparent", color: active ? T.marigold : T.muted }}>
+              style={{
+                borderColor: active ? T.marigold : T.rule,
+                background: active ? `${T.marigold}1a` : "transparent",
+                color: active ? T.marigold : T.muted,
+              }}
+            >
               <Icon size={14} className="mx-auto mb-1" />
               <div className="text-[9px] font-bold leading-none">{f.label}</div>
               <div className="text-[8px] mt-0.5" style={{ color: active ? T.marigold : T.rule }}>{f.ratio}</div>
@@ -962,9 +1132,12 @@ const VideoPanel = memo(function VideoPanel({
       <Divider />
 
       <Label>Preview ({fmt.durationS}s promo)</Label>
-      <div className="rounded-xl overflow-hidden"
-        style={{ aspectRatio: `${fmt.rw}/${fmt.rh}`, maxHeight: 260, background: T.ink, border: `1px solid ${T.rule}` }}>
-        <Player ref={playerRef}
+      <div
+        className="rounded-xl overflow-hidden"
+        style={{ aspectRatio: `${fmt.rw}/${fmt.rh}`, maxHeight: 260, background: T.ink, border: `1px solid ${T.rule}` }}
+      >
+        <Player
+          ref={playerRef}
           component={PromoVideo as unknown as React.ComponentType<Record<string, unknown>>}
           inputProps={promoProps}
           durationInFrames={durationInFrames}
@@ -972,15 +1145,23 @@ const VideoPanel = memo(function VideoPanel({
           compositionHeight={COMP_H}
           fps={fmt.fps}
           style={{ width: "100%", height: "100%" }}
-          controls loop autoPlay acknowledgeRemotionLicense />
+          controls
+          loop
+          autoPlay
+          acknowledgeRemotionLicense
+        />
       </div>
 
-      {voiceoverUrl && <VoiceoverCard url={voiceoverUrl} enabled={voiceoverEnabled} onToggle={setVoiceoverEnabled} />}
+      {voiceoverUrl && (
+        <VoiceoverCard url={voiceoverUrl} enabled={voiceoverEnabled} onToggle={setVoiceoverEnabled} />
+      )}
 
       <Divider />
 
       <div className="rounded-xl p-3 space-y-1.5" style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}>
-        <p className="mono text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: T.muted }}>Included in every render</p>
+        <p className="mono text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: T.muted }}>
+          Included in every render
+        </p>
         {[
           "Cinematic product reveal with depth",
           "Word-by-word animated headline",
@@ -996,20 +1177,37 @@ const VideoPanel = memo(function VideoPanel({
         ))}
       </div>
 
-      {downloadError && <p className="text-[11px]" style={{ color: T.signal }}>{downloadError}</p>}
+      {downloadError && (
+        <p className="text-[11px]" style={{ color: T.signal }}>{downloadError}</p>
+      )}
 
-      <button type="button" onClick={handleDownload} disabled={downloading} aria-busy={downloading}
+      <button
+        type="button"
+        onClick={handleDownload}
+        disabled={downloading}
+        aria-busy={downloading}
         className="job-btn w-full py-3.5 md:py-2.5 rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 touch-manipulation"
-        style={{ background: downloading ? T.rule : T.marigold, color: downloading ? T.muted : T.ink, cursor: downloading ? "not-allowed" : "pointer", border: "none" }}>
+        style={{
+          background: downloading ? T.rule : T.marigold,
+          color: downloading ? T.muted : T.ink,
+          cursor: downloading ? "not-allowed" : "pointer",
+          border: "none",
+        }}
+      >
         {downloading ? (
           <>
-            <div className="w-4 h-4 rounded-full animate-spin" style={{ border: `2px solid transparent`, borderTopColor: T.text, borderRightColor: T.text }} />
+            <div
+              className="w-4 h-4 rounded-full animate-spin"
+              style={{ border: `2px solid transparent`, borderTopColor: T.text, borderRightColor: T.text }}
+            />
             <span>Rendering{elapsedSeconds > 0 ? ` (${Math.floor(elapsedSeconds)}s)` : "…"}</span>
           </>
         ) : (
           <>
             <Download size={16} />
-            <span>Download {fmt.label} video{voiceoverUrl ? (voiceoverEnabled ? " with voice" : " without voice") : ""}</span>
+            <span>
+              Download {fmt.label} video{voiceoverUrl ? (voiceoverEnabled ? " with voice" : " without voice") : ""}
+            </span>
           </>
         )}
       </button>
@@ -1020,6 +1218,7 @@ const VideoPanel = memo(function VideoPanel({
 // ======== CaptionsPanel ========
 const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Caption[] }) {
   const [copied, setCopied] = useState<string | null>(null);
+
   const copy = (platform: string, text: string) => {
     navigator.clipboard.writeText(text).catch(() => {});
     setCopied(platform);
@@ -1028,27 +1227,44 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
 
   if (captions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 gap-3 rounded-xl" style={{ border: `1px dashed ${T.rule}` }}>
+      <div
+        className="flex flex-col items-center justify-center py-12 gap-3 rounded-xl"
+        style={{ border: `1px dashed ${T.rule}` }}
+      >
         <MessageSquare size={24} style={{ color: T.rule }} />
-        <p className="text-[11px] text-center max-w-[180px]" style={{ color: T.muted }}>Captions will appear here once your job has finished processing.</p>
+        <p className="text-[11px] text-center max-w-[180px]" style={{ color: T.muted }}>
+          Captions will appear here once your job has finished processing.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
-      <p className="text-[11px] leading-relaxed mb-1" style={{ color: T.muted }}>Written from your product photo. Tap to copy.</p>
+      <p className="text-[11px] leading-relaxed mb-1" style={{ color: T.muted }}>
+        Written from your product photo. Tap to copy.
+      </p>
       {captions.map((cap) => (
         <div key={cap.platform} className="rounded-xl overflow-hidden" style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}>
           <div className="flex items-center justify-between px-3.5 py-2.5" style={{ borderBottom: `1px solid ${T.rule}` }}>
-            <span className={`mono text-[10px] font-bold uppercase tracking-wider ${cap.color}`}>{cap.platform}</span>
-            <button onClick={() => copy(cap.platform, cap.text)}
+            <span className={`mono text-[10px] font-bold uppercase tracking-wider ${cap.color}`}>
+              {cap.platform}
+            </span>
+            <button
+              onClick={() => copy(cap.platform, cap.text)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] transition-colors touch-manipulation"
-              style={{ background: T.rule, color: T.muted }}>
-              {copied === cap.platform ? (<><Check size={10} /> Copied</>) : (<><Copy size={10} /> Copy</>)}
+              style={{ background: T.rule, color: T.muted }}
+            >
+              {copied === cap.platform ? (
+                <><Check size={10} /> Copied</>
+              ) : (
+                <><Copy size={10} /> Copy</>
+              )}
             </button>
           </div>
-          <p className="px-3.5 py-3 text-[11px] leading-relaxed whitespace-pre-wrap" style={{ color: T.muted }}>{cap.text}</p>
+          <p className="px-3.5 py-3 text-[11px] leading-relaxed whitespace-pre-wrap" style={{ color: T.muted }}>
+            {cap.text}
+          </p>
         </div>
       ))}
     </div>
@@ -1058,22 +1274,55 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
 // ============================================================================
 // EXPORT DROPDOWN
 // ============================================================================
-function ExportDropdown({ onExport, exportingFormat }: { onExport: (format: "png" | "jpg" | "pdf") => void; exportingFormat: "png" | "jpg" | "pdf" | null; }) {
+function ExportDropdown({
+  onExport,
+  exportingFormat,
+}: {
+  onExport: (format: "png" | "jpg" | "pdf") => void;
+  exportingFormat: "png" | "jpg" | "pdf" | null;
+}) {
   const [open, setOpen] = useState(false);
   const isExporting = exportingFormat !== null;
 
   return (
     <div className="relative">
-      <button onClick={() => !isExporting && setOpen((v) => !v)} disabled={isExporting}
+      <button
+        onClick={() => !isExporting && setOpen((v) => !v)}
+        disabled={isExporting}
         className="job-btn px-3 sm:px-4 py-2 sm:py-1.5 rounded-lg text-[12px] font-bold flex items-center gap-1.5 touch-manipulation"
-        style={{ background: T.marigold, color: T.ink, opacity: isExporting ? 0.6 : 1, cursor: isExporting ? "not-allowed" : "pointer", border: "none" }}>
-        {isExporting ? (<><Loader2 size={13} className="animate-spin" />Exporting {exportingFormat.toUpperCase()}…</>) : (<><Download size={13} />Export<ChevronDown size={13} /></>)}
+        style={{
+          background: T.marigold,
+          color: T.ink,
+          opacity: isExporting ? 0.6 : 1,
+          cursor: isExporting ? "not-allowed" : "pointer",
+          border: "none",
+        }}
+      >
+        {isExporting ? (
+          <>
+            <Loader2 size={13} className="animate-spin" />
+            Exporting {exportingFormat.toUpperCase()}…
+          </>
+        ) : (
+          <>
+            <Download size={13} />
+            Export
+            <ChevronDown size={13} />
+          </>
+        )}
       </button>
       {open && !isExporting && (
-        <div className="absolute right-0 mt-1 w-36 rounded-xl shadow-2xl overflow-hidden z-50" style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}>
+        <div
+          className="absolute right-0 mt-1 w-36 rounded-xl shadow-2xl overflow-hidden z-50"
+          style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}
+        >
           {(["png", "jpg", "pdf"] as const).map((f) => (
-            <button key={f} onClick={() => { onExport(f); setOpen(false); }}
-              className="mono w-full text-left px-3.5 py-2.5 text-[12px] hover:bg-black/20" style={{ color: T.text }}>
+            <button
+              key={f}
+              onClick={() => { onExport(f); setOpen(false); }}
+              className="mono w-full text-left px-3.5 py-2.5 text-[12px] hover:bg-black/20"
+              style={{ color: T.text }}
+            >
               {f.toUpperCase()}
             </button>
           ))}
@@ -1110,226 +1359,125 @@ const EMPTY_FLYER_STATE: FlyerState = {
   logoImage: null,
   templateVariant: "",
   templateCategory: "Premium Brand",
-  colors: { primary: "#0a0a0a", secondary: "#ffffff", accent: "#c9a84c" },
+  colors: {
+    primary: "#0a0a0a",
+    secondary: "#ffffff",
+    accent: "#c9a84c",
+  },
 };
 
-const VALID_CATEGORIES: FlyerState["templateCategory"][] = ["Luxury Product", "Minimal Product", "Premium Brand"];
+const VALID_CATEGORIES: FlyerState["templateCategory"][] = [
+  "Luxury Product", "Minimal Product", "Premium Brand",
+];
 
 /* ════════════════════════════════════════════════════════════════════════
-   ✅ FIX — HARDENED IMAGE / EXPORT HELPERS
-   ────────────────────────────────────────────────────────────────────────
-   These replace the old downloadBlob / toDataURL / uploadAsset trio.
+   EXPORT HELPERS — rewritten for iOS Safari
+
+   Root causes addressed:
+     1. Safari defers decoding of <img> inside containers positioned at
+        left:-9999px (offscreen image optimization). The export node used
+        to sit there, so images never got a bitmap and html-to-image
+        serialized empty <img> tags. Fixed by positioning the export node
+        at top:0/left:0 with z-index:-1 — technically on-screen, painted
+        behind the editor's solid backgrounds.
+     2. crossOrigin was set on live <img> nodes AFTER src was assigned.
+        Chrome silently re-fetches; Safari blanks the image and doesn't
+        reliably recover. We no longer touch crossOrigin on live nodes.
+     3. Direct `img.src = dataUrl` on the live DOM produced a race: the
+        capture could fire before the swap had painted. Now we set src
+        and await load+decode inside the same promise — atomic.
+     4. `URL.revokeObjectURL` was called immediately after a.click().
+        iOS Safari reads blobs asynchronously; immediate revoke truncated
+        the file, blanking the product image (the largest payload).
+     5. `fetch(dataURL)` on multi-MB PNGs fails silently on WebKit.
+        Switched to html-to-image's own toBlob() and a pure base64
+        decoder (dataUrlToBlob) that never touches fetch().
    ════════════════════════════════════════════════════════════════════════ */
 
-/** Fetch any image (URL, blob:, data:) and return a data: URL.
- *  - 20s hard timeout so the export NEVER hangs (the old code hung on
- *    iOS because canvas.toDataURL() threw inside an onload handler).
- *  - Tries fetch(…, {mode:'cors'}) first, then falls back to an
- *    <img crossOrigin> decode path, then a plain <img> path.
- *  - Never leaves a promise unresolved. */
-async function fetchImageAsDataURL(url: string, timeoutMs = 20000): Promise<string> {
-  if (!url) throw new Error("Empty image URL");
+// ── Pure base64 decoder — no fetch(), no WebKit data-URL size limit.
+function dataUrlToBlob(dataUrl: string): Blob {
+  const comma = dataUrl.indexOf(",");
+  if (comma < 0) throw new Error("Invalid data URL");
+  const header = dataUrl.slice(0, comma);
+  const base64 = dataUrl.slice(comma + 1);
+  const mimeMatch = /data:([^;]+)/.exec(header);
+  const mime = mimeMatch ? mimeMatch[1] : "image/png";
+  const binary = atob(base64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
+// ── Safari-safe toDataURL. Two independent paths, no crossOrigin
+//    mutation of already-loaded live images.
+async function toDataURL(url: string): Promise<string> {
+  if (!url) return url;
   if (url.startsWith("data:")) return url;
 
-  // Local blob: URLs (in-flight upload preview) — just read them.
-  if (url.startsWith("blob:")) {
-    const res = await fetch(url);
-    const blob = await res.blob();
-    return blobToDataURL(blob);
+  // Primary: fetch + FileReader. No <canvas>, no tainting, no crossOrigin.
+  try {
+    const res = await fetch(url, { mode: "cors", credentials: "omit" });
+    if (res.ok) {
+      const blob = await res.blob();
+      if (blob.size > 32) {
+        return await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = () => reject(reader.error || new Error("FileReader failed"));
+          reader.readAsDataURL(blob);
+        });
+      }
+    }
+  } catch {
+    /* fall through to the Image path */
   }
 
-  // Path 1: fetch with CORS
-  try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), timeoutMs);
-    const res = await fetch(url, {
-      mode: "cors",
-      credentials: "omit",
-      cache: "force-cache",
-      signal: ctrl.signal,
-    });
-    clearTimeout(t);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const blob = await res.blob();
-    // Guard: sometimes mobile returns an empty/opaque blob for 200s.
-    if (blob.size < 32) throw new Error("Empty image response");
-    return await blobToDataURL(blob);
-  } catch (e) {
-    // Fall through to <img> path
-  }
-
-  // Path 2: <img crossOrigin="anonymous"> → canvas (works when server sends ACAO)
-  try {
-    const img = await loadImageElement(url, "anonymous", timeoutMs);
-    return await imageElementToDataURL(img);
-  } catch {}
-
-  // Path 3: plain <img> (may taint canvas — will throw, but at least explicit)
-  const img = await loadImageElement(url, null, timeoutMs);
-  return await imageElementToDataURL(img);
-}
-
-function loadImageElement(url: string, crossOrigin: "anonymous" | null, timeoutMs: number): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    if (crossOrigin) img.crossOrigin = crossOrigin;
-    img.decoding = "sync";
-    let done = false;
-    const t = setTimeout(() => {
-      if (done) return;
-      done = true;
-      reject(new Error("Image load timed out"));
-    }, timeoutMs);
-    img.onload = () => {
-      if (done) return;
-      done = true;
-      clearTimeout(t);
-      resolve(img);
-    };
-    img.onerror = () => {
-      if (done) return;
-      done = true;
-      clearTimeout(t);
-      reject(new Error("Image failed to load"));
-    };
+  // Fallback: fresh Image, crossOrigin BEFORE src (Safari-safe), wait
+  // for decode so the bitmap is guaranteed before we draw.
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.decoding = "sync";
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error(`Image load failed: ${url}`));
     img.src = url;
   });
-}
-
-function blobToDataURL(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const r = reader.result;
-      if (typeof r === "string") resolve(r);
-      else reject(new Error("FileReader returned non-string"));
-    };
-    reader.onerror = () => reject(reader.error || new Error("FileReader failed"));
-    reader.readAsDataURL(blob);
-  });
-}
-
-async function imageElementToDataURL(img: HTMLImageElement): Promise<string> {
-  // decode() guarantees the bitmap is present on iOS before we draw.
-  try { await img.decode?.(); } catch {}
-  const w = img.naturalWidth || img.width;
-  const h = img.naturalHeight || img.height;
-  if (!w || !h) throw new Error("Image has no intrinsic size");
+  if (typeof img.decode === "function") {
+    try { await img.decode(); } catch { /* ignore */ }
+  }
   const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
+  canvas.width = img.naturalWidth || 1;
+  canvas.height = img.naturalHeight || 1;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("No 2D context");
   ctx.drawImage(img, 0, 0);
-  // NOTE: this throws if the canvas is tainted — the caller's try/catch
-  // is responsible for falling back. We deliberately let it throw so it
-  // doesn't silently resolve with a blank image.
-  return canvas.toDataURL("image/png");
+  // JPEG in the fallback keeps the data URL small enough for Safari to
+  // embed into foreignObject SVG without hitting its data-URL limit.
+  return canvas.toDataURL("image/jpeg", 0.9);
 }
 
-/** Resolve a URL relative to window.location. */
-function absolutize(url: string, base: string): string {
-  if (!url) return url;
-  if (url.startsWith("data:") || url.startsWith("blob:") || /^https?:\/\//i.test(url)) return url;
-  try { return new URL(url, base).href; } catch { return url; }
-}
+async function uploadAsset(file: File): Promise<string> {
+  const form = new FormData();
+  form.append("file", file);
 
-/** Walk every element in `root` and inline:
- *   - <img src>
- *   - CSS background-image: url(...)
- *  Any images that fail are logged and left alone (never hangs).
- *  Works on a DETACHED clone so React state changes can't revert us. */
-async function inlineAllImages(root: HTMLElement): Promise<{ ok: number; failed: number }> {
-  let ok = 0;
-  let failed = 0;
-  const base = (typeof window !== "undefined" && window.location.href) || "http://localhost/";
-
-  // 1) <img> elements
-  const imgs = Array.from(root.querySelectorAll<HTMLImageElement>("img"));
-  await Promise.all(
-    imgs.map(async (img) => {
-      const raw = img.getAttribute("src") || "";
-      if (!raw || raw.startsWith("data:")) return;
-      const abs = absolutize(raw, base);
-      try {
-        const dataUrl = await fetchImageAsDataURL(abs);
-        img.setAttribute("src", dataUrl);
-        img.removeAttribute("crossorigin");
-        img.removeAttribute("crossOrigin");
-        // Force the browser to actually commit the new src before we capture.
-        try { await img.decode(); } catch {}
-        ok++;
-      } catch (e) {
-        // last-ditch: leave the original src, but log for triage
-        console.warn("[export] could not inline <img>", abs, e);
-        failed++;
-      }
-    })
-  );
-
-  // 2) CSS background-image on any element
-  const all = Array.from(root.querySelectorAll<HTMLElement>("*"));
-  await Promise.all(
-    all.map(async (el) => {
-      const bg = el.style.backgroundImage || "";
-      const m = /url\((['"]?)([^'")]+)\1\)/i.exec(bg);
-      if (!m) return;
-      const raw = m[2];
-      if (!raw || raw.startsWith("data:")) return;
-      const abs = absolutize(raw, base);
-      try {
-        const dataUrl = await fetchImageAsDataURL(abs);
-        el.style.backgroundImage = `url("${dataUrl}")`;
-        ok++;
-      } catch (e) {
-        console.warn("[export] could not inline background-image", abs, e);
-        failed++;
-      }
-    })
-  );
-
-  return { ok, failed };
-}
-
-/** Wait for all <img> inside root to be fully decoded. */
-async function decodeAllImages(root: HTMLElement): Promise<void> {
-  const imgs = Array.from(root.querySelectorAll<HTMLImageElement>("img"));
-  await Promise.all(
-    imgs.map(async (img) => {
-      try {
-        if (!img.complete) {
-          await new Promise<void>((resolve) => {
-            const done = () => resolve();
-            img.addEventListener("load", done, { once: true });
-            img.addEventListener("error", done, { once: true });
-            // Safety timeout so we never hang
-            setTimeout(done, 8000);
-          });
-        }
-        await img.decode?.();
-      } catch {}
-    })
-  );
-}
-
-/** Wait for the next two animation frames — needed on iOS for the
- *  compositor to actually paint the clone before we snapshot it. */
-function nextPaint(): Promise<void> {
-  return new Promise((resolve) => {
-    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  const res = await fetch("/api/campaign/uploads/", {
+    method: "POST",
+    body: form,
   });
+
+  if (!res.ok) {
+    throw new Error("Upload failed");
+  }
+
+  const data = await res.json();
+  return data.url as string;
 }
 
-async function waitForFonts(): Promise<void> {
-  try {
-    const anyDoc = document as Document & { fonts?: FontFaceSet };
-    if (anyDoc.fonts?.ready) await anyDoc.fonts.ready;
-  } catch {}
-}
-
-async function downloadBlob(blob: Blob, filename: string) {
-  // Mobile Safari needs the <a> to be in the DOM and clicked synchronously
-  // within the same task; the async path is fine as long as we attach it.
+// ── Safari-safe blob download.
+//    Do not "clean up" the deferred revoke — that reintroduces the iOS
+//    bug where Safari is still reading the blob when it's revoked.
+async function downloadBlob(blob: Blob, filename: string): Promise<void> {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -1338,20 +1486,8 @@ async function downloadBlob(blob: Blob, filename: string) {
   a.style.display = "none";
   document.body.appendChild(a);
   a.click();
-  // Give the browser a moment to start the download before revoking.
-  setTimeout(() => {
-    a.remove();
-    URL.revokeObjectURL(url);
-  }, 1500);
-}
-
-async function uploadAsset(file: File): Promise<string> {
-  const form = new FormData();
-  form.append("file", file);
-  const res = await fetch("/api/campaign/uploads/", { method: "POST", body: form });
-  if (!res.ok) throw new Error("Upload failed");
-  const data = await res.json();
-  return data.url as string;
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
 
 // ---------- Main Editor ----------
@@ -1372,7 +1508,10 @@ function EditorContent() {
   const [sheetExpanded, setSheetExpanded] = useState(false);
   const [voiceoverUrl, setVoiceoverUrl] = useState<string | undefined>(undefined);
 
-  const [logoOverlay, setLogoOverlay] = useState<{ image: string | null; transform: Transform }>({
+  const [logoOverlay, setLogoOverlay] = useState<{
+    image: string | null;
+    transform: Transform;
+  }>({
     image: null,
     transform: { x: 15, y: 15, scale: 1 },
   });
@@ -1392,17 +1531,28 @@ function EditorContent() {
 
   const update = useCallback((field: string, value: any) => {
     setFlyer((prev) => {
-      if (!(field in prev)) { console.warn(`Unknown flyer field: ${field}`); return prev; }
+      if (!(field in prev)) {
+        console.warn(`Unknown flyer field: ${field}`);
+        return prev;
+      }
       return { ...prev, [field]: value };
     });
   }, []);
 
   const updateFeature = useCallback((index: number, value: string) => {
-    setFlyer((prev) => { const next = [...prev.features]; next[index] = value; return { ...prev, features: next }; });
+    setFlyer((prev) => {
+      const next = [...prev.features];
+      next[index] = value;
+      return { ...prev, features: next };
+    });
   }, []);
 
   const updateWhyChooseUs = useCallback((index: number, value: string) => {
-    setFlyer((prev) => { const next = [...prev.whyChooseUs]; next[index] = value; return { ...prev, whyChooseUs: next }; });
+    setFlyer((prev) => {
+      const next = [...prev.whyChooseUs];
+      next[index] = value;
+      return { ...prev, whyChooseUs: next };
+    });
   }, []);
 
   const addWhyChooseUs = useCallback(() => {
@@ -1434,10 +1584,15 @@ function EditorContent() {
       setPendingUploads((n) => n + 1);
       try {
         const url = await uploadAsset(file);
-        if (field === "logoImage") setLogoOverlay((prev) => ({ ...prev, image: url }));
-        else update("productImage", url);
+        if (field === "logoImage") {
+          setLogoOverlay((prev) => ({ ...prev, image: url }));
+        } else {
+          update("productImage", url);
+        }
       } catch {
-        setExportError(`${field === "productImage" ? "Product image" : "Logo"} upload failed. Please try again.`);
+        setExportError(
+          `${field === "productImage" ? "Product image" : "Logo"} upload failed. Please try again.`
+        );
       } finally {
         setPendingUploads((n) => n - 1);
       }
@@ -1445,124 +1600,113 @@ function EditorContent() {
     [update]
   );
 
-  /* ════════════════════════════════════════════════════════════════════════
-     ✅ FIX — EXPORT FLYER (mobile-safe)
-     ────────────────────────────────────────────────────────────────────────
-     Old pipeline: mutate live exportNode → fetch each img → set src on live
-     node → call html-to-image. Fragile on mobile for 5 reasons (see header).
-     New pipeline:
-       1. Deep-clone the export node into a fresh DOM subtree.
-       2. Inline every <img> / background-image to data: URLs (with timeouts).
-       3. Mount the clone with real layout (behind the editor, not -9999px).
-       4. await decode() on all imgs, document.fonts.ready, 2× RAF.
-       5. html-to-image on the clone with cacheBust:false.
-       6. Remove the clone.
-     ════════════════════════════════════════════════════════════════════════ */
-  const exportFlyer = useCallback(
-    async (format: "png" | "jpg" | "pdf") => {
-      const source = exportNodeRef.current;
-      if (!source) { setExportError("Editor isn't ready yet."); return; }
-      if (pendingUploads > 0) {
-        setExportError("Still uploading your image — please wait a moment and try again.");
-        return;
-      }
+  // ---------- EXPORT FLYER (fixed for iOS Safari) ----------
+  const exportFlyer = useCallback(async (format: "png" | "jpg" | "pdf") => {
+    if (!exportNodeRef.current) return;
+    if (pendingUploads > 0) {
+      setExportError("Still uploading your image — please wait a moment and try again.");
+      return;
+    }
 
-      setExportingFormat(format);
-      setExportError(null);
+    setExportingFormat(format);
+    setExportError(null);
 
+    const node = exportNodeRef.current;
+    const imgEls = Array.from(node.querySelectorAll("img"));
+    const originalSrcs = imgEls.map((img) => img.src);
+
+    try {
+      // 1. Inline every <img> as a data URL, in parallel. src and the
+      //    load-event are set inside the same promise so there is no
+      //    window where html-to-image could snapshot a half-swapped img.
+      await Promise.all(
+        imgEls.map(async (img, i) => {
+          const originalSrc = originalSrcs[i];
+          if (!originalSrc || originalSrc.startsWith("data:")) {
+            try { await img.decode?.(); } catch { /* ignore */ }
+            return;
+          }
+          try {
+            const dataUrl = await toDataURL(originalSrc);
+            await new Promise<void>((resolve) => {
+              const done = () => resolve();
+              img.onload = done;
+              img.onerror = done;
+              img.src = dataUrl;
+              setTimeout(done, 8000); // safety timeout
+            });
+            try { await img.decode?.(); } catch { /* ignore */ }
+          } catch (e) {
+            console.warn("[export] could not inline image", originalSrc, e);
+          }
+        })
+      );
+
+      // 2. Fonts + paint. Two RAFs + a real tick give Safari's
+      //    foreignObject pipeline time to finish before we rasterize.
+      try {
+        const f = (document as Document & { fonts?: FontFaceSet }).fonts;
+        if (f?.ready) await f.ready;
+      } catch { /* ignore */ }
+      await new Promise<void>((res) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => res()))
+      );
+      await new Promise((res) => setTimeout(res, 300));
+
+      // 3. Snapshot. cacheBust MUST be false (data URLs would get "?_="
+      //    appended and Safari's URL parser rejects them). useCORS is a
+      //    dom-to-image option and does nothing in html-to-image.
+      const { toPng, toJpeg, toBlob } = await import("html-to-image");
       const fmt = SOCIAL_FORMATS.find((f) => f.id === activeFormat)!;
 
-      let clone: HTMLDivElement | null = null;
+      const snapshotOpts = {
+        pixelRatio: 2,
+        cacheBust: false,
+        width: fmt.exportW,
+        height: fmt.exportH,
+        backgroundColor: "#ffffff",
+        skipAutoScale: true,
+      } as const;
 
-      try {
-        // ── 1. Clone the export node (React can't touch this subtree) ──
-        clone = source.cloneNode(true) as HTMLDivElement;
-
-        // Reset any inline positioning the live node may have inherited.
-        clone.style.position = "fixed";
-        clone.style.left = "0";
-        clone.style.top = "0";
-        clone.style.width = `${fmt.exportW}px`;
-        clone.style.height = `${fmt.exportH}px`;
-        clone.style.transform = "none";
-        clone.style.transformOrigin = "top left";
-        clone.style.margin = "0";
-        clone.style.padding = "0";
-        clone.style.zIndex = "-1";
-        clone.style.pointerEvents = "none";
-        clone.style.background = "#ffffff";
-        // Keep it painted (behind the editor) so iOS/Android compositors
-        // don't skip layout of its children.
-        clone.setAttribute("aria-hidden", "true");
-        clone.setAttribute("data-export-clone", "true");
-
-        // ── 2. Inline images on the clone ──
-        const { ok, failed } = await inlineAllImages(clone);
-        if (failed > 0) {
-          // Don't hard-fail: template text still exports fine.
-          console.warn(`[export] ${failed} image(s) could not be inlined`);
-        }
-
-        // ── 3. Mount clone (must be in DOM before fonts/decoding) ──
-        document.body.appendChild(clone);
-
-        // ── 4. Wait for everything to be paint-ready ──
-        await decodeAllImages(clone);
-        await waitForFonts();
-        await nextPaint();
-
-        // ── 5. html-to-image on the clone ──
-        const { toPng, toJpeg } = await import("html-to-image");
-
-        const snapshotOpts = {
-          // Real pixel ratio for crisp mobile output. Cap at 2 to avoid
-          // blowing up memory on older Android devices.
-          pixelRatio: 2,
-          // Nothing external left → do NOT bust cache (that was re-fetching
-          // Cloudinary without CORS on mobile and blanking the image).
-          cacheBust: false,
-          width: fmt.exportW,
-          height: fmt.exportH,
-          backgroundColor: "#ffffff",
-          skipAutoScale: true,
-          // Prevent html-to-image from trying to re-fetch data: URLs.
-          imagePlaceholder:
-            "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==",
-        } as const;
-
-        let blob: Blob;
-
-        if (format === "jpg") {
-          const dataUrl = await toJpeg(clone, { ...snapshotOpts, quality: 0.95 });
-          blob = await (await fetch(dataUrl)).blob();
-        } else if (format === "pdf") {
-          const { default: jsPDF } = await import("jspdf");
-          const dataUrl = await toPng(clone, snapshotOpts);
-          const pdf = new jsPDF({
-            orientation: fmt.exportW > fmt.exportH ? "landscape" : "portrait",
-            unit: "px",
-            format: [fmt.exportW, fmt.exportH],
-          });
-          pdf.addImage(dataUrl, "PNG", 0, 0, fmt.exportW, fmt.exportH);
-          blob = pdf.output("blob");
+      let blob: Blob;
+      if (format === "pdf") {
+        const { default: jsPDF } = await import("jspdf");
+        const dataUrl = await toPng(node, snapshotOpts);
+        const pdf = new jsPDF({
+          orientation: fmt.exportW > fmt.exportH ? "landscape" : "portrait",
+          unit: "px",
+          format: [fmt.exportW, fmt.exportH],
+        });
+        pdf.addImage(dataUrl, "PNG", 0, 0, fmt.exportW, fmt.exportH);
+        blob = pdf.output("blob");
+      } else if (format === "jpg") {
+        const dataUrl = await toJpeg(node, { ...snapshotOpts, quality: 0.95 });
+        blob = dataUrlToBlob(dataUrl);
+      } else {
+        // toBlob() returns Blob | null. Branch on a temp so `blob` stays
+        // non-nullable — this is what silences the TS red squiggle.
+        const maybeBlob = await toBlob(node, snapshotOpts);
+        if (maybeBlob) {
+          blob = maybeBlob;
         } else {
-          const dataUrl = await toPng(clone, snapshotOpts);
-          blob = await (await fetch(dataUrl)).blob();
+          const dataUrl = await toPng(node, snapshotOpts);
+          blob = dataUrlToBlob(dataUrl);
         }
-
-        const ext = format === "pdf" ? "pdf" : format;
-        await downloadBlob(blob, `flyer-${activeFormat}.${ext}`);
-      } catch (err) {
-        console.error("[export] failed", err);
-        setExportError(err instanceof Error ? err.message : "Export failed. Please try again.");
-      } finally {
-        // Always clean up the clone.
-        if (clone && clone.parentNode) clone.parentNode.removeChild(clone);
-        setExportingFormat(null);
       }
-    },
-    [activeFormat, pendingUploads]
-  );
+
+      const ext = format === "pdf" ? "pdf" : format;
+      const filename = `flyer-${activeFormat}.${ext}`;
+      await downloadBlob(blob, filename);
+    } catch (err) {
+      console.error(err);
+      setExportError(err instanceof Error ? err.message : "Export failed.");
+    } finally {
+      imgEls.forEach((img, i) => {
+        if (img.src !== originalSrcs[i]) img.src = originalSrcs[i];
+      });
+      setExportingFormat(null);
+    }
+  }, [exportNodeRef, activeFormat, pendingUploads]);
 
   // ---------- LOAD DATA ----------
   useEffect(() => {
@@ -1585,20 +1729,29 @@ function EditorContent() {
         } catch (err) {
           if (cancelled) return;
           if (err instanceof ApiError && err.status === 401) {
-            const redirect = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
+            const redirect = encodeURIComponent(
+              `${window.location.pathname}${window.location.search}`
+            );
             router.push(`/login?redirect=${redirect}`);
             return;
           }
           console.error("Failed to load job", urlJobId, err);
           setLoading(false);
-          setExportError(err instanceof ApiError && err.status === 404 ? "That campaign couldn't be found." : "Couldn't load this campaign. Check your connection and try again.");
+          setExportError(
+            err instanceof ApiError && err.status === 404
+              ? "That campaign couldn't be found."
+              : "Couldn't load this campaign. Check your connection and try again."
+          );
           return;
         }
       }
 
       if (cancelled) return;
 
-      if (!result && !urlVariant) { router.push("/dashboard"); return; }
+      if (!result && !urlVariant) {
+        router.push("/dashboard");
+        return;
+      }
 
       if (result) {
         setJobId(result.job_id || urlJobId || null);
@@ -1631,10 +1784,14 @@ function EditorContent() {
           }),
           productImage: result.png_url || prev.productImage,
           templateVariant: urlVariant || result.flyer?.name || prev.templateVariant,
-          templateCategory: urlCategory || (result.template_category as FlyerState["templateCategory"]) || prev.templateCategory,
+          templateCategory: urlCategory ||
+            (result.template_category as FlyerState["templateCategory"]) ||
+            prev.templateCategory,
         }));
 
-        if (result.voiceover_url) setVoiceoverUrl(result.voiceover_url);
+        if (result.voiceover_url) {
+          setVoiceoverUrl(result.voiceover_url);
+        }
 
         if (result.captions) {
           setCaptions(result.captions.map((c) => ({
@@ -1645,7 +1802,11 @@ function EditorContent() {
           })));
         }
       } else if (urlVariant) {
-        setFlyer((prev) => ({ ...prev, templateVariant: urlVariant, templateCategory: urlCategory || prev.templateCategory }));
+        setFlyer((prev) => ({
+          ...prev,
+          templateVariant: urlVariant,
+          templateCategory: urlCategory || prev.templateCategory,
+        }));
       }
       setLoading(false);
     }
@@ -1654,7 +1815,7 @@ function EditorContent() {
     return () => { cancelled = true; };
   }, [router, searchParams]);
 
-  // ---------- CANVAS SCALE ----------
+  // ---------- CANVAS SCALE CALCULATION ----------
   useLayoutEffect(() => {
     const recalc = () => {
       if (!canvasWrapRef.current) return;
@@ -1662,9 +1823,13 @@ function EditorContent() {
       const pad = 16;
       const availW = Math.max(rect.width - pad * 2, 0);
       const availH = Math.max(rect.height - pad * 2, 0);
+
       const fmt = SOCIAL_FORMATS.find((f) => f.id === activeFormat)!;
-      const scaleX = availW / fmt.exportW;
-      const scaleY = availH / fmt.exportH;
+      const baseW = fmt.exportW;
+      const baseH = fmt.exportH;
+
+      const scaleX = availW / baseW;
+      const scaleY = availH / baseH;
       let newScale = Math.min(scaleX, scaleY);
       newScale = Math.min(newScale, 1);
       setScale(newScale);
@@ -1689,7 +1854,10 @@ function EditorContent() {
 
   if (loading) {
     return (
-      <div className="h-[100dvh] w-screen flex items-center justify-center mono tracking-widest text-sm" style={{ background: T.ink, color: T.marigold }}>
+      <div
+        className="h-[100dvh] w-screen flex items-center justify-center mono tracking-widest text-sm"
+        style={{ background: T.ink, color: T.marigold }}
+      >
         Warming up the press…
       </div>
     );
@@ -1698,13 +1866,21 @@ function EditorContent() {
   const currentFormat = SOCIAL_FORMATS.find((f) => f.id === activeFormat)!;
 
   return (
-    <div className="h-[100dvh] w-screen font-sans flex flex-col overflow-hidden overscroll-none" style={{ background: T.ink, color: T.text }}>
+    <div
+      className="h-[100dvh] w-screen font-sans flex flex-col overflow-hidden overscroll-none"
+      style={{ background: T.ink, color: T.text }}
+    >
       {/* HEADER */}
-      <header className="h-[52px] shrink-0 flex items-center justify-between gap-2 px-2 md:px-4 z-40"
-        style={{ background: T.panel, borderBottom: `1px solid ${T.rule}`, paddingTop: "env(safe-area-inset-top)" }}>
+      <header
+        className="h-[52px] shrink-0 flex items-center justify-between gap-2 px-2 md:px-4 z-40"
+        style={{ background: T.panel, borderBottom: `1px solid ${T.rule}`, paddingTop: "env(safe-area-inset-top)" }}
+      >
         <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
-          <Link href="/dashboard" aria-label="Back to dashboard"
-            className="w-9 h-9 rounded-full flex items-center justify-center transition-colors shrink-0 touch-manipulation">
+          <Link
+            href="/dashboard"
+            aria-label="Back to dashboard"
+            className="w-9 h-9 rounded-full flex items-center justify-center transition-colors shrink-0 touch-manipulation"
+          >
             <ArrowLeft size={15} style={{ color: T.muted }} />
           </Link>
           <div className="flex items-center gap-2 shrink-0">
@@ -1712,7 +1888,9 @@ function EditorContent() {
             <span className="sg hidden sm:inline text-[13px] font-semibold tracking-wide">Editor</span>
           </div>
           <div className="hidden sm:block w-px h-4 shrink-0" style={{ background: T.rule }} />
-          <span className="text-[12px] truncate min-w-0" style={{ color: T.muted }}>{flyer.headline || "Untitled flyer"}</span>
+          <span className="text-[12px] truncate min-w-0" style={{ color: T.muted }}>
+            {flyer.headline || "Untitled flyer"}
+          </span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <ExportDropdown onExport={exportFlyer} exportingFormat={exportingFormat} />
@@ -1729,16 +1907,22 @@ function EditorContent() {
       <div className="flex flex-1 overflow-hidden relative">
         {/* CANVAS */}
         <section className="flex-1 flex flex-col overflow-hidden pb-[52px] md:pb-0" style={{ background: T.ink }}>
-          <div ref={canvasWrapRef} className="flex-1 flex items-center justify-center overflow-hidden relative"
+          <div
+            ref={canvasWrapRef}
+            className="flex-1 flex items-center justify-center overflow-hidden relative"
             style={{
               backgroundImage:
                 `linear-gradient(45deg,${T.panel} 25%,transparent 25%),linear-gradient(-45deg,${T.panel} 25%,transparent 25%),linear-gradient(45deg,transparent 75%,${T.panel} 75%),linear-gradient(-45deg,transparent 75%,${T.panel} 75%)`,
               backgroundSize: "16px 16px",
               backgroundPosition: "0 0,0 8px,8px -8px,-8px 0",
               cursor: "default",
-            }}>
+            }}
+          >
             {/* Flyer container */}
-            <div key={`flyer-${activeFormat}`} ref={flyerNodeRef} className="relative shrink-0"
+            <div
+              key={`flyer-${activeFormat}`}
+              ref={flyerNodeRef}
+              className="relative shrink-0"
               style={{
                 width: currentFormat.exportW,
                 height: currentFormat.exportH,
@@ -1751,7 +1935,8 @@ function EditorContent() {
                 containerName: "flyer-canvas",
                 ["--ci" as any]: `${currentFormat.exportW / 100}px`,
                 ["--cb" as any]: `${currentFormat.exportH / 100}px`,
-              } as React.CSSProperties}>
+              } as React.CSSProperties}
+            >
               <TemplateRenderer
                 data={{ ...flyer, logoImage: null, badgeText: "" }}
                 onUpdate={update}
@@ -1764,22 +1949,26 @@ function EditorContent() {
               />
 
               {logoOverlay.image && (
-                <Movable transform={logoOverlay.transform}
+                <Movable
+                  transform={logoOverlay.transform}
                   onChange={(t) => setLogoOverlay((prev) => ({ ...prev, transform: t }))}
                   containerRef={flyerNodeRef}
                   selected={selectedOverlayId === "logo"}
                   onSelect={() => setSelectedOverlayId("logo")}
-                  onDelete={() => setLogoOverlay((prev) => ({ ...prev, image: null }))}>
-                  {/* ✅ FIX: decoding="sync" ensures bitmap is ready when we inline it. */}
-                  <img src={logoOverlay.image} alt="Logo"
-                    decoding="sync"
+                  onDelete={() => setLogoOverlay((prev) => ({ ...prev, image: null }))}
+                >
+                  <img
+                    src={logoOverlay.image}
+                    alt="Logo"
                     style={{ width: "calc(var(--ci) * 20)", height: "calc(var(--ci) * 20)", objectFit: "contain" }}
-                    draggable={false} />
+                    draggable={false}
+                  />
                 </Movable>
               )}
 
               {badgeOverlay.visible && (
-                <Movable transform={badgeOverlay.transform}
+                <Movable
+                  transform={badgeOverlay.transform}
                   onChange={(t) => setBadgeOverlay((prev) => ({ ...prev, transform: t }))}
                   containerRef={flyerNodeRef}
                   selected={selectedOverlayId === "badge"}
@@ -1787,37 +1976,49 @@ function EditorContent() {
                   onDelete={() => setBadgeOverlay((prev) => ({ ...prev, visible: false }))}
                   dragHandleOnly
                   extra={
-                    <div className="absolute top-0 left-full ml-2 p-2 rounded shadow-lg z-50"
-                      style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}>
+                    <div
+                      className="absolute top-0 left-full ml-2 p-2 rounded shadow-lg z-50"
+                      style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}
+                    >
                       <div className="flex items-center gap-2">
                         <span className="text-[10px]" style={{ color: T.muted }}>Text</span>
-                        <input type="color" value={badgeOverlay.textColor}
+                        <input
+                          type="color"
+                          value={badgeOverlay.textColor}
                           onChange={(e) => setBadgeOverlay((prev) => ({ ...prev, textColor: e.target.value }))}
-                          className="w-6 h-6 p-0 border-0" />
+                          className="w-6 h-6 p-0 border-0"
+                        />
                         <span className="text-[10px]" style={{ color: T.muted }}>Bg</span>
-                        <input type="color" value={badgeOverlay.bgColor}
+                        <input
+                          type="color"
+                          value={badgeOverlay.bgColor}
                           onChange={(e) => setBadgeOverlay((prev) => ({ ...prev, bgColor: e.target.value }))}
-                          className="w-6 h-6 p-0 border-0" />
+                          className="w-6 h-6 p-0 border-0"
+                        />
                       </div>
                     </div>
-                  }>
-                  <DiscountBadgeSticker badge={badgeOverlay}
+                  }
+                >
+                  <DiscountBadgeSticker
+                    badge={badgeOverlay}
                     onChangeText={(v) => setBadgeOverlay((prev) => ({ ...prev, text: v }))}
                     onChangeSubText={(v) => setBadgeOverlay((prev) => ({ ...prev, subText: v }))}
                     onFocus={() => setSelectedOverlayId("badge")}
-                    onBlur={() => {}} />
+                    onBlur={() => {}}
+                  />
                 </Movable>
               )}
             </div>
           </div>
 
           {/* ═══════════════════════════════════════════════════════════════
-             ✅ FIX — HIDDEN EXPORT NODE
-             Previously: position:fixed; left:-9999px → mobile compositors
-             skipped paint, and html-to-image cloned a blank subtree.
-             Now: it's positioned behind the editor with real layout, so
-             the browser fully renders it. It's only visible for a split
-             second during export and then removed.
+             HIDDEN EXPORT NODE
+             ───────────────────────────────────────────────────────────────
+             Positioned at top:0/left:0 with z-index:-1, NOT at left:-9999px.
+             Safari defers decoding of <img> inside containers that are
+             pushed far offscreen — that optimization is exactly what was
+             blanking the product image on iOS/macOS. Sitting at 0,0 behind
+             the editor's solid backgrounds, the browser actually paints it.
              ═══════════════════════════════════════════════════════════════ */}
           <div
             aria-hidden="true"
@@ -1827,16 +2028,14 @@ function EditorContent() {
               top: 0,
               width: currentFormat.exportW,
               height: currentFormat.exportH,
-              // Behind the editor, still painted:
-              zIndex: -1,
-              opacity: 0.001,
               pointerEvents: "none",
+              zIndex: -1,
               overflow: "hidden",
               ["--ci" as any]: `${currentFormat.exportW / 100}px`,
               ["--cb" as any]: `${currentFormat.exportH / 100}px`,
             } as React.CSSProperties}
           >
-            <div ref={exportNodeRef} style={{ position: "relative", width: "100%", height: "100%", background: "#ffffff" }}>
+            <div ref={exportNodeRef} style={{ position: "relative", width: "100%", height: "100%" }}>
               <TemplateRenderer
                 data={{ ...flyer, logoImage: null, badgeText: "" }}
                 onUpdate={() => {}}
@@ -1849,7 +2048,9 @@ function EditorContent() {
               />
 
               {logoOverlay.image && (
-                <img src={logoOverlay.image} alt="Logo" decoding="sync"
+                <img
+                  src={logoOverlay.image}
+                  alt="Logo"
                   style={{
                     position: "absolute",
                     left: `${logoOverlay.transform.x}%`,
@@ -1858,17 +2059,24 @@ function EditorContent() {
                     width: "calc(var(--ci) * 20)",
                     height: "calc(var(--ci) * 20)",
                     objectFit: "contain",
-                  }} />
+                  }}
+                />
               )}
 
               {badgeOverlay.visible && (
-                <div style={{
-                  position: "absolute",
-                  left: `${badgeOverlay.transform.x}%`,
-                  top: `${badgeOverlay.transform.y}%`,
-                  transform: `translate(-50%, -50%) scale(${badgeOverlay.transform.scale})`,
-                }}>
-                  <DiscountBadgeSticker badge={badgeOverlay} onChangeText={() => {}} onChangeSubText={() => {}} />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: `${badgeOverlay.transform.x}%`,
+                    top: `${badgeOverlay.transform.y}%`,
+                    transform: `translate(-50%, -50%) scale(${badgeOverlay.transform.scale})`,
+                  }}
+                >
+                  <DiscountBadgeSticker
+                    badge={badgeOverlay}
+                    onChangeText={() => {}}
+                    onChangeSubText={() => {}}
+                  />
                 </div>
               )}
             </div>
@@ -1889,9 +2097,12 @@ function EditorContent() {
             background: T.panel,
             borderTop: `1px solid ${T.rule}`,
             paddingBottom: sheetExpanded ? 0 : "env(safe-area-inset-bottom)",
-          }}>
-          <div className="md:hidden flex flex-col items-center pt-2 pb-1.5 shrink-0"
-            onClick={() => setSheetExpanded((v) => !v)}>
+          }}
+        >
+          <div
+            className="md:hidden flex flex-col items-center pt-2 pb-1.5 shrink-0"
+            onClick={() => setSheetExpanded((v) => !v)}
+          >
             <div className="w-9 h-1 rounded-full mb-2" style={{ background: T.rule }} />
             <span className="mono text-[10px] uppercase tracking-wider font-bold" style={{ color: T.muted }}>
               {sheetExpanded ? "Drag down to collapse" : "Drag up for more"}
@@ -1901,18 +2112,23 @@ function EditorContent() {
           {/* Format selector */}
           <div className="px-3 py-2 shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ borderBottom: `1px solid ${T.rule}` }}>
             <div className="flex gap-1.5 items-center justify-start">
-              <span className="mono text-[10px] font-bold uppercase tracking-wider mr-1 shrink-0" style={{ color: T.rule }}>Format</span>
+              <span className="mono text-[10px] font-bold uppercase tracking-wider mr-1 shrink-0" style={{ color: T.rule }}>
+                Format
+              </span>
               {SOCIAL_FORMATS.map((f) => {
                 const Icon = f.icon;
                 const active = activeFormat === f.id;
                 return (
-                  <button key={f.id} onClick={() => setActiveFormat(f.id)}
+                  <button
+                    key={f.id}
+                    onClick={() => setActiveFormat(f.id)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all shrink-0 touch-manipulation"
                     style={{
                       borderColor: active ? T.marigold : T.rule,
                       background: active ? `${T.marigold}1a` : "transparent",
                       color: active ? T.marigold : T.muted,
-                    }}>
+                    }}
+                  >
                     <Icon size={11} />
                     {f.label}
                   </button>
@@ -1926,14 +2142,19 @@ function EditorContent() {
             {TABS.map((tab) => {
               const active = activeTab === tab.id;
               return (
-                <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSheetExpanded(true); }}
+                <button
+                  key={tab.id}
+                  onClick={() => { setActiveTab(tab.id); setSheetExpanded(true); }}
                   className="mono flex-1 py-3 md:py-2.5 text-[10px] font-bold uppercase tracking-wider border-b-2 transition-colors touch-manipulation flex items-center justify-center gap-1.5"
-                  style={{ color: active ? T.marigold : T.rule, borderColor: active ? T.marigold : "transparent" }}>
+                  style={{ color: active ? T.marigold : T.rule, borderColor: active ? T.marigold : "transparent" }}
+                >
                   <span className="md:hidden">{tab.icon}</span>
                   {tab.label}
                   {tab.id === "captions" && captions.length > 0 && (
-                    <span className="ml-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-[8px] font-black"
-                      style={{ background: T.marigold, color: T.ink }}>
+                    <span
+                      className="ml-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-[8px] font-black"
+                      style={{ background: T.marigold, color: T.ink }}
+                    >
                       {captions.length}
                     </span>
                   )}
@@ -1943,26 +2164,45 @@ function EditorContent() {
           </div>
 
           {/* Content */}
-          <div className={`je-scroll flex-1 overflow-y-auto p-4 overscroll-contain ${sheetExpanded ? "" : "hidden md:block"}`}
-            style={{ WebkitOverflowScrolling: "touch" }}>
+          <div
+            className={`je-scroll flex-1 overflow-y-auto p-4 overscroll-contain ${sheetExpanded ? "" : "hidden md:block"}`}
+            style={{ WebkitOverflowScrolling: "touch" }}
+          >
             <AnimatePresence mode="wait">
-              <motion.div key={activeTab}
+              <motion.div
+                key={activeTab}
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
-                transition={{ duration: 0.1 }}>
+                transition={{ duration: 0.1 }}
+              >
                 {activeTab === "design" && (
-                  <DesignPanel data={flyer} onUpdate={update}
+                  <DesignPanel
+                    data={flyer}
+                    onUpdate={update}
                     onLogoUpload={(file) => handleImageUpload(file, "logoImage")}
-                    badge={badgeOverlay} onBadgeChange={setBadgeOverlay} />
+                    badge={badgeOverlay}
+                    onBadgeChange={setBadgeOverlay}
+                  />
                 )}
                 {activeTab === "video" && (
-                  <VideoPanel flyer={flyer} activeFormatId={activeFormat} jobId={jobId}
-                    logoOverlay={logoOverlay} badgeOverlay={badgeOverlay} voiceoverUrl={voiceoverUrl} />
+                  <VideoPanel
+                    flyer={flyer}
+                    activeFormatId={activeFormat}
+                    jobId={jobId}
+                    logoOverlay={logoOverlay}
+                    badgeOverlay={badgeOverlay}
+                    voiceoverUrl={voiceoverUrl}
+                  />
                 )}
                 {activeTab === "captions" && <CaptionsPanel captions={captions} />}
                 {activeTab === "content" && (
-                  <ContentPanel data={flyer} onUpdate={update} badge={badgeOverlay} onBadgeChange={setBadgeOverlay} />
+                  <ContentPanel
+                    data={flyer}
+                    onUpdate={update}
+                    badge={badgeOverlay}
+                    onBadgeChange={setBadgeOverlay}
+                  />
                 )}
               </motion.div>
             </AnimatePresence>
@@ -1977,12 +2217,16 @@ export default function FlyerEditor() {
   return (
     <>
       <EditorChrome />
-      <Suspense fallback={
-        <div className="h-[100dvh] w-screen flex items-center justify-center mono tracking-widest text-sm"
-          style={{ background: T.ink, color: T.marigold }}>
-          Warming up the press…
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div
+            className="h-[100dvh] w-screen flex items-center justify-center mono tracking-widest text-sm"
+            style={{ background: T.ink, color: T.marigold }}
+          >
+            Warming up the press…
+          </div>
+        }
+      >
         <EditorContent />
       </Suspense>
     </>
