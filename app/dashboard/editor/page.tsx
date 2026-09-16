@@ -46,16 +46,10 @@ const PromoVideo = dynamic<PromoVideoProps>(
   { ssr: false },
 );
 
-// ============================================================================
-// TEMPLATE IMPORTS
-// ============================================================================
 import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
 import { SleekFlyerTemplate as MinimalProductTemplate } from "@/components/templates/MinimalProduct";
 import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
 
-/* ════════════════════════════════════════════════════════════════════════
-   DESIGN TOKENS — "job ticket" print-shop system, shared with the dashboard.
-   ════════════════════════════════════════════════════════════════════════ */
 const T = {
   ink: "#16140F",
   panel: "#1D1A14",
@@ -124,9 +118,6 @@ function Hairline() {
   return <div style={{ borderTop: `1px dashed ${T.rule}` }} />;
 }
 
-// ============================================================================
-// LOCAL TYPE: JobResult
-// ============================================================================
 interface JobResult {
   job_id?: string;
   flyer?: {
@@ -157,9 +148,6 @@ interface JobResult {
   captions?: Array<{ platform: string; text: string }>;
 }
 
-// ============================================================================
-// TEMPLATE RENDERER
-// ============================================================================
 const TemplateRenderer = memo(function TemplateRenderer({
   data,
   onUpdate,
@@ -223,9 +211,6 @@ const TemplateRenderer = memo(function TemplateRenderer({
   }
 });
 
-// ============================================================================
-// TYPES
-// ============================================================================
 type RsbTab = "design" | "content" | "video" | "captions";
 
 type BackendCaptions = {
@@ -274,9 +259,6 @@ type FlyerState = {
   };
 };
 
-// ============================================================================
-// CONSTANTS & HELPERS
-// ============================================================================
 const SOCIAL_FORMATS = [
   { id: "ig", label: "Instagram", icon: ImageIcon, ratio: "4:5", rw: 4, rh: 5, fps: 30, durationS: 12, exportW: 1080, exportH: 1350 },
   { id: "square", label: "Square", icon: Square, ratio: "1:1", rw: 1, rh: 1, fps: 30, durationS: 12, exportW: 1080, exportH: 1080 },
@@ -326,9 +308,6 @@ const COLOR_SWATCHES = [
   "#ffffff", "#111111", "#f4f1ea",
 ];
 
-// ============================================================================
-// EDITABLE COMPONENT (only used for badge)
-// ============================================================================
 type EditableProps = {
   id: string;
   value: string;
@@ -372,9 +351,6 @@ function Editable({
   );
 }
 
-// ============================================================================
-// MOVABLE / OVERLAY (only for logo and badge)
-// ============================================================================
 type Transform = { x: number; y: number; scale: number };
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
@@ -504,9 +480,6 @@ function Movable({
   );
 }
 
-// ============================================================================
-// DISCOUNT BADGE
-// ============================================================================
 type DiscountBadge = {
   visible: boolean;
   text: string;
@@ -586,9 +559,6 @@ function DiscountBadgeSticker({
   );
 }
 
-// ============================================================================
-// PANEL COMPONENTS
-// ============================================================================
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <p className="mono text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.muted }}>
@@ -643,7 +613,6 @@ function TextField({ label, value, onChange, placeholder, type = "text" }: {
   );
 }
 
-// ======== DesignPanel ========
 const DesignPanel = memo(function DesignPanel({
   data,
   onUpdate,
@@ -771,7 +740,6 @@ const DesignPanel = memo(function DesignPanel({
   );
 });
 
-// ======== ContentPanel – includes badge controls ========
 const ContentPanel = memo(function ContentPanel({
   data, onUpdate, badge, onBadgeChange,
 }: {
@@ -852,9 +820,6 @@ const ContentPanel = memo(function ContentPanel({
   );
 });
 
-// ============================================================================
-// VOICEOVER CARD
-// ============================================================================
 function VoiceoverCard({
   url,
   enabled,
@@ -992,7 +957,6 @@ function VoiceoverCard({
   );
 }
 
-// ======== VideoPanel ========
 interface VideoPanelProps {
   flyer: FlyerState;
   activeFormatId: FormatId;
@@ -1071,7 +1035,6 @@ const VideoPanel = memo(function VideoPanel({
     document.body.appendChild(a);
     a.click();
     a.remove();
-    // Delayed revoke — see downloadBlob() below for the reason.
     setTimeout(() => URL.revokeObjectURL(url), 4000);
   };
 
@@ -1215,7 +1178,6 @@ const VideoPanel = memo(function VideoPanel({
   );
 });
 
-// ======== CaptionsPanel ========
 const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Caption[] }) {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -1271,9 +1233,6 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
   );
 });
 
-// ============================================================================
-// EXPORT DROPDOWN
-// ============================================================================
 function ExportDropdown({
   onExport,
   exportingFormat,
@@ -1332,9 +1291,6 @@ function ExportDropdown({
   );
 }
 
-// ============================================================================
-// MAIN EDITOR COMPONENT
-// ============================================================================
 const EMPTY_FLYER_STATE: FlyerState = {
   headline: "",
   subtext: "",
@@ -1371,30 +1327,31 @@ const VALID_CATEGORIES: FlyerState["templateCategory"][] = [
 ];
 
 /* ════════════════════════════════════════════════════════════════════════
-   EXPORT HELPERS — rewritten for iOS Safari
+   EXPORT HELPERS
+   ────────────────────────────────────────────────────────────────────────
+   Every fix applied here targets a specific, reproduced bug:
 
-   Root causes addressed:
-     1. Safari defers decoding of <img> inside containers positioned at
-        left:-9999px (offscreen image optimization). The export node used
-        to sit there, so images never got a bitmap and html-to-image
-        serialized empty <img> tags. Fixed by positioning the export node
-        at top:0/left:0 with z-index:-1 — technically on-screen, painted
-        behind the editor's solid backgrounds.
-     2. crossOrigin was set on live <img> nodes AFTER src was assigned.
-        Chrome silently re-fetches; Safari blanks the image and doesn't
-        reliably recover. We no longer touch crossOrigin on live nodes.
-     3. Direct `img.src = dataUrl` on the live DOM produced a race: the
-        capture could fire before the swap had painted. Now we set src
-        and await load+decode inside the same promise — atomic.
-     4. `URL.revokeObjectURL` was called immediately after a.click().
-        iOS Safari reads blobs asynchronously; immediate revoke truncated
-        the file, blanking the product image (the largest payload).
-     5. `fetch(dataURL)` on multi-MB PNGs fails silently on WebKit.
-        Switched to html-to-image's own toBlob() and a pure base64
-        decoder (dataUrlToBlob) that never touches fetch().
+     1. The export now captures the LIVE flyer node (flyerNodeRef) — the
+        same node the user is looking at. Offscreen "hidden export" nodes
+        (left:-9999px or z-index:-1) get their <img> bitmaps deferred by
+        Safari and sometimes Chrome, which is exactly what produced a
+        blank product-image slot in the downloaded PNG.
+
+     2. Inline every <img> to a data: URL before capture. Once that's
+        done, html-to-image has nothing external to fetch, so no CORS,
+        no cache-bust, no mobile fetch-failure can blank it.
+
+     3. cacheBust: false — mutating the data URLs with "?_=" appends
+        breaks WebKit's URL parser and blanks the image.
+
+     4. dataUrlToBlob() — pure base64 decode. Safari's fetch() on
+        multi-MB data URLs silently returns empty.
+
+     5. downloadBlob() — delays revokeObjectURL by 4 s because iOS
+        Safari reads the blob asynchronously and immediate revoke
+        truncates the file (blank image slot).
    ════════════════════════════════════════════════════════════════════════ */
 
-// ── Pure base64 decoder — no fetch(), no WebKit data-URL size limit.
 function dataUrlToBlob(dataUrl: string): Blob {
   const comma = dataUrl.indexOf(",");
   if (comma < 0) throw new Error("Invalid data URL");
@@ -1409,8 +1366,6 @@ function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([bytes], { type: mime });
 }
 
-// ── Safari-safe toDataURL. Two independent paths, no crossOrigin
-//    mutation of already-loaded live images.
 async function toDataURL(url: string): Promise<string> {
   if (!url) return url;
   if (url.startsWith("data:")) return url;
@@ -1430,11 +1385,10 @@ async function toDataURL(url: string): Promise<string> {
       }
     }
   } catch {
-    /* fall through to the Image path */
+    /* fall through */
   }
 
-  // Fallback: fresh Image, crossOrigin BEFORE src (Safari-safe), wait
-  // for decode so the bitmap is guaranteed before we draw.
+  // Fallback: fresh Image, crossOrigin BEFORE src (Safari-safe).
   const img = new Image();
   img.crossOrigin = "anonymous";
   img.decoding = "sync";
@@ -1452,31 +1406,21 @@ async function toDataURL(url: string): Promise<string> {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("No 2D context");
   ctx.drawImage(img, 0, 0);
-  // JPEG in the fallback keeps the data URL small enough for Safari to
-  // embed into foreignObject SVG without hitting its data-URL limit.
   return canvas.toDataURL("image/jpeg", 0.9);
 }
 
 async function uploadAsset(file: File): Promise<string> {
   const form = new FormData();
   form.append("file", file);
-
   const res = await fetch("/api/campaign/uploads/", {
     method: "POST",
     body: form,
   });
-
-  if (!res.ok) {
-    throw new Error("Upload failed");
-  }
-
+  if (!res.ok) throw new Error("Upload failed");
   const data = await res.json();
   return data.url as string;
 }
 
-// ── Safari-safe blob download.
-//    Do not "clean up" the deferred revoke — that reintroduces the iOS
-//    bug where Safari is still reading the blob when it's revoked.
 async function downloadBlob(blob: Blob, filename: string): Promise<void> {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -1487,6 +1431,8 @@ async function downloadBlob(blob: Blob, filename: string): Promise<void> {
   document.body.appendChild(a);
   a.click();
   a.remove();
+  // Delayed revoke — iOS Safari reads blobs asynchronously; immediate
+  // revoke can truncate the download and blank the largest image.
   setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
 
@@ -1600,9 +1546,30 @@ function EditorContent() {
     [update]
   );
 
-  // ---------- EXPORT FLYER (fixed for iOS Safari) ----------
+  /* ══════════════════════════════════════════════════════════════════════
+     EXPORT FLYER
+     ────────────────────────────────────────────────────────────────────────
+     Captures the LIVE flyer node — the same DOM the user sees — instead
+     of any hidden/offscreen clone. That guarantees every <img> has a
+     painted bitmap at capture time, on every browser.
+
+     Steps:
+       1. Deselect any active overlay so its handles don't appear.
+       2. Snap the node's fit-scale transform off so we capture at true
+          export dimensions (1080 × 1350, etc.).
+       3. Inline every <img> to a data: URL (atomic: set src + await load
+          in the same promise — no race).
+       4. Also inline any CSS background-image URLs.
+       5. Wait for fonts + two RAFs.
+       6. Snapshot with html-to-image using cacheBust: false.
+       7. Restore the node to its original state.
+     ══════════════════════════════════════════════════════════════════════ */
   const exportFlyer = useCallback(async (format: "png" | "jpg" | "pdf") => {
-    if (!exportNodeRef.current) return;
+    const node = flyerNodeRef.current;
+    if (!node) {
+      setExportError("Editor isn't ready yet.");
+      return;
+    }
     if (pendingUploads > 0) {
       setExportError("Still uploading your image — please wait a moment and try again.");
       return;
@@ -1611,53 +1578,93 @@ function EditorContent() {
     setExportingFormat(format);
     setExportError(null);
 
-    const node = exportNodeRef.current;
+    const fmt = SOCIAL_FORMATS.find((f) => f.id === activeFormat)!;
+
+    // Save everything we're about to mutate so we can put it back.
+    const prevTransform = node.style.transform;
+    const prevTransformOrigin = node.style.transformOrigin;
+    const prevTransition = node.style.transition;
+    const prevSelectedId = selectedOverlayId;
+
     const imgEls = Array.from(node.querySelectorAll("img"));
     const originalSrcs = imgEls.map((img) => img.src);
 
+    const bgEls = Array.from(node.querySelectorAll<HTMLElement>("*")).filter(
+      (el) => el.style.backgroundImage && el.style.backgroundImage.includes("url(")
+    );
+    const originalBgs = bgEls.map((el) => el.style.backgroundImage);
+
     try {
-      // 1. Inline every <img> as a data URL, in parallel. src and the
-      //    load-event are set inside the same promise so there is no
-      //    window where html-to-image could snapshot a half-swapped img.
+      // 1. Deselect any active overlay, then let React commit + paint.
+      setSelectedOverlayId(null);
+      await new Promise((r) => setTimeout(r, 0));
+      await new Promise<void>((r) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => r()))
+      );
+
+      // 2. Snap the live node to its true export size — kill the fit-scale.
+      node.style.transition = "none";
+      node.style.transform = "none";
+      node.style.transformOrigin = "top left";
+
+      // 3. Let the browser repaint at the new size.
+      await new Promise<void>((r) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => r()))
+      );
+
+      // 4. Inline every <img> as a data: URL — atomically.
       await Promise.all(
         imgEls.map(async (img, i) => {
-          const originalSrc = originalSrcs[i];
-          if (!originalSrc || originalSrc.startsWith("data:")) {
-            try { await img.decode?.(); } catch { /* ignore */ }
+          const original = originalSrcs[i];
+          if (!original || original.startsWith("data:")) {
+            try { await img.decode?.(); } catch {}
             return;
           }
           try {
-            const dataUrl = await toDataURL(originalSrc);
+            const dataUrl = await toDataURL(original);
             await new Promise<void>((resolve) => {
               const done = () => resolve();
               img.onload = done;
               img.onerror = done;
               img.src = dataUrl;
-              setTimeout(done, 8000); // safety timeout
+              setTimeout(done, 8000);
             });
-            try { await img.decode?.(); } catch { /* ignore */ }
+            try { await img.decode?.(); } catch {}
           } catch (e) {
-            console.warn("[export] could not inline image", originalSrc, e);
+            console.warn("[export] could not inline <img>", original, e);
           }
         })
       );
 
-      // 2. Fonts + paint. Two RAFs + a real tick give Safari's
-      //    foreignObject pipeline time to finish before we rasterize.
+      // 5. Inline CSS background-images too.
+      await Promise.all(
+        bgEls.map(async (el, i) => {
+          const bg = originalBgs[i];
+          const m = /url\((['"]?)([^'")]+)\1\)/i.exec(bg);
+          if (!m) return;
+          const raw = m[2];
+          if (!raw || raw.startsWith("data:")) return;
+          try {
+            const dataUrl = await toDataURL(raw);
+            el.style.backgroundImage = `url("${dataUrl}")`;
+          } catch (e) {
+            console.warn("[export] could not inline background", raw, e);
+          }
+        })
+      );
+
+      // 6. Fonts + paint.
       try {
         const f = (document as Document & { fonts?: FontFaceSet }).fonts;
         if (f?.ready) await f.ready;
       } catch { /* ignore */ }
-      await new Promise<void>((res) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => res()))
+      await new Promise<void>((r) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => r()))
       );
-      await new Promise((res) => setTimeout(res, 300));
+      await new Promise((r) => setTimeout(r, 300));
 
-      // 3. Snapshot. cacheBust MUST be false (data URLs would get "?_="
-      //    appended and Safari's URL parser rejects them). useCORS is a
-      //    dom-to-image option and does nothing in html-to-image.
+      // 7. Snapshot.
       const { toPng, toJpeg, toBlob } = await import("html-to-image");
-      const fmt = SOCIAL_FORMATS.find((f) => f.id === activeFormat)!;
 
       const snapshotOpts = {
         pixelRatio: 2,
@@ -1684,7 +1691,7 @@ function EditorContent() {
         blob = dataUrlToBlob(dataUrl);
       } else {
         // toBlob() returns Blob | null. Branch on a temp so `blob` stays
-        // non-nullable — this is what silences the TS red squiggle.
+        // non-nullable — this is what silences the TS error.
         const maybeBlob = await toBlob(node, snapshotOpts);
         if (maybeBlob) {
           blob = maybeBlob;
@@ -1695,18 +1702,25 @@ function EditorContent() {
       }
 
       const ext = format === "pdf" ? "pdf" : format;
-      const filename = `flyer-${activeFormat}.${ext}`;
-      await downloadBlob(blob, filename);
+      await downloadBlob(blob, `flyer-${activeFormat}.${ext}`);
     } catch (err) {
-      console.error(err);
+      console.error("[export] failed", err);
       setExportError(err instanceof Error ? err.message : "Export failed.");
     } finally {
+      // Restore everything we mutated.
       imgEls.forEach((img, i) => {
         if (img.src !== originalSrcs[i]) img.src = originalSrcs[i];
       });
+      bgEls.forEach((el, i) => {
+        el.style.backgroundImage = originalBgs[i];
+      });
+      node.style.transform = prevTransform;
+      node.style.transformOrigin = prevTransformOrigin;
+      node.style.transition = prevTransition;
+      setSelectedOverlayId(prevSelectedId);
       setExportingFormat(null);
     }
-  }, [exportNodeRef, activeFormat, pendingUploads]);
+  }, [activeFormat, pendingUploads, selectedOverlayId]);
 
   // ---------- LOAD DATA ----------
   useEffect(() => {
@@ -1918,7 +1932,8 @@ function EditorContent() {
               cursor: "default",
             }}
           >
-            {/* Flyer container */}
+            {/* LIVE flyer node — this is what the user sees and what
+                the export now captures. */}
             <div
               key={`flyer-${activeFormat}`}
               ref={flyerNodeRef}
@@ -2011,15 +2026,10 @@ function EditorContent() {
             </div>
           </div>
 
-          {/* ═══════════════════════════════════════════════════════════════
-             HIDDEN EXPORT NODE
-             ───────────────────────────────────────────────────────────────
-             Positioned at top:0/left:0 with z-index:-1, NOT at left:-9999px.
-             Safari defers decoding of <img> inside containers that are
-             pushed far offscreen — that optimization is exactly what was
-             blanking the product image on iOS/macOS. Sitting at 0,0 behind
-             the editor's solid backgrounds, the browser actually paints it.
-             ═══════════════════════════════════════════════════════════════ */}
+          {/* The hidden export node is no longer used by exportFlyer —
+              we capture the live node instead. It's kept in the DOM for
+              backward compatibility, marked aria-hidden and pointer-events:none,
+              so it's harmless. */}
           <div
             aria-hidden="true"
             style={{
@@ -2031,6 +2041,7 @@ function EditorContent() {
               pointerEvents: "none",
               zIndex: -1,
               overflow: "hidden",
+              opacity: 0,
               ["--ci" as any]: `${currentFormat.exportW / 100}px`,
               ["--cb" as any]: `${currentFormat.exportH / 100}px`,
             } as React.CSSProperties}
