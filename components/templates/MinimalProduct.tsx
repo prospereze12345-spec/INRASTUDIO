@@ -1,10 +1,11 @@
 "use client";
 
-import { EditableText } from "@/components/EditableText";
-
 import React from "react";
-import { FeatureList, ContactBar, WhyChooseUsList } from "./FlyerContentBlocks";
+
+import { EditableText } from "@/components/EditableText";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
+
+import { FeatureList, ContactBar, WhyChooseUsList } from "./FlyerContentBlocks";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    TYPES
@@ -13,14 +14,30 @@ import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 export interface SleekFlyerProps {
   name?: string;
   headline: string;
+
+  /**
+   * Main body copy. This is what the editor sends — see TemplateRenderer
+   * in the editor, which maps `data.subtext` to `subtext`. Preferred.
+   */
+  subtext?: string;
+
+  /**
+   * Legacy alias for `subtext`. Kept so any older caller that still
+   * passes `subheadline` keeps working. If both are provided, `subtext`
+   * wins.
+   */
   subheadline?: string;
+
   tagline?: string;
   ctaText: string;
   productImage: string;
   brandName?: string;
   website?: string;
   price?: string;
+
+  /** Part of the shared template contract. Currently unused by this file. */
   badge?: string;
+
   features?: string[];
   phone?: string;
   email?: string;
@@ -60,12 +77,10 @@ export interface SleekFlyerProps {
 
 /* ─────────────────────────────────────────────────────────────────
    CANVAS SCALE
-   Same mechanism as PremiumBrandTemplate: `--ci` is a real numeric
-   CSS custom property (set by the editor to exportWidth / 100),
-   not the `cqi` container-query unit. `cqi` isn't reliably resolved
-   by html-to-image when it serializes the DOM for export, so every
-   size in this file must route through this helper instead of using
-   raw `cqi`/`vw` values.
+   `--ci` is a real numeric custom property set by the editor to
+   `exportWidth / 100`. Every size in this file routes through `cq()`
+   so the same number resolves identically in the browser, in the
+   html2canvas capture, and in the Remotion video render.
 ───────────────────────────────────────────────────────────────── */
 
 const cq = (n: number) => `calc(var(--ci) * ${n})`;
@@ -83,6 +98,13 @@ function hexToRgba(hex: string, alpha: number) {
   const b = parseInt(value.slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DISPATCHER
+   `name` selects a variant. The editor currently doesn't pass it, so
+   "Mono Split" is the default. To surface "Kōan" in the editor, have
+   TemplateRenderer include `name: data.templateVariant` in `shared`.
+═══════════════════════════════════════════════════════════════════════════ */
 
 export function SleekFlyerTemplate(props: SleekFlyerProps) {
   const { name = "Mono Split" } = props;
@@ -103,6 +125,7 @@ export function SleekFlyerTemplate(props: SleekFlyerProps) {
 
 const VariantMonoSplit = ({
   headline,
+  subtext,
   subheadline,
   ctaText,
   productImage,
@@ -141,6 +164,10 @@ const VariantMonoSplit = ({
   onFocusEl,
   onBlurEl,
 }: SleekFlyerProps) => {
+  // The editor sends `subtext`; older callers may send `subheadline`.
+  // Normalize once, so the rest of the render only deals with one value.
+  const subCopy = subtext ?? subheadline;
+
   const hasFeatures = Array.isArray(features) && features.length > 0;
   const hasWhyChooseUs = Array.isArray(whyChooseUs) && whyChooseUs.length > 0;
 
@@ -152,10 +179,19 @@ const VariantMonoSplit = ({
       {/* ── Product image ─────────────────────────────────────────────── */}
 
       <div className="relative overflow-hidden" style={{ width: "55%", height: "100%" }}>
+        {/*
+          No `crossOrigin` on this <img>.
+
+          html2canvas (the export engine) clones the DOM and creates its
+          own Image() for every <img>, applying CORS as needed. Adding
+          crossOrigin on the source element makes some WebKit versions
+          treat the clone's load as CORS-required even when the src is a
+          data: URL — and data URLs cannot satisfy a CORS request. That is
+          the blank-product-image-in-export bug on iOS / Safari.
+        */}
         <img
           src={productImage}
           alt="Product"
-          crossOrigin="anonymous"
           style={{
             width: "100%",
             height: "100%",
@@ -253,7 +289,7 @@ const VariantMonoSplit = ({
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
               onChange={(value) => onUpdate?.("headline", value)}
-              renderLine={(line, index, node) => (
+              renderLine={(_line, index, node) => (
                 <span key={index} style={{ display: "block" }}>
                   {node}
                 </span>
@@ -261,12 +297,12 @@ const VariantMonoSplit = ({
             />
           </h1>
 
-          {subheadline !== undefined && (
+          {subCopy !== undefined && subCopy !== "" && (
             <EditableText
               as="p"
               fieldId="f-sub"
               editable={editable}
-              value={subheadline}
+              value={subCopy}
               onChange={(value) => onUpdate?.("subtext", value)}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
@@ -412,6 +448,7 @@ const VariantMonoSplit = ({
 
 const VariantKoan = ({
   headline,
+  subtext,
   subheadline,
   tagline,
   ctaText,
@@ -451,6 +488,9 @@ const VariantKoan = ({
   onFocusEl,
   onBlurEl,
 }: SleekFlyerProps) => {
+  // Same normalization as VariantMonoSplit.
+  const subCopy = subtext ?? subheadline;
+
   const hasFeatures = Array.isArray(features) && features.length > 0;
   const hasWhyChooseUs = Array.isArray(whyChooseUs) && whyChooseUs.length > 0;
 
@@ -527,10 +567,13 @@ const VariantKoan = ({
           }}
         />
         <div style={{ position: "relative", width: cq(62), height: cq(62), zIndex: 10 }}>
+          {/*
+            Same rule as VariantMonoSplit — no crossOrigin on this <img>.
+            html2canvas handles CORS internally on its clone.
+          */}
           <img
             src={productImage}
             alt="Product"
-            crossOrigin="anonymous"
             style={{
               width: "100%",
               height: "100%",
@@ -574,7 +617,7 @@ const VariantKoan = ({
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             onChange={(value) => onUpdate?.("headline", value)}
-            renderLine={(line, index, node) => (
+            renderLine={(_line, index, node) => (
               <span key={index} style={{ display: "block" }}>
                 {node}
               </span>
@@ -582,12 +625,12 @@ const VariantKoan = ({
           />
         </h1>
 
-        {subheadline !== undefined && (
+        {subCopy !== undefined && subCopy !== "" && (
           <EditableText
             as="p"
             fieldId="f-sub"
             editable={editable}
-            value={subheadline}
+            value={subCopy}
             onChange={(value) => onUpdate?.("subtext", value)}
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
@@ -707,4 +750,3 @@ const VariantKoan = ({
     </div>
   );
 };
-

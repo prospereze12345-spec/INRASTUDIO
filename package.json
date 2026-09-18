@@ -24,6 +24,7 @@
     "edge-tts": "^1.0.1",
     "get-port": "^7.2.0",
     "html-to-image": "^1.11.13",
+    "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.553.0",
     "mediabunny": "^1.50.7",

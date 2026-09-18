@@ -1,34 +1,67 @@
 "use client";
 
 import React from "react";
+
 import { EditableText } from "@/components/EditableText";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
-import { FeatureList, ContactBar, WhyChooseUsList } from "./FlyerContentBlocks";
+
+import {
+  FeatureList,
+  ContactBar,
+  WhyChooseUsList,
+} from "./FlyerContentBlocks";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TYPES
+═══════════════════════════════════════════════════════════════════════════ */
 
 export interface LuxuryProductProps {
   name?: string;
   headline: string;
+
+  /**
+   * Main body copy. The editor sends `subtext`; some older callers may
+   * still send `subheadline`. Both are accepted below.
+   */
   subtext?: string;
+  subheadline?: string;
+
   ctaText: string;
   productImage: string;
 
+  /**
+   * Cache-busting token for `productImage`. If it changes, the browser
+   * refetches the underlying URL — used when the backend re-uploads the
+   * same filename with new bytes.
+   */
   imageVersion?: string | number;
 
+  /** Part of the shared template contract. Currently unused by this file. */
   logo?: string;
+
   brandName?: string;
   website?: string;
   phone?: string;
   email?: string;
   features?: string[];
+
+  /** Part of the shared template contract. Currently unused by this file. */
   extraText?: string;
+
+  /** Used by VariantNoirEditorial. Part of the shared contract. */
   instagram?: string;
+
+  /** Part of the shared template contract. Currently unused by this file. */
   tiktok?: string;
+
   price?: string;
+
   colors: {
     primary: string;
     secondary: string;
     accent: string;
   };
+
   editable?: boolean;
   onUpdate?: (field: string, value: string) => void;
   onFocusEl?: (el: HTMLElement) => void;
@@ -60,6 +93,10 @@ export interface LuxuryProductProps {
 
 /* ─────────────────────────────────────────────────────────────────
    SPACING SCALE
+   `--ci` is set by the editor to `exportWidth / 100`. Every size in
+   this file routes through `cq()` so the same number resolves
+   identically in the browser, in the html2canvas export, and in the
+   Remotion video render.
 ───────────────────────────────────────────────────────────────── */
 
 const cq = (n: number) => `calc(var(--ci) * ${n})`;
@@ -83,6 +120,9 @@ function hexToRgba(hex: string, alpha: number) {
 
 /* ─────────────────────────────────────────────────────────────────
    CACHE BUSTING
+   Appends `?v=<version>` to a URL so the browser refetches it when
+   the underlying bytes change. Data URLs and blob URLs are skipped —
+   they can't be cache-busted (and the query would corrupt them).
 ───────────────────────────────────────────────────────────────── */
 
 function withCacheBust(url?: string, version?: string | number) {
@@ -107,14 +147,36 @@ export function LuxuryProductTemplate(props: LuxuryProductProps) {
 
   const { name = "Atelier Light" } = props;
   switch (name) {
-    case "Noir Editorial": return <VariantNoirEditorial {...props} />;
-    case "Atelier Light":  return <VariantAtelierLight {...props} />;
-    default:               return <VariantAtelierLight {...props} />;
+    case "Noir Editorial":
+      return <VariantNoirEditorial {...props} />;
+    case "Atelier Light":
+      return <VariantAtelierLight {...props} />;
+    default:
+      return <VariantAtelierLight {...props} />;
   }
 }
 
 /* ─────────────────────────────────────────────────────────────────
    IMAGE SAFETY WRAPPER (plain <img>)
+
+   ⚠️  DO NOT add crossOrigin="anonymous" to the <img> below.
+
+       The export pipeline uses html2canvas with `useCORS: true`.
+       html2canvas clones the DOM and creates its own Image() element
+       for every <img>, applying CORS as needed. The source element
+       should stay plain:
+
+         • If src is a remote URL (Cloudinary), html2canvas fetches
+           it with crossOrigin="anonymous" itself, and Cloudinary
+           sends `Access-Control-Allow-Origin: *`, so it succeeds.
+
+         • If src is a data: URL, adding crossOrigin to the source
+           makes some WebKit versions treat the load as
+           CORS-required — and a data: URL cannot satisfy a CORS
+           request. That is exactly the blank-product-image bug on
+           iOS / Safari we already fixed in the other templates.
+
+       Net: leave the attribute off. html2canvas handles CORS.
 ───────────────────────────────────────────────────────────────── */
 
 function SafeImage({
@@ -131,13 +193,16 @@ function SafeImage({
   style?: React.CSSProperties;
 }) {
   const bustedSrc = withCacheBust(src, version);
+
   return (
-    <div className={className} style={{ position: "relative", width: "100%", aspectRatio, ...style }}>
+    <div
+      className={className}
+      style={{ position: "relative", width: "100%", aspectRatio, ...style }}
+    >
       {bustedSrc ? (
         <img
           src={bustedSrc}
           alt="Product"
-          crossOrigin="anonymous"
           style={{
             position: "absolute",
             inset: 0,
@@ -165,7 +230,10 @@ function ContactFooter({
   colors,
   textColor,
   ...contactProps
-}: Omit<React.ComponentProps<typeof ContactBar>, "accentColor" | "textColor"> & {
+}: Omit<
+  React.ComponentProps<typeof ContactBar>,
+  "accentColor" | "textColor"
+> & {
   colors: LuxuryProductProps["colors"];
   textColor: string;
 }) {
@@ -180,7 +248,11 @@ function ContactFooter({
         border: `1px solid ${hexToRgba(colors.accent, 0.16)}`,
       }}
     >
-      <ContactBar accentColor={colors.accent} textColor={textColor} {...contactProps} />
+      <ContactBar
+        accentColor={colors.accent}
+        textColor={textColor}
+        {...contactProps}
+      />
     </div>
   );
 }
@@ -190,16 +262,49 @@ function ContactFooter({
 ═══════════════════════════════════════════════════════════════════════════ */
 
 const VariantNoirEditorial = ({
-  headline, subtext, ctaText, productImage, imageVersion, brandName, instagram, price,
-  colors, editable, onUpdate, onFocusEl, onBlurEl, features, phone, email, whyChooseUs,
-  onUpdateFeature, onAddFeature, onRemoveFeature,
-  onUpdateWhyChooseUs, onAddWhyChooseUs, onRemoveWhyChooseUs,
-  featuresVisible, whyChooseUsVisible, phoneVisible, emailVisible, websiteVisible,
-  onRestoreFeatures, onRestoreWhyChooseUs,
-  onRemovePhone, onRemoveEmail, onRemoveWebsite,
-  onRestorePhone, onRestoreEmail, onRestoreWebsite,
+  headline,
+  subtext,
+  subheadline,
+  ctaText,
+  productImage,
+  imageVersion,
+  brandName,
+  instagram,
+  price,
+  colors,
+  editable,
+  onUpdate,
+  onFocusEl,
+  onBlurEl,
+  features,
+  phone,
+  email,
+  whyChooseUs,
+  onUpdateFeature,
+  onAddFeature,
+  onRemoveFeature,
+  onUpdateWhyChooseUs,
+  onAddWhyChooseUs,
+  onRemoveWhyChooseUs,
+  featuresVisible,
+  whyChooseUsVisible,
+  phoneVisible,
+  emailVisible,
+  websiteVisible,
+  onRestoreFeatures,
+  onRestoreWhyChooseUs,
+  onRemovePhone,
+  onRemoveEmail,
+  onRemoveWebsite,
+  onRestorePhone,
+  onRestoreEmail,
+  onRestoreWebsite,
   website,
 }: LuxuryProductProps) => {
+  // Prefer `subtext` (what the editor sends), fall back to the legacy
+  // `subheadline` alias so older callers keep working.
+  const subCopy = subtext ?? subheadline;
+
   const hasFeatures = Array.isArray(features) && features.length > 0;
   const hasWhyChooseUs = Array.isArray(whyChooseUs) && whyChooseUs.length > 0;
   const bustedBg = withCacheBust(productImage, imageVersion);
@@ -209,12 +314,13 @@ const VariantNoirEditorial = ({
       className="@container w-full h-full relative overflow-hidden flex flex-col font-sans aspect-[4/5]"
       style={{ backgroundColor: colors.primary, color: "#fff" }}
     >
+      {/* Full-bleed product background.
+          Same CORS rule as SafeImage — no crossOrigin on this <img>. */}
       <div className="absolute inset-0">
         {bustedBg ? (
           <img
             src={bustedBg}
             alt="Product background"
-            crossOrigin="anonymous"
             style={{
               width: "100%",
               height: "100%",
@@ -224,30 +330,70 @@ const VariantNoirEditorial = ({
             draggable={false}
           />
         ) : (
-          <div className="absolute inset-0" style={{ backgroundColor: colors.secondary }} />
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: colors.secondary }}
+          />
         )}
+
+        {/* Cinematic top-and-bottom darkening so white text reads on any photo */}
         <div
           className="absolute inset-0"
           style={{
-            background: `linear-gradient(180deg, ${hexToRgba("#000000", 0.55)} 0%, transparent 30%, transparent 52%, ${hexToRgba("#000000", 0.85)} 100%)`,
+            background: `linear-gradient(180deg, ${hexToRgba(
+              "#000000",
+              0.55
+            )} 0%, transparent 30%, transparent 52%, ${hexToRgba(
+              "#000000",
+              0.85
+            )} 100%)`,
           }}
         />
       </div>
 
-      <div className="relative z-10 shrink-0 flex items-center justify-between" style={{ padding: `${space.md} ${space.lg} 0` }}>
-        <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
-          onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="font-bold uppercase" style={{ fontSize: cq(2), letterSpacing: "0.4em" }} />
-        <EditableText as="p" fieldId="f-instagram" editable={editable} value={instagram ?? ""}
-          onChange={v => onUpdate?.("instagram", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          className="opacity-60" style={{ fontSize: cq(2) }} />
+      {/* Brand + instagram top row */}
+      <div
+        className="relative z-10 shrink-0 flex items-center justify-between"
+        style={{ padding: `${space.md} ${space.lg} 0` }}
+      >
+        <EditableText
+          as="p"
+          fieldId="f-brand"
+          editable={editable}
+          value={brandName ?? ""}
+          onChange={(v) => onUpdate?.("brandName", v)}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          className="font-bold uppercase"
+          style={{ fontSize: cq(2), letterSpacing: "0.4em" }}
+        />
+        <EditableText
+          as="p"
+          fieldId="f-instagram"
+          editable={editable}
+          value={instagram ?? ""}
+          onChange={(v) => onUpdate?.("instagram", v)}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          className="opacity-60"
+          style={{ fontSize: cq(2) }}
+        />
       </div>
 
-      <div className="relative z-10 shrink-0" style={{ padding: `${space.md} ${space.lg}` }}>
-        <EditableHeadlineLines value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          onChange={v => onUpdate?.("headline", v)}
-          renderLine={(line, i, node) => (
+      {/* Headline */}
+      <div
+        className="relative z-10 shrink-0"
+        style={{ padding: `${space.md} ${space.lg}` }}
+      >
+        <EditableHeadlineLines
+          value={headline}
+          editable={editable}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          onChange={(v) => onUpdate?.("headline", v)}
+          renderLine={(_line, i, node) => (
             <p
+              key={i}
               className="font-black leading-[0.86] tracking-tight"
               style={{
                 fontSize: i === 0 ? cq(7.6) : cq(5.2),
@@ -259,11 +405,14 @@ const VariantNoirEditorial = ({
             >
               {node}
             </p>
-          )} />
+          )}
+        />
       </div>
 
+      {/* Flexible gap — pushes the bottom panel to the very bottom */}
       <div className="flex-1 min-h-0" />
 
+      {/* Bottom info panel with glassy background */}
       <div
         className="relative z-10 shrink-0 flex flex-col"
         style={{
@@ -274,67 +423,119 @@ const VariantNoirEditorial = ({
           borderTop: `1px solid ${hexToRgba("#ffffff", 0.14)}`,
         }}
       >
+        {/* Price + subtext + CTA */}
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
             {price !== undefined && price !== "" && (
-              <EditableText as="p" fieldId="f-price" editable={editable} value={price}
-                onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                className="font-black" style={{ fontSize: cq(4), color: colors.accent }} />
+              <EditableText
+                as="p"
+                fieldId="f-price"
+                editable={editable}
+                value={price}
+                onChange={(v) => onUpdate?.("price", v)}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                className="font-black"
+                style={{ fontSize: cq(4), color: colors.accent }}
+              />
             )}
-            <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext ?? ""}
-              onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-              className="opacity-70" style={{ fontSize: cq(1.8), marginTop: space.xs }} />
+            <EditableText
+              as="p"
+              fieldId="f-sub"
+              editable={editable}
+              value={subCopy ?? ""}
+              onChange={(v) => onUpdate?.("subtext", v)}
+              onFocusEl={onFocusEl}
+              onBlurEl={onBlurEl}
+              className="opacity-70"
+              style={{ fontSize: cq(1.8), marginTop: space.xs }}
+            />
           </div>
 
-          <EditableText as="div" fieldId="f-cta" editable={editable} value={ctaText}
-            onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
+          <EditableText
+            as="div"
+            fieldId="f-cta"
+            editable={editable}
+            value={ctaText}
+            onChange={(v) => onUpdate?.("ctaText", v)}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
             className="font-black uppercase shrink-0"
             style={{
-              minHeight: "44px", display: "inline-flex", alignItems: "center",
-              paddingLeft: cq(3.6), paddingRight: cq(3.6),
-              fontSize: cq(1.9), letterSpacing: "0.08em",
-              backgroundColor: colors.accent, color: colors.primary,
+              minHeight: "44px",
+              display: "inline-flex",
+              alignItems: "center",
+              paddingLeft: cq(3.6),
+              paddingRight: cq(3.6),
+              fontSize: cq(1.9),
+              letterSpacing: "0.08em",
+              backgroundColor: colors.accent,
+              color: colors.primary,
               borderRadius: "100px",
-            }} />
+            }}
+          />
         </div>
 
+        {/* Feature / why-us grid */}
         {(hasFeatures || hasWhyChooseUs) && (
           <div className="grid grid-cols-2" style={{ gap: space.md, color: "#fff" }}>
             {hasFeatures && (
               <FeatureList
-                features={features!.slice(0, 3)} colors={{ ...colors, secondary: "#fff" }} editable={editable}
-                title="FEATURES" onUpdateTitle={(v) => onUpdate?.("featuresTitle", v)}
+                features={features!.slice(0, 3)}
+                colors={{ ...colors, secondary: "#fff" }}
+                editable={editable}
+                title="FEATURES"
+                onUpdateTitle={(v) => onUpdate?.("featuresTitle", v)}
                 onUpdateFeature={onUpdateFeature ?? (() => undefined)}
                 onAddFeature={onAddFeature ?? (() => undefined)}
                 onRemoveFeature={onRemoveFeature ?? (() => undefined)}
-                onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                visible={featuresVisible} onRestoreSection={onRestoreFeatures}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                visible={featuresVisible}
+                onRestoreSection={onRestoreFeatures}
               />
             )}
             {hasWhyChooseUs && (
               <WhyChooseUsList
-                items={whyChooseUs!.slice(0, 3)} colors={{ ...colors, secondary: "#fff" }} editable={editable}
-                title="WHY CHOOSE US" onUpdateTitle={(v) => onUpdate?.("whyChooseUsTitle", v)}
+                items={whyChooseUs!.slice(0, 3)}
+                colors={{ ...colors, secondary: "#fff" }}
+                editable={editable}
+                title="WHY CHOOSE US"
+                onUpdateTitle={(v) => onUpdate?.("whyChooseUsTitle", v)}
                 onUpdate={onUpdateWhyChooseUs ?? (() => undefined)}
                 onAdd={onAddWhyChooseUs ?? (() => undefined)}
                 onRemove={onRemoveWhyChooseUs ?? (() => undefined)}
-                onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                visible={whyChooseUsVisible} onRestoreSection={onRestoreWhyChooseUs}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                visible={whyChooseUsVisible}
+                onRestoreSection={onRestoreWhyChooseUs}
               />
             )}
           </div>
         )}
 
+        {/* Contact bar */}
         <ContactFooter
           colors={colors}
           textColor="#fff"
-          phone={phone} website={website} email={email}
+          phone={phone}
+          website={website}
+          email={email}
           editable={editable}
-          onUpdatePhone={v => onUpdate?.("phone", v)} onUpdateWebsite={v => onUpdate?.("website", v)} onUpdateEmail={v => onUpdate?.("email", v)}
-          onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          phoneVisible={phoneVisible} websiteVisible={websiteVisible} emailVisible={emailVisible}
-          onRemovePhone={onRemovePhone} onRemoveWebsite={onRemoveWebsite} onRemoveEmail={onRemoveEmail}
-          onRestorePhone={onRestorePhone} onRestoreWebsite={onRestoreWebsite} onRestoreEmail={onRestoreEmail}
+          onUpdatePhone={(v) => onUpdate?.("phone", v)}
+          onUpdateWebsite={(v) => onUpdate?.("website", v)}
+          onUpdateEmail={(v) => onUpdate?.("email", v)}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          phoneVisible={phoneVisible}
+          websiteVisible={websiteVisible}
+          emailVisible={emailVisible}
+          onRemovePhone={onRemovePhone}
+          onRemoveWebsite={onRemoveWebsite}
+          onRemoveEmail={onRemoveEmail}
+          onRestorePhone={onRestorePhone}
+          onRestoreWebsite={onRestoreWebsite}
+          onRestoreEmail={onRestoreEmail}
         />
       </div>
     </div>
@@ -348,6 +549,7 @@ const VariantNoirEditorial = ({
 const VariantAtelierLight = ({
   headline,
   subtext,
+  subheadline,
   ctaText,
   productImage,
   imageVersion,
@@ -383,6 +585,9 @@ const VariantAtelierLight = ({
   onRestoreWebsite,
   website,
 }: LuxuryProductProps) => {
+  // Same normalization as VariantNoirEditorial.
+  const subCopy = subtext ?? subheadline;
+
   const hasFeatures = Array.isArray(features) && features.length > 0;
   const hasWhyChooseUs = Array.isArray(whyChooseUs) && whyChooseUs.length > 0;
 
@@ -391,19 +596,34 @@ const VariantAtelierLight = ({
       className="@container w-full h-full relative overflow-hidden flex flex-col items-center font-sans aspect-[4/5]"
       style={{ backgroundColor: colors.primary, color: colors.secondary }}
     >
+      {/* Brand — top centre */}
       <div className="shrink-0 text-center" style={{ paddingTop: space.lg }}>
-        <EditableText as="p" fieldId="f-brand" editable={editable} value={brandName ?? ""}
-          onChange={v => onUpdate?.("brandName", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
+        <EditableText
+          as="p"
+          fieldId="f-brand"
+          editable={editable}
+          value={brandName ?? ""}
+          onChange={(v) => onUpdate?.("brandName", v)}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
           className="uppercase font-bold opacity-40"
-          style={{ fontSize: cq(1.7), letterSpacing: "0.5em" }} />
+          style={{ fontSize: cq(1.7), letterSpacing: "0.5em" }}
+        />
       </div>
 
-      <div className="relative shrink-0" style={{ width: "46%", marginTop: space.md }}>
+      {/* Product image with soft radial accent behind it */}
+      <div
+        className="relative shrink-0"
+        style={{ width: "46%", marginTop: space.md }}
+      >
         <div
           className="absolute"
           style={{
             inset: `-${space.sm}`,
-            background: `radial-gradient(ellipse at center, ${hexToRgba(colors.accent, 0.14)} 0%, transparent 70%)`,
+            background: `radial-gradient(ellipse at center, ${hexToRgba(
+              colors.accent,
+              0.14
+            )} 0%, transparent 70%)`,
           }}
         />
         <SafeImage
@@ -418,11 +638,20 @@ const VariantAtelierLight = ({
         />
       </div>
 
-      <div className="shrink-0 text-center" style={{ marginTop: space.md, padding: `0 ${space.lg}` }}>
-        <EditableHeadlineLines value={headline} editable={editable} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          onChange={v => onUpdate?.("headline", v)}
-          renderLine={(line, i, node) => (
+      {/* Headline + subtext */}
+      <div
+        className="shrink-0 text-center"
+        style={{ marginTop: space.md, padding: `0 ${space.lg}` }}
+      >
+        <EditableHeadlineLines
+          value={headline}
+          editable={editable}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          onChange={(v) => onUpdate?.("headline", v)}
+          renderLine={(_line, i, node) => (
             <p
+              key={i}
               className="font-black leading-[0.92] tracking-tight"
               style={{
                 fontSize: i === 0 ? cq(5) : cq(3.6),
@@ -432,17 +661,32 @@ const VariantAtelierLight = ({
             >
               {node}
             </p>
-          )} />
+          )}
+        />
 
-        {subtext !== undefined && (
-          <EditableText as="p" fieldId="f-sub" editable={editable} value={subtext}
-            onChange={v => onUpdate?.("subtext", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="opacity-55 mx-auto" style={{ fontSize: cq(1.7), marginTop: space.sm, maxWidth: "34ch" }} />
+        {subCopy !== undefined && subCopy !== "" && (
+          <EditableText
+            as="p"
+            fieldId="f-sub"
+            editable={editable}
+            value={subCopy}
+            onChange={(v) => onUpdate?.("subtext", v)}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            className="opacity-55 mx-auto"
+            style={{
+              fontSize: cq(1.7),
+              marginTop: space.sm,
+              maxWidth: "34ch",
+            }}
+          />
         )}
       </div>
 
+      {/* Flexible gap */}
       <div className="flex-1 min-h-0" />
 
+      {/* Feature / why-us two-column band */}
       {(hasFeatures || hasWhyChooseUs) && (
         <div
           className="shrink-0 grid grid-cols-2 text-left w-full"
@@ -452,67 +696,116 @@ const VariantAtelierLight = ({
             borderTop: `1px solid ${hexToRgba(colors.accent, 0.18)}`,
           }}
         >
-          <div style={{ borderRight: `1px solid ${hexToRgba(colors.accent, 0.18)}`, paddingRight: space.md }}>
+          <div
+            style={{
+              borderRight: `1px solid ${hexToRgba(colors.accent, 0.18)}`,
+              paddingRight: space.md,
+            }}
+          >
             {hasFeatures && (
               <FeatureList
-                features={features!.slice(0, 3)} colors={colors} editable={editable}
-                title="FEATURES" onUpdateTitle={(v) => onUpdate?.("featuresTitle", v)}
+                features={features!.slice(0, 3)}
+                colors={colors}
+                editable={editable}
+                title="FEATURES"
+                onUpdateTitle={(v) => onUpdate?.("featuresTitle", v)}
                 onUpdateFeature={onUpdateFeature ?? (() => undefined)}
                 onAddFeature={onAddFeature ?? (() => undefined)}
                 onRemoveFeature={onRemoveFeature ?? (() => undefined)}
-                onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                visible={featuresVisible} onRestoreSection={onRestoreFeatures}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                visible={featuresVisible}
+                onRestoreSection={onRestoreFeatures}
               />
             )}
           </div>
           <div>
             {hasWhyChooseUs && (
               <WhyChooseUsList
-                items={whyChooseUs!.slice(0, 3)} colors={colors} editable={editable}
-                title="WHY CHOOSE US" onUpdateTitle={(v) => onUpdate?.("whyChooseUsTitle", v)}
+                items={whyChooseUs!.slice(0, 3)}
+                colors={colors}
+                editable={editable}
+                title="WHY CHOOSE US"
+                onUpdateTitle={(v) => onUpdate?.("whyChooseUsTitle", v)}
                 onUpdate={onUpdateWhyChooseUs ?? (() => undefined)}
                 onAdd={onAddWhyChooseUs ?? (() => undefined)}
                 onRemove={onRemoveWhyChooseUs ?? (() => undefined)}
-                onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-                visible={whyChooseUsVisible} onRestoreSection={onRestoreWhyChooseUs}
+                onFocusEl={onFocusEl}
+                onBlurEl={onBlurEl}
+                visible={whyChooseUsVisible}
+                onRestoreSection={onRestoreWhyChooseUs}
               />
             )}
           </div>
         </div>
       )}
 
-      <div className="shrink-0 flex items-center justify-center" style={{ gap: space.md, padding: `${space.sm} ${space.lg} 0` }}>
+      {/* Price + CTA row */}
+      <div
+        className="shrink-0 flex items-center justify-center"
+        style={{ gap: space.md, padding: `${space.sm} ${space.lg} 0` }}
+      >
         {price !== undefined && price !== "" && (
-          <EditableText as="span" fieldId="f-price" editable={editable} value={price}
-            onChange={v => onUpdate?.("price", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-            className="font-black" style={{ fontSize: cq(3), color: colors.accent }} />
+          <EditableText
+            as="span"
+            fieldId="f-price"
+            editable={editable}
+            value={price}
+            onChange={(v) => onUpdate?.("price", v)}
+            onFocusEl={onFocusEl}
+            onBlurEl={onBlurEl}
+            className="font-black"
+            style={{ fontSize: cq(3), color: colors.accent }}
+          />
         )}
-        <EditableText as="span" fieldId="f-cta" editable={editable} value={ctaText}
-          onChange={v => onUpdate?.("ctaText", v)} onFocusEl={onFocusEl} onBlurEl={onBlurEl}
+        <EditableText
+          as="span"
+          fieldId="f-cta"
+          editable={editable}
+          value={ctaText}
+          onChange={(v) => onUpdate?.("ctaText", v)}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
           className="font-semibold uppercase"
           style={{
-            fontSize: cq(1.7), letterSpacing: "0.1em",
+            fontSize: cq(1.7),
+            letterSpacing: "0.1em",
             color: colors.secondary,
             textDecoration: "underline",
             textUnderlineOffset: "4px",
             textDecorationColor: colors.accent,
-          }} />
+          }}
+        />
       </div>
 
-      <div className="shrink-0 w-full" style={{ padding: `${space.sm} ${space.lg} ${space.lg}` }}>
+      {/* Contact bar */}
+      <div
+        className="shrink-0 w-full"
+        style={{ padding: `${space.sm} ${space.lg} ${space.lg}` }}
+      >
         <ContactFooter
           colors={colors}
           textColor={colors.secondary}
-          phone={phone} website={website} email={email}
+          phone={phone}
+          website={website}
+          email={email}
           editable={editable}
-          onUpdatePhone={v => onUpdate?.("phone", v)} onUpdateWebsite={v => onUpdate?.("website", v)} onUpdateEmail={v => onUpdate?.("email", v)}
-          onFocusEl={onFocusEl} onBlurEl={onBlurEl}
-          phoneVisible={phoneVisible} websiteVisible={websiteVisible} emailVisible={emailVisible}
-          onRemovePhone={onRemovePhone} onRemoveWebsite={onRemoveWebsite} onRemoveEmail={onRemoveEmail}
-          onRestorePhone={onRestorePhone} onRestoreWebsite={onRestoreWebsite} onRestoreEmail={onRestoreEmail}
+          onUpdatePhone={(v) => onUpdate?.("phone", v)}
+          onUpdateWebsite={(v) => onUpdate?.("website", v)}
+          onUpdateEmail={(v) => onUpdate?.("email", v)}
+          onFocusEl={onFocusEl}
+          onBlurEl={onBlurEl}
+          phoneVisible={phoneVisible}
+          websiteVisible={websiteVisible}
+          emailVisible={emailVisible}
+          onRemovePhone={onRemovePhone}
+          onRemoveWebsite={onRemoveWebsite}
+          onRemoveEmail={onRemoveEmail}
+          onRestorePhone={onRestorePhone}
+          onRestoreWebsite={onRestoreWebsite}
+          onRestoreEmail={onRestoreEmail}
         />
       </div>
     </div>
   );
 };
-

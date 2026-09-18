@@ -1327,87 +1327,32 @@ const VALID_CATEGORIES: FlyerState["templateCategory"][] = [
 ];
 
 /* ════════════════════════════════════════════════════════════════════════
-   EXPORT HELPERS
-   ────────────────────────────────────────────────────────────────────────
-   Every fix applied here targets a specific, reproduced bug:
+   EXPORT PIPELINE — html2canvas
 
-     1. The export now captures the LIVE flyer node (flyerNodeRef) — the
-        same node the user is looking at. Offscreen "hidden export" nodes
-        (left:-9999px or z-index:-1) get their <img> bitmaps deferred by
-        Safari and sometimes Chrome, which is exactly what produced a
-        blank product-image slot in the downloaded PNG.
+   Why we replaced html-to-image:
+     html-to-image serializes the DOM into an SVG <foreignObject> and lets
+     the browser rasterize it. WebKit (Safari / iOS) does not copy CSS
+     custom properties (`--ci`, `--cb`) into the cloned SVG. Every
+     `calc(var(--ci) * n)` in the templates therefore resolved to nothing
+     on Safari, and the exported flyer came out completely unstyled —
+     plain black text on white, no product image, no background.
 
-     2. Inline every <img> to a data: URL before capture. Once that's
-        done, html-to-image has nothing external to fetch, so no CORS,
-        no cache-bust, no mobile fetch-failure can blank it.
+     html2canvas renders the DOM directly onto a <canvas> by reading
+     resolved values from getComputedStyle() (so CSS variables work
+     everywhere) and painting each element. No foreignObject, no SVG,
+     no custom-property copying. Consistent output on Chrome, Safari,
+     iOS, and Android.
 
-     3. cacheBust: false — mutating the data URLs with "?_=" appends
-        breaks WebKit's URL parser and blanks the image.
+   We still:
+     • capture the LIVE node (not a hidden clone) so every <img> has a
+       painted bitmap at capture time;
+     • snap the fit-scale transform off during capture so we render at
+       true export dimensions;
+     • restore everything in `finally`.
 
-     4. dataUrlToBlob() — pure base64 decode. Safari's fetch() on
-        multi-MB data URLs silently returns empty.
-
-     5. downloadBlob() — delays revokeObjectURL by 4 s because iOS
-        Safari reads the blob asynchronously and immediate revoke
-        truncates the file (blank image slot).
+   The delayed revokeObjectURL in downloadBlob stays — iOS Safari reads
+   blobs asynchronously, and immediate revoke truncates the download.
    ════════════════════════════════════════════════════════════════════════ */
-
-function dataUrlToBlob(dataUrl: string): Blob {
-  const comma = dataUrl.indexOf(",");
-  if (comma < 0) throw new Error("Invalid data URL");
-  const header = dataUrl.slice(0, comma);
-  const base64 = dataUrl.slice(comma + 1);
-  const mimeMatch = /data:([^;]+)/.exec(header);
-  const mime = mimeMatch ? mimeMatch[1] : "image/png";
-  const binary = atob(base64);
-  const len = binary.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
-  return new Blob([bytes], { type: mime });
-}
-
-async function toDataURL(url: string): Promise<string> {
-  if (!url) return url;
-  if (url.startsWith("data:")) return url;
-
-  // Primary: fetch + FileReader. No <canvas>, no tainting, no crossOrigin.
-  try {
-    const res = await fetch(url, { mode: "cors", credentials: "omit" });
-    if (res.ok) {
-      const blob = await res.blob();
-      if (blob.size > 32) {
-        return await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = () => reject(reader.error || new Error("FileReader failed"));
-          reader.readAsDataURL(blob);
-        });
-      }
-    }
-  } catch {
-    /* fall through */
-  }
-
-  // Fallback: fresh Image, crossOrigin BEFORE src (Safari-safe).
-  const img = new Image();
-  img.crossOrigin = "anonymous";
-  img.decoding = "sync";
-  await new Promise<void>((resolve, reject) => {
-    img.onload = () => resolve();
-    img.onerror = () => reject(new Error(`Image load failed: ${url}`));
-    img.src = url;
-  });
-  if (typeof img.decode === "function") {
-    try { await img.decode(); } catch { /* ignore */ }
-  }
-  const canvas = document.createElement("canvas");
-  canvas.width = img.naturalWidth || 1;
-  canvas.height = img.naturalHeight || 1;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("No 2D context");
-  ctx.drawImage(img, 0, 0);
-  return canvas.toDataURL("image/jpeg", 0.9);
-}
 
 async function uploadAsset(file: File): Promise<string> {
   const form = new FormData();
@@ -1432,7 +1377,7 @@ async function downloadBlob(blob: Blob, filename: string): Promise<void> {
   a.click();
   a.remove();
   // Delayed revoke — iOS Safari reads blobs asynchronously; immediate
-  // revoke can truncate the download and blank the largest image.
+  // revoke can truncate the download.
   setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
 
@@ -1444,7 +1389,6 @@ function EditorContent() {
   const [flyer, setFlyer] = useState<FlyerState>(EMPTY_FLYER_STATE);
   const [loading, setLoading] = useState(true);
   const flyerNodeRef = useRef<HTMLDivElement>(null);
-  const exportNodeRef = useRef<HTMLDivElement>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [captions, setCaptions] = useState<Caption[]>([]);
@@ -1547,22 +1491,16 @@ function EditorContent() {
   );
 
   /* ══════════════════════════════════════════════════════════════════════
-     EXPORT FLYER
+     EXPORT FLYER — html2canvas
      ────────────────────────────────────────────────────────────────────────
-     Captures the LIVE flyer node — the same DOM the user sees — instead
-     of any hidden/offscreen clone. That guarantees every <img> has a
-     painted bitmap at capture time, on every browser.
-
-     Steps:
-       1. Deselect any active overlay so its handles don't appear.
-       2. Snap the node's fit-scale transform off so we capture at true
-          export dimensions (1080 × 1350, etc.).
-       3. Inline every <img> to a data: URL (atomic: set src + await load
-          in the same promise — no race).
-       4. Also inline any CSS background-image URLs.
-       5. Wait for fonts + two RAFs.
-       6. Snapshot with html-to-image using cacheBust: false.
-       7. Restore the node to its original state.
+     1. Deselect any active overlay so its handles don't appear.
+     2. Snap the node's fit-scale transform off so we capture at true
+        export dimensions (1080 × 1350, etc.).
+     3. Wait for fonts + a double RAF.
+     4. html2canvas reads resolved styles (including CSS variables) and
+        paints to a <canvas>. useCORS lets it pull Cloudinary images.
+     5. Encode as PNG / JPG / PDF and download.
+     6. Restore the node.
      ══════════════════════════════════════════════════════════════════════ */
   const exportFlyer = useCallback(async (format: "png" | "jpg" | "pdf") => {
     const node = flyerNodeRef.current;
@@ -1579,145 +1517,95 @@ function EditorContent() {
     setExportError(null);
 
     const fmt = SOCIAL_FORMATS.find((f) => f.id === activeFormat)!;
-
-    // Save everything we're about to mutate so we can put it back.
     const prevTransform = node.style.transform;
     const prevTransformOrigin = node.style.transformOrigin;
     const prevTransition = node.style.transition;
-    const prevSelectedId = selectedOverlayId;
-
-    const imgEls = Array.from(node.querySelectorAll("img"));
-    const originalSrcs = imgEls.map((img) => img.src);
-
-    const bgEls = Array.from(node.querySelectorAll<HTMLElement>("*")).filter(
-      (el) => el.style.backgroundImage && el.style.backgroundImage.includes("url(")
-    );
-    const originalBgs = bgEls.map((el) => el.style.backgroundImage);
+    const prevSelected = selectedOverlayId;
 
     try {
-      // 1. Deselect any active overlay, then let React commit + paint.
+      // 1. Deselect overlays, then let React commit + paint.
       setSelectedOverlayId(null);
       await new Promise((r) => setTimeout(r, 0));
       await new Promise<void>((r) =>
         requestAnimationFrame(() => requestAnimationFrame(() => r()))
       );
 
-      // 2. Snap the live node to its true export size — kill the fit-scale.
+      // 2. Kill the fit-scale so we capture at true export dimensions.
       node.style.transition = "none";
       node.style.transform = "none";
       node.style.transformOrigin = "top left";
 
-      // 3. Let the browser repaint at the new size.
+      // 3. Let the browser relayout + repaint at the new size.
       await new Promise<void>((r) =>
         requestAnimationFrame(() => requestAnimationFrame(() => r()))
       );
 
-      // 4. Inline every <img> as a data: URL — atomically.
-      await Promise.all(
-        imgEls.map(async (img, i) => {
-          const original = originalSrcs[i];
-          if (!original || original.startsWith("data:")) {
-            try { await img.decode?.(); } catch {}
-            return;
-          }
-          try {
-            const dataUrl = await toDataURL(original);
-            await new Promise<void>((resolve) => {
-              const done = () => resolve();
-              img.onload = done;
-              img.onerror = done;
-              img.src = dataUrl;
-              setTimeout(done, 8000);
-            });
-            try { await img.decode?.(); } catch {}
-          } catch (e) {
-            console.warn("[export] could not inline <img>", original, e);
-          }
-        })
-      );
-
-      // 5. Inline CSS background-images too.
-      await Promise.all(
-        bgEls.map(async (el, i) => {
-          const bg = originalBgs[i];
-          const m = /url\((['"]?)([^'")]+)\1\)/i.exec(bg);
-          if (!m) return;
-          const raw = m[2];
-          if (!raw || raw.startsWith("data:")) return;
-          try {
-            const dataUrl = await toDataURL(raw);
-            el.style.backgroundImage = `url("${dataUrl}")`;
-          } catch (e) {
-            console.warn("[export] could not inline background", raw, e);
-          }
-        })
-      );
-
-      // 6. Fonts + paint.
+      // 4. Fonts.
       try {
         const f = (document as Document & { fonts?: FontFaceSet }).fonts;
         if (f?.ready) await f.ready;
       } catch { /* ignore */ }
-      await new Promise<void>((r) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => r()))
-      );
-      await new Promise((r) => setTimeout(r, 300));
 
-      // 7. Snapshot.
-      const { toPng, toJpeg, toBlob } = await import("html-to-image");
+      // 5. Give external images a moment to settle.
+      await new Promise((r) => setTimeout(r, 200));
 
-      const snapshotOpts = {
-        pixelRatio: 2,
-        cacheBust: false,
+      // 6. Capture with html2canvas.
+      const html2canvas = (await import("html2canvas")).default;
+
+      const canvas = await html2canvas(node, {
         width: fmt.exportW,
         height: fmt.exportH,
+        scale: 2,                 // 2× for crisp output
+        useCORS: true,            // fetch Cloudinary images with CORS
+        allowTaint: false,
         backgroundColor: "#ffffff",
-        skipAutoScale: true,
-      } as const;
+        logging: false,
+        imageTimeout: 15000,
+        // Some WebKit versions mishandle shadow DOM — ours doesn't use
+        // any, but being explicit avoids the walker trying.
+        foreignObjectRendering: false,
+      });
 
+      // 7. Encode.
       let blob: Blob;
-      if (format === "pdf") {
+      if (format === "jpg") {
+        blob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(
+            (b) => (b ? resolve(b) : reject(new Error("JPG encoding failed"))),
+            "image/jpeg",
+            0.95
+          );
+        });
+      } else if (format === "pdf") {
         const { default: jsPDF } = await import("jspdf");
-        const dataUrl = await toPng(node, snapshotOpts);
         const pdf = new jsPDF({
           orientation: fmt.exportW > fmt.exportH ? "landscape" : "portrait",
           unit: "px",
           format: [fmt.exportW, fmt.exportH],
         });
-        pdf.addImage(dataUrl, "PNG", 0, 0, fmt.exportW, fmt.exportH);
+        const imgData = canvas.toDataURL("image/png");
+        pdf.addImage(imgData, "PNG", 0, 0, fmt.exportW, fmt.exportH);
         blob = pdf.output("blob");
-      } else if (format === "jpg") {
-        const dataUrl = await toJpeg(node, { ...snapshotOpts, quality: 0.95 });
-        blob = dataUrlToBlob(dataUrl);
       } else {
-        // toBlob() returns Blob | null. Branch on a temp so `blob` stays
-        // non-nullable — this is what silences the TS error.
-        const maybeBlob = await toBlob(node, snapshotOpts);
-        if (maybeBlob) {
-          blob = maybeBlob;
-        } else {
-          const dataUrl = await toPng(node, snapshotOpts);
-          blob = dataUrlToBlob(dataUrl);
-        }
+        blob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(
+            (b) => (b ? resolve(b) : reject(new Error("PNG encoding failed"))),
+            "image/png"
+          );
+        });
       }
 
-      const ext = format === "pdf" ? "pdf" : format;
-      await downloadBlob(blob, `flyer-${activeFormat}.${ext}`);
+      // 8. Download.
+      await downloadBlob(blob, `flyer-${activeFormat}.${format}`);
     } catch (err) {
       console.error("[export] failed", err);
       setExportError(err instanceof Error ? err.message : "Export failed.");
     } finally {
-      // Restore everything we mutated.
-      imgEls.forEach((img, i) => {
-        if (img.src !== originalSrcs[i]) img.src = originalSrcs[i];
-      });
-      bgEls.forEach((el, i) => {
-        el.style.backgroundImage = originalBgs[i];
-      });
+      // Restore editor state.
       node.style.transform = prevTransform;
       node.style.transformOrigin = prevTransformOrigin;
       node.style.transition = prevTransition;
-      setSelectedOverlayId(prevSelectedId);
+      setSelectedOverlayId(prevSelected);
       setExportingFormat(null);
     }
   }, [activeFormat, pendingUploads, selectedOverlayId]);
@@ -1932,8 +1820,7 @@ function EditorContent() {
               cursor: "default",
             }}
           >
-            {/* LIVE flyer node — this is what the user sees and what
-                the export now captures. */}
+            {/* LIVE flyer node — what the user sees and what gets captured. */}
             <div
               key={`flyer-${activeFormat}`}
               ref={flyerNodeRef}
@@ -2022,73 +1909,6 @@ function EditorContent() {
                     onBlur={() => {}}
                   />
                 </Movable>
-              )}
-            </div>
-          </div>
-
-          {/* The hidden export node is no longer used by exportFlyer —
-              we capture the live node instead. It's kept in the DOM for
-              backward compatibility, marked aria-hidden and pointer-events:none,
-              so it's harmless. */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: "fixed",
-              left: 0,
-              top: 0,
-              width: currentFormat.exportW,
-              height: currentFormat.exportH,
-              pointerEvents: "none",
-              zIndex: -1,
-              overflow: "hidden",
-              opacity: 0,
-              ["--ci" as any]: `${currentFormat.exportW / 100}px`,
-              ["--cb" as any]: `${currentFormat.exportH / 100}px`,
-            } as React.CSSProperties}
-          >
-            <div ref={exportNodeRef} style={{ position: "relative", width: "100%", height: "100%" }}>
-              <TemplateRenderer
-                data={{ ...flyer, logoImage: null, badgeText: "" }}
-                onUpdate={() => {}}
-                onUpdateFeature={() => {}}
-                onAddFeature={() => {}}
-                onRemoveFeature={() => {}}
-                onUpdateWhyChooseUs={() => {}}
-                onAddWhyChooseUs={() => {}}
-                onRemoveWhyChooseUs={() => {}}
-              />
-
-              {logoOverlay.image && (
-                <img
-                  src={logoOverlay.image}
-                  alt="Logo"
-                  style={{
-                    position: "absolute",
-                    left: `${logoOverlay.transform.x}%`,
-                    top: `${logoOverlay.transform.y}%`,
-                    transform: `translate(-50%, -50%) scale(${logoOverlay.transform.scale})`,
-                    width: "calc(var(--ci) * 20)",
-                    height: "calc(var(--ci) * 20)",
-                    objectFit: "contain",
-                  }}
-                />
-              )}
-
-              {badgeOverlay.visible && (
-                <div
-                  style={{
-                    position: "absolute",
-                    left: `${badgeOverlay.transform.x}%`,
-                    top: `${badgeOverlay.transform.y}%`,
-                    transform: `translate(-50%, -50%) scale(${badgeOverlay.transform.scale})`,
-                  }}
-                >
-                  <DiscountBadgeSticker
-                    badge={badgeOverlay}
-                    onChangeText={() => {}}
-                    onChangeSubText={() => {}}
-                  />
-                </div>
               )}
             </div>
           </div>
