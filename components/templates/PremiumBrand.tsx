@@ -14,24 +14,14 @@ import { EditableText } from "@/components/EditableText";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 import { touchTarget } from "@/lib/responsive";
 
-// ============================================================================
-// CANVAS SCALE
-// ============================================================================
-
 const cq = (n: number) => `calc(var(--ci) * ${n})`;
-
-// ============================================================================
-// TYPES
-// ============================================================================
 
 export interface PremiumBrandProps {
   name?: string;
-
   headline: string;
   subtext: string;
   ctaText: string;
   ctaVisible?: boolean;
-
   badgeText?: string;
   productImage: string;
   brandName?: string;
@@ -39,67 +29,44 @@ export interface PremiumBrandProps {
   price?: string;
   phone?: string;
   email?: string;
-
   colors: FlyerColors;
-
   editable?: boolean;
-
   onUpdate?: (field: string, value: string) => void;
   onFocusEl?: (el: HTMLElement) => void;
   onBlurEl?: () => void;
-
   features?: string[];
   whyChooseUs?: string[];
-
   featuresVisible?: boolean;
   whyChooseUsVisible?: boolean;
-
   phoneVisible?: boolean;
   emailVisible?: boolean;
   websiteVisible?: boolean;
-
   onRestoreFeatures?: () => void;
   onRestoreWhyChooseUs?: () => void;
-
   onRemovePhone?: () => void;
   onRemoveEmail?: () => void;
   onRemoveWebsite?: () => void;
-
   onRestorePhone?: () => void;
   onRestoreEmail?: () => void;
   onRestoreWebsite?: () => void;
-
   onUpdateFeature?: (index: number, value: string) => void;
   onAddFeature?: () => void;
   onRemoveFeature?: (index: number) => void;
-
   onUpdateWhyChooseUs?: (index: number, value: string) => void;
   onAddWhyChooseUs?: () => void;
   onRemoveWhyChooseUs?: (index: number) => void;
-
   extraText?: string;
 }
 
-// ============================================================================
-// HELPERS
-// ============================================================================
-
 function hexToRgba(hex: string, alpha: number): string {
   if (!hex) return `rgba(0,0,0,${alpha})`;
-
   const value = hex.replace("#", "");
   if (value.length !== 6) return hex;
-
   const r = parseInt(value.slice(0, 2), 16);
   const g = parseInt(value.slice(2, 4), 16);
   const b = parseInt(value.slice(4, 6), 16);
-
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
-
-// ============================================================================
-// SUBCOMPONENT — CTA
-// ============================================================================
 
 interface SmartCTAProps {
   value: string;
@@ -166,38 +133,24 @@ function SmartCTA({
   );
 }
 
-// ============================================================================
-// SUBCOMPONENT — PRODUCT IMAGE
-// ============================================================================
-//
-// Shared by both variants. Any change to product-image rendering — sizes,
-// fallback state, badge positioning, or CORS attributes — happens here
-// once, for both templates.
-//
-// ⚠️  DO NOT add crossOrigin="anonymous" to the <img> below.
-//
-//     Safari applies CORS mode to any <img> that has crossOrigin set,
-//     including when its src is a data: URL. Data URLs cannot respond to
-//     a CORS request, so Safari fails the load silently — the element
-//     stays in the DOM but never gets a bitmap.
-//
-//     The flyer export pipeline inlines this image to a data: URL before
-//     html-to-image captures the node. With crossOrigin set, that inline
-//     step produces an empty <img> on Safari, and the exported PNG ends
-//     up with a blank product-image slot.
-//
-//     Chrome ignores CORS mode for data URLs and works either way, which
-//     is why the bug only shows up on Safari / iOS.
-//
-// ============================================================================
+/* ─────────────────────────────────────────────────────────────────
+   PRODUCT IMAGE — background-image div
+
+   html2canvas does NOT reliably honour `object-fit: contain` on <img>
+   elements — it renders the image at its natural pixel size, which is
+   why the product photo looked much larger in the exported PNG than in
+   the editor. `background-size: contain` is fully supported, so we use
+   a plain <div> with a background image instead.
+
+   Same rule as everywhere else: no crossOrigin on the source. html2canvas
+   handles CORS on its own clone with `useCORS: true`.
+───────────────────────────────────────────────────────────────── */
 
 interface ProductImageBlockProps {
   productImage: string;
   badgeText?: string;
   colors: FlyerColors;
-  /** fontSize for the badge — differs slightly between variants. */
   badgeFontSize: string;
-  /** shadow alpha for the badge — differs slightly between variants. */
   badgeShadowAlpha: number;
 }
 
@@ -219,15 +172,17 @@ function ProductImageBlock({
     >
       <div className="relative w-full h-full">
         {productImage ? (
-          <img
-            src={productImage}
-            alt="Product"
+          <div
+            role="img"
+            aria-label="Product"
             style={{
               width: "100%",
               height: "100%",
-              objectFit: "contain",
+              backgroundImage: `url(${productImage})`,
+              backgroundSize: "contain",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
             }}
-            draggable={false}
           />
         ) : (
           <div
@@ -271,28 +226,17 @@ function ProductImageBlock({
   );
 }
 
-// ============================================================================
-// MAIN ENTRY — routes to a variant
-// ============================================================================
-
 export function PremiumBrandTemplate(props: PremiumBrandProps) {
   const templateName = props.name || "Digital Agency";
-
   switch (templateName) {
     case "Digital Agency":
       return <VariantDigitalAgency {...props} />;
-
     case "Premium Gold":
       return <VariantPremiumGold {...props} />;
-
     default:
       return <VariantDigitalAgency {...props} />;
   }
 }
-
-// ============================================================================
-// VARIANT — DIGITAL AGENCY
-// ============================================================================
 
 function VariantDigitalAgency({
   headline,
@@ -306,38 +250,28 @@ function VariantDigitalAgency({
   phone,
   email,
   colors,
-
   editable = false,
-
   onUpdate,
   onFocusEl,
   onBlurEl,
-
   features,
   whyChooseUs,
-
   featuresVisible = true,
   whyChooseUsVisible = true,
-
   phoneVisible = true,
   emailVisible = true,
   websiteVisible = true,
-
   onRestoreFeatures,
   onRestoreWhyChooseUs,
-
   onRemovePhone,
   onRemoveEmail,
   onRemoveWebsite,
-
   onRestorePhone,
   onRestoreEmail,
   onRestoreWebsite,
-
   onUpdateFeature,
   onAddFeature,
   onRemoveFeature,
-
   onUpdateWhyChooseUs,
   onAddWhyChooseUs,
   onRemoveWhyChooseUs,
@@ -348,12 +282,8 @@ function VariantDigitalAgency({
   return (
     <div
       className="@container relative flex h-full w-full aspect-[4/5] flex-col overflow-hidden font-sans"
-      style={{
-        backgroundColor: colors.primary,
-        color: colors.secondary,
-      }}
+      style={{ backgroundColor: colors.primary, color: colors.secondary }}
     >
-      {/* ─── Background dot pattern ────────────────────────────── */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.02]"
         style={{
@@ -362,7 +292,6 @@ function VariantDigitalAgency({
         }}
       />
 
-      {/* ─── Header ────────────────────────────────────────────── */}
       <header
         className="relative z-10 flex shrink-0 items-start justify-end"
         style={{
@@ -386,7 +315,6 @@ function VariantDigitalAgency({
         )}
       </header>
 
-      {/* ─── Main safe area ───────────────────────────────────── */}
       <div
         className="relative flex-1 min-h-0"
         style={{
@@ -396,16 +324,10 @@ function VariantDigitalAgency({
           paddingBottom: cq(4),
         }}
       >
-        {/* Left column — headline, subtext, features, why-us, CTA */}
         <section
           className="absolute left-0 top-0 bottom-0 flex flex-col justify-center"
-          style={{
-            width: "55%",
-            paddingLeft: cq(8),
-            paddingRight: cq(3),
-          }}
+          style={{ width: "55%", paddingLeft: cq(8), paddingRight: cq(3) }}
         >
-          {/* Headline */}
           <h1
             className="font-semibold uppercase tracking-[-0.05em] leading-[0.92]"
             style={{
@@ -419,7 +341,7 @@ function VariantDigitalAgency({
               onChange={(v) => onUpdate?.("headline", v)}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
-              renderLine={(line, index, node) => (
+              renderLine={(_line, index, node) => (
                 <span
                   className="block"
                   style={index === 1 ? { color: colors.accent } : undefined}
@@ -430,7 +352,6 @@ function VariantDigitalAgency({
             />
           </h1>
 
-          {/* Subtext */}
           <EditableText
             as="p"
             fieldId="f-sub"
@@ -440,20 +361,12 @@ function VariantDigitalAgency({
             onFocusEl={onFocusEl}
             onBlurEl={onBlurEl}
             className="leading-[1.5] opacity-50 max-w-[82%]"
-            style={{
-              fontSize: cq(2),
-              marginTop: cq(3),
-            }}
+            style={{ fontSize: cq(2), marginTop: cq(3) }}
           />
 
-          {/* Benefit blocks */}
           <div
             className="shrink-0 flex flex-col"
-            style={{
-              marginTop: cq(3),
-              marginBottom: 0,
-              gap: cq(3.2),
-            }}
+            style={{ marginTop: cq(3), marginBottom: 0, gap: cq(3.2) }}
           >
             {hasFeatures && (
               <FeatureList
@@ -490,15 +403,10 @@ function VariantDigitalAgency({
             )}
           </div>
 
-          {/* CTA row */}
           {ctaVisible && (
             <div
               className="flex shrink-0 items-center"
-              style={{
-                gap: cq(2),
-                marginTop: cq(3.5),
-                minHeight: cq(7),
-              }}
+              style={{ gap: cq(2), marginTop: cq(3.5), minHeight: cq(7) }}
             >
               {price && (
                 <EditableText
@@ -510,13 +418,9 @@ function VariantDigitalAgency({
                   onFocusEl={onFocusEl}
                   onBlurEl={onBlurEl}
                   className="shrink-0 font-bold tracking-tight"
-                  style={{
-                    color: colors.accent,
-                    fontSize: cq(4),
-                  }}
+                  style={{ color: colors.accent, fontSize: cq(4) }}
                 />
               )}
-
               <SmartCTA
                 value={ctaText}
                 editable={editable}
@@ -529,7 +433,6 @@ function VariantDigitalAgency({
           )}
         </section>
 
-        {/* Right column — product image */}
         <ProductImageBlock
           productImage={productImage}
           badgeText={badgeText}
@@ -539,7 +442,6 @@ function VariantDigitalAgency({
         />
       </div>
 
-      {/* ─── Footer / contact bar ──────────────────────────────── */}
       <div
         className="relative z-10 shrink-0"
         style={{
@@ -588,10 +490,6 @@ function VariantDigitalAgency({
   );
 }
 
-// ============================================================================
-// VARIANT — PREMIUM GOLD
-// ============================================================================
-
 function VariantPremiumGold({
   headline,
   subtext,
@@ -604,38 +502,28 @@ function VariantPremiumGold({
   phone,
   email,
   colors,
-
   editable = false,
-
   onUpdate,
   onFocusEl,
   onBlurEl,
-
   features,
   whyChooseUs,
-
   featuresVisible = true,
   whyChooseUsVisible = true,
-
   onRestoreFeatures,
   onRestoreWhyChooseUs,
-
   onUpdateFeature,
   onAddFeature,
   onRemoveFeature,
-
   onUpdateWhyChooseUs,
   onAddWhyChooseUs,
   onRemoveWhyChooseUs,
-
   phoneVisible = true,
   emailVisible = true,
   websiteVisible = true,
-
   onRemovePhone,
   onRemoveEmail,
   onRemoveWebsite,
-
   onRestorePhone,
   onRestoreEmail,
   onRestoreWebsite,
@@ -646,12 +534,8 @@ function VariantPremiumGold({
   return (
     <div
       className="@container relative flex h-full w-full aspect-[4/5] flex-col overflow-hidden font-serif"
-      style={{
-        backgroundColor: colors.primary,
-        color: colors.secondary,
-      }}
+      style={{ backgroundColor: colors.primary, color: colors.secondary }}
     >
-      {/* ─── Decorative border ─────────────────────────────────── */}
       <div
         className="absolute pointer-events-none"
         style={{
@@ -661,7 +545,6 @@ function VariantPremiumGold({
         }}
       />
 
-      {/* ─── Grain ─────────────────────────────────────────────── */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.02]"
         style={{
@@ -670,7 +553,6 @@ function VariantPremiumGold({
         }}
       />
 
-      {/* ─── Header ornament ───────────────────────────────────── */}
       <header
         className="relative z-20 flex shrink-0 justify-center"
         style={{ paddingTop: cq(4) }}
@@ -678,10 +560,7 @@ function VariantPremiumGold({
         <div className="flex items-center justify-center" style={{ gap: cq(1.5) }}>
           <span
             className="h-px"
-            style={{
-              width: cq(8),
-              backgroundColor: hexToRgba(colors.accent, 0.3),
-            }}
+            style={{ width: cq(8), backgroundColor: hexToRgba(colors.accent, 0.3) }}
           />
           <span
             className="rotate-45"
@@ -694,15 +573,11 @@ function VariantPremiumGold({
           />
           <span
             className="h-px"
-            style={{
-              width: cq(8),
-              backgroundColor: hexToRgba(colors.accent, 0.3),
-            }}
+            style={{ width: cq(8), backgroundColor: hexToRgba(colors.accent, 0.3) }}
           />
         </div>
       </header>
 
-      {/* ─── Main ──────────────────────────────────────────────── */}
       <div
         className="relative flex-1 min-h-0"
         style={{
@@ -712,7 +587,6 @@ function VariantPremiumGold({
           paddingBottom: cq(4),
         }}
       >
-        {/* Headline */}
         <div className="relative z-20 shrink-0 text-center">
           <h1
             className="font-medium uppercase tracking-[-0.04em] leading-[0.9]"
@@ -724,7 +598,7 @@ function VariantPremiumGold({
               onChange={(v) => onUpdate?.("headline", v)}
               onFocusEl={onFocusEl}
               onBlurEl={onBlurEl}
-              renderLine={(line, index, node) => (
+              renderLine={(_line, index, node) => (
                 <span
                   className="block"
                   style={index === 1 ? { color: colors.accent } : undefined}
@@ -736,7 +610,6 @@ function VariantPremiumGold({
           </h1>
         </div>
 
-        {/* Product image */}
         <ProductImageBlock
           productImage={productImage}
           badgeText={badgeText}
@@ -745,14 +618,10 @@ function VariantPremiumGold({
           badgeShadowAlpha={0.25}
         />
 
-        {/* Benefit blocks — 2-column grid */}
         {(hasFeatures || hasWhyChooseUs) && (
           <div
             className="grid grid-cols-2 text-left"
-            style={{
-              gap: cq(3),
-              marginBottom: cq(3.5),
-            }}
+            style={{ gap: cq(3), marginBottom: cq(3.5) }}
           >
             {hasFeatures && (
               <FeatureList
@@ -770,7 +639,6 @@ function VariantPremiumGold({
                 onBlurEl={onBlurEl}
               />
             )}
-
             {hasWhyChooseUs && (
               <WhyChooseUsList
                 items={whyChooseUs!.slice(0, 3)}
@@ -790,9 +658,7 @@ function VariantPremiumGold({
           </div>
         )}
 
-        {/* Bottom content */}
         <div className="shrink-0">
-          {/* Divider */}
           <div
             className="w-full h-px"
             style={{
@@ -801,7 +667,6 @@ function VariantPremiumGold({
             }}
           />
 
-          {/* Price / subtext / CTA */}
           <div className="flex items-end justify-between gap-4">
             <div className="max-w-[55%] min-w-0">
               {price && (
@@ -814,13 +679,9 @@ function VariantPremiumGold({
                   onFocusEl={onFocusEl}
                   onBlurEl={onBlurEl}
                   className="font-medium leading-none"
-                  style={{
-                    color: colors.accent,
-                    fontSize: cq(4.5),
-                  }}
+                  style={{ color: colors.accent, fontSize: cq(4.5) }}
                 />
               )}
-
               <EditableText
                 as="p"
                 fieldId="f-sub"
@@ -830,10 +691,7 @@ function VariantPremiumGold({
                 onFocusEl={onFocusEl}
                 onBlurEl={onBlurEl}
                 className="leading-[1.4] opacity-45"
-                style={{
-                  marginTop: cq(0.8),
-                  fontSize: cq(1.7),
-                }}
+                style={{ marginTop: cq(0.8), fontSize: cq(1.7) }}
               />
             </div>
 
@@ -849,7 +707,6 @@ function VariantPremiumGold({
             )}
           </div>
 
-          {/* Contact bar */}
           <div style={{ marginTop: cq(2) }}>
             <div
               style={{

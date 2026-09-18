@@ -14,20 +14,8 @@ import { FeatureList, ContactBar, WhyChooseUsList } from "./FlyerContentBlocks";
 export interface SleekFlyerProps {
   name?: string;
   headline: string;
-
-  /**
-   * Main body copy. This is what the editor sends — see TemplateRenderer
-   * in the editor, which maps `data.subtext` to `subtext`. Preferred.
-   */
   subtext?: string;
-
-  /**
-   * Legacy alias for `subtext`. Kept so any older caller that still
-   * passes `subheadline` keeps working. If both are provided, `subtext`
-   * wins.
-   */
   subheadline?: string;
-
   tagline?: string;
   ctaText: string;
   productImage: string;
@@ -77,10 +65,9 @@ export interface SleekFlyerProps {
 
 /* ─────────────────────────────────────────────────────────────────
    CANVAS SCALE
-   `--ci` is a real numeric custom property set by the editor to
-   `exportWidth / 100`. Every size in this file routes through `cq()`
-   so the same number resolves identically in the browser, in the
-   html2canvas capture, and in the Remotion video render.
+   `--ci` is set by the editor to `exportWidth / 100`. Every size in
+   this file routes through `cq()` so it resolves identically in the
+   browser, the html2canvas export, and the Remotion video render.
 ───────────────────────────────────────────────────────────────── */
 
 const cq = (n: number) => `calc(var(--ci) * ${n})`;
@@ -101,9 +88,6 @@ function hexToRgba(hex: string, alpha: number) {
 
 /* ═══════════════════════════════════════════════════════════════════════════
    DISPATCHER
-   `name` selects a variant. The editor currently doesn't pass it, so
-   "Mono Split" is the default. To surface "Kōan" in the editor, have
-   TemplateRenderer include `name: data.templateVariant` in `shared`.
 ═══════════════════════════════════════════════════════════════════════════ */
 
 export function SleekFlyerTemplate(props: SleekFlyerProps) {
@@ -164,8 +148,6 @@ const VariantMonoSplit = ({
   onFocusEl,
   onBlurEl,
 }: SleekFlyerProps) => {
-  // The editor sends `subtext`; older callers may send `subheadline`.
-  // Normalize once, so the rest of the render only deals with one value.
   const subCopy = subtext ?? subheadline;
 
   const hasFeatures = Array.isArray(features) && features.length > 0;
@@ -176,30 +158,32 @@ const VariantMonoSplit = ({
       className="@container w-full h-full relative overflow-hidden flex flex-row font-sans"
       style={{ backgroundColor: colors.primary, color: colors.secondary }}
     >
-      {/* ── Product image ─────────────────────────────────────────────── */}
+      {/* ── Product image (background-image div — html2canvas renders
+             background-size reliably; object-fit on <img> does not). ── */}
 
       <div className="relative overflow-hidden" style={{ width: "55%", height: "100%" }}>
-        {/*
-          No `crossOrigin` on this <img>.
-
-          html2canvas (the export engine) clones the DOM and creates its
-          own Image() for every <img>, applying CORS as needed. Adding
-          crossOrigin on the source element makes some WebKit versions
-          treat the clone's load as CORS-required even when the src is a
-          data: URL — and data URLs cannot satisfy a CORS request. That is
-          the blank-product-image-in-export bug on iOS / Safari.
-        */}
-        <img
-          src={productImage}
-          alt="Product"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            objectPosition: "center",
-          }}
-          draggable={false}
-        />
+        {productImage ? (
+          <div
+            role="img"
+            aria-label="Product"
+            style={{
+              width: "100%",
+              height: "100%",
+              backgroundImage: `url(${productImage})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              backgroundColor: hexToRgba(colors.secondary, 0.06),
+            }}
+          />
+        )}
 
         {/* Fade into the content panel */}
         <div
@@ -209,7 +193,7 @@ const VariantMonoSplit = ({
           }}
         />
 
-        {/* Grounding vignette so the photo reads as a designed shot, not a raw crop */}
+        {/* Grounding vignette */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -248,7 +232,6 @@ const VariantMonoSplit = ({
               color: colors.secondary,
             }}
           />
-
           <div
             style={{
               width: cq(1.8),
@@ -405,8 +388,6 @@ const VariantMonoSplit = ({
             </svg>
           </div>
 
-          {/* Contact — framed with a top divider + tint so it reads as a real
-              info bar, not fine print trailing off the bottom of the layout. */}
           <div
             style={{
               borderTop: `1px solid ${hexToRgba(colors.accent, 0.18)}`,
@@ -488,7 +469,6 @@ const VariantKoan = ({
   onFocusEl,
   onBlurEl,
 }: SleekFlyerProps) => {
-  // Same normalization as VariantMonoSplit.
   const subCopy = subtext ?? subheadline;
 
   const hasFeatures = Array.isArray(features) && features.length > 0;
@@ -566,22 +546,41 @@ const VariantKoan = ({
             zIndex: 2,
           }}
         />
-        <div style={{ position: "relative", width: cq(62), height: cq(62), zIndex: 10 }}>
-          {/*
-            Same rule as VariantMonoSplit — no crossOrigin on this <img>.
-            html2canvas handles CORS internally on its clone.
-          */}
-          <img
-            src={productImage}
-            alt="Product"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-              filter: `drop-shadow(0 ${cq(4)} ${cq(8)} rgba(0,0,0,0.12))`,
-            }}
-            draggable={false}
-          />
+        <div
+          style={{
+            position: "relative",
+            width: cq(62),
+            height: cq(62),
+            zIndex: 10,
+            // Drop shadow lives on the wrapper so html2canvas keeps it —
+            // it renders drop-shadow on a plain <div>, but not reliably
+            // on a background-image div directly.
+            filter: `drop-shadow(0 ${cq(4)} ${cq(8)} rgba(0,0,0,0.12))`,
+          }}
+        >
+          {productImage ? (
+            <div
+              role="img"
+              aria-label="Product"
+              style={{
+                width: "100%",
+                height: "100%",
+                backgroundImage: `url(${productImage})`,
+                backgroundSize: "contain",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                backgroundColor: hexToRgba(colors.secondary, 0.06),
+                borderRadius: cq(2),
+              }}
+            />
+          )}
         </div>
       </div>
 
@@ -721,7 +720,6 @@ const VariantKoan = ({
           />
         </div>
 
-        {/* Contact — framed with a top divider + tint, matching Mono Split */}
         <div style={{ width: "100%", borderTop: `1px solid ${hexToRgba(colors.accent, 0.18)}`, paddingTop: cq(2.5) }}>
           <ContactBar
             phone={phone}

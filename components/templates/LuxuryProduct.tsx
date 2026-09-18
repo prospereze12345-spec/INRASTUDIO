@@ -5,11 +5,7 @@ import React from "react";
 import { EditableText } from "@/components/EditableText";
 import { EditableHeadlineLines } from "@/components/Editableheadlinelines";
 
-import {
-  FeatureList,
-  ContactBar,
-  WhyChooseUsList,
-} from "./FlyerContentBlocks";
+import { FeatureList, ContactBar, WhyChooseUsList } from "./FlyerContentBlocks";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    TYPES
@@ -18,22 +14,11 @@ import {
 export interface LuxuryProductProps {
   name?: string;
   headline: string;
-
-  /**
-   * Main body copy. The editor sends `subtext`; some older callers may
-   * still send `subheadline`. Both are accepted below.
-   */
   subtext?: string;
   subheadline?: string;
-
   ctaText: string;
   productImage: string;
 
-  /**
-   * Cache-busting token for `productImage`. If it changes, the browser
-   * refetches the underlying URL — used when the backend re-uploads the
-   * same filename with new bytes.
-   */
   imageVersion?: string | number;
 
   /** Part of the shared template contract. Currently unused by this file. */
@@ -93,10 +78,6 @@ export interface LuxuryProductProps {
 
 /* ─────────────────────────────────────────────────────────────────
    SPACING SCALE
-   `--ci` is set by the editor to `exportWidth / 100`. Every size in
-   this file routes through `cq()` so the same number resolves
-   identically in the browser, in the html2canvas export, and in the
-   Remotion video render.
 ───────────────────────────────────────────────────────────────── */
 
 const cq = (n: number) => `calc(var(--ci) * ${n})`;
@@ -121,8 +102,7 @@ function hexToRgba(hex: string, alpha: number) {
 /* ─────────────────────────────────────────────────────────────────
    CACHE BUSTING
    Appends `?v=<version>` to a URL so the browser refetches it when
-   the underlying bytes change. Data URLs and blob URLs are skipped —
-   they can't be cache-busted (and the query would corrupt them).
+   the underlying bytes change. Data URLs and blob URLs are skipped.
 ───────────────────────────────────────────────────────────────── */
 
 function withCacheBust(url?: string, version?: string | number) {
@@ -157,38 +137,32 @@ export function LuxuryProductTemplate(props: LuxuryProductProps) {
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   IMAGE SAFETY WRAPPER (plain <img>)
+   IMAGE WRAPPER — background-image div
 
-   ⚠️  DO NOT add crossOrigin="anonymous" to the <img> below.
+   html2canvas does NOT reliably render `object-fit: contain` or
+   `cover` on <img> elements — it falls back to the image's natural
+   pixel size, which is why the product looked much larger in the
+   exported PNG than in the editor.
 
-       The export pipeline uses html2canvas with `useCORS: true`.
-       html2canvas clones the DOM and creates its own Image() element
-       for every <img>, applying CORS as needed. The source element
-       should stay plain:
+   `background-size: contain|cover` on a plain <div> is fully
+   supported, so we route every product image through here.
 
-         • If src is a remote URL (Cloudinary), html2canvas fetches
-           it with crossOrigin="anonymous" itself, and Cloudinary
-           sends `Access-Control-Allow-Origin: *`, so it succeeds.
-
-         • If src is a data: URL, adding crossOrigin to the source
-           makes some WebKit versions treat the load as
-           CORS-required — and a data: URL cannot satisfy a CORS
-           request. That is exactly the blank-product-image bug on
-           iOS / Safari we already fixed in the other templates.
-
-       Net: leave the attribute off. html2canvas handles CORS.
+   No `crossOrigin` on the source URL — html2canvas handles CORS on
+   its own clone with `useCORS: true`.
 ───────────────────────────────────────────────────────────────── */
 
 function SafeImage({
   src,
   version,
   aspectRatio,
+  fit = "contain",
   className,
   style,
 }: {
   src?: string;
   version?: string | number;
   aspectRatio: string;
+  fit?: "contain" | "cover";
   className?: string;
   style?: React.CSSProperties;
 }) {
@@ -200,18 +174,17 @@ function SafeImage({
       style={{ position: "relative", width: "100%", aspectRatio, ...style }}
     >
       {bustedSrc ? (
-        <img
-          src={bustedSrc}
-          alt="Product"
+        <div
+          role="img"
+          aria-label="Product"
           style={{
             position: "absolute",
             inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            objectPosition: "center",
+            backgroundImage: `url(${bustedSrc})`,
+            backgroundSize: fit,
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
           }}
-          draggable={false}
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center text-xs opacity-30">
@@ -301,8 +274,6 @@ const VariantNoirEditorial = ({
   onRestoreWebsite,
   website,
 }: LuxuryProductProps) => {
-  // Prefer `subtext` (what the editor sends), fall back to the legacy
-  // `subheadline` alias so older callers keep working.
   const subCopy = subtext ?? subheadline;
 
   const hasFeatures = Array.isArray(features) && features.length > 0;
@@ -314,20 +285,21 @@ const VariantNoirEditorial = ({
       className="@container w-full h-full relative overflow-hidden flex flex-col font-sans aspect-[4/5]"
       style={{ backgroundColor: colors.primary, color: "#fff" }}
     >
-      {/* Full-bleed product background.
-          Same CORS rule as SafeImage — no crossOrigin on this <img>. */}
+      {/* Full-bleed product background — background-image div so
+          html2canvas renders background-size: cover correctly. */}
       <div className="absolute inset-0">
         {bustedBg ? (
-          <img
-            src={bustedBg}
-            alt="Product background"
+          <div
+            role="img"
+            aria-label="Product background"
             style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              objectPosition: "center",
+              position: "absolute",
+              inset: 0,
+              backgroundImage: `url(${bustedBg})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
             }}
-            draggable={false}
           />
         ) : (
           <div
@@ -336,7 +308,6 @@ const VariantNoirEditorial = ({
           />
         )}
 
-        {/* Cinematic top-and-bottom darkening so white text reads on any photo */}
         <div
           className="absolute inset-0"
           style={{
@@ -409,7 +380,6 @@ const VariantNoirEditorial = ({
         />
       </div>
 
-      {/* Flexible gap — pushes the bottom panel to the very bottom */}
       <div className="flex-1 min-h-0" />
 
       {/* Bottom info panel with glassy background */}
@@ -585,7 +555,6 @@ const VariantAtelierLight = ({
   onRestoreWebsite,
   website,
 }: LuxuryProductProps) => {
-  // Same normalization as VariantNoirEditorial.
   const subCopy = subtext ?? subheadline;
 
   const hasFeatures = Array.isArray(features) && features.length > 0;
@@ -630,6 +599,7 @@ const VariantAtelierLight = ({
           src={productImage}
           version={imageVersion}
           aspectRatio="1 / 1"
+          fit="contain"
           className="relative rounded-2xl overflow-hidden"
           style={{
             backgroundColor: hexToRgba(colors.accent, 0.05),
