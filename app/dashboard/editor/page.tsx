@@ -498,10 +498,24 @@ const DEFAULT_BADGE: DiscountBadge = {
   transform: { x: 84, y: 16, scale: 1 },
 };
 
-const BURST_CLIP_PATH =
-  "polygon(50% 0%, 61% 12%, 75% 2%, 80% 18%, 95% 15%, 92% 32%, 100% 42%, 88% 50%, " +
-  "100% 58%, 92% 68%, 95% 85%, 80% 82%, 75% 98%, 61% 88%, 50% 100%, 39% 88%, " +
-  "25% 98%, 20% 82%, 5% 85%, 8% 68%, 0% 58%, 12% 50%, 0% 42%, 8% 32%, 5% 15%, 20% 18%, 25% 2%, 39% 12%)";
+/* ════════════════════════════════════════════════════════════════════════
+   BURST SHAPE — SVG polygon
+
+   This used to be a CSS `clip-path: polygon(...)` on a <div>. It looked
+   correct in the browser but exported as a rotated square, because
+   html2canvas — the export engine — silently ignores `clip-path`.
+
+   Same 28 points, now expressed as an SVG polygon in a 0–100 viewBox.
+   html2canvas renders SVG shapes natively, so editor and export match.
+
+   The badge itself remains fully editable: dragging, resizing, and text
+   editing are handled by <Movable> and <Editable> around this shape.
+   ════════════════════════════════════════════════════════════════════════ */
+
+const BURST_POINTS =
+  "50,0 61,12 75,2 80,18 95,15 92,32 100,42 88,50 " +
+  "100,58 92,68 95,85 80,82 75,98 61,88 50,100 39,88 " +
+  "25,98 20,82 5,85 8,68 0,58 12,50 0,42 8,32 5,15 20,18 25,2 39,12";
 
 function DiscountBadgeSticker({
   badge, onChangeText, onChangeSubText, onFocus, onBlur,
@@ -515,20 +529,61 @@ function DiscountBadgeSticker({
   const SIZE = "calc(var(--ci) * 22)";
 
   return (
-    <div style={{ width: SIZE, height: SIZE, position: "relative" }}>
-      <div style={{
-        position: "absolute", inset: 0, background: badge.bgColor,
-        clipPath: BURST_CLIP_PATH, transform: "rotate(-10deg)",
-        boxShadow: "0 12px 26px rgba(0,0,0,0.35)",
-      }} />
-      <div style={{
-        position: "absolute", inset: 7, border: `2px dashed ${badge.textColor}50`,
-        clipPath: BURST_CLIP_PATH, transform: "rotate(-10deg)",
-      }} />
-      <div style={{
-        position: "absolute", inset: 0, display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center", gap: 1, padding: "0 8px",
-      }}>
+    <div
+      style={{
+        width: SIZE,
+        height: SIZE,
+        position: "relative",
+        // drop-shadow follows the rendered burst outline (transparent
+        // corners don't cast), and html2canvas supports it — whereas
+        // box-shadow on a clipped element loses the clip on export.
+        filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.35))",
+      }}
+    >
+      {/* Burst background + dashed inner outline, drawn as inline SVG so
+          html2canvas renders it correctly (it ignores clip-path). */}
+      <svg
+        viewBox="0 0 100 100"
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          transform: "rotate(-10deg)",
+          pointerEvents: "none",
+        }}
+      >
+        {/* Solid background burst */}
+        <polygon points={BURST_POINTS} fill={badge.bgColor} />
+
+        {/* Inner dashed outline, scaled 0.86 around the centre so it sits
+            just inside the outer edge — matches the previous inset design. */}
+        <polygon
+          points={BURST_POINTS}
+          fill="none"
+          stroke={badge.textColor}
+          strokeOpacity={0.3}
+          strokeWidth={2}
+          strokeDasharray="4 3"
+          transform="translate(50,50) scale(0.86) translate(-50,-50)"
+        />
+      </svg>
+
+      {/* Editable text content, centred over the burst.
+          Both text fields remain fully editable via <Editable>. */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 1,
+          padding: "0 8px",
+        }}
+      >
         <Editable
           id="badge-text"
           value={badge.text}
@@ -1339,9 +1394,8 @@ const VALID_CATEGORIES: FlyerState["templateCategory"][] = [
 
      html2canvas renders the DOM directly onto a <canvas> by reading
      resolved values from getComputedStyle() (so CSS variables work
-     everywhere) and painting each element. No foreignObject, no SVG,
-     no custom-property copying. Consistent output on Chrome, Safari,
-     iOS, and Android.
+     everywhere) and painting each element. No foreignObject, no SVG
+     foreignObject quirks, no custom-property copying.
 
    We still:
      • capture the LIVE node (not a hidden clone) so every <img> has a
