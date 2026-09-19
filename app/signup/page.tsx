@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { apiFetch } from "@/lib/auth";
+import { ThemeProvider, ThemeToggle, useTheme } from "@/lib/theme";
 
 type FormField =
   | "full_name"
@@ -32,17 +33,6 @@ interface FormState {
   password: string;
   confirm_password: string;
 }
-
-const ink = "#16140F";
-const panel = "#1D1A14";
-const panelSoft = "#242019";
-const rule = "#38321F";
-const paper = "#EDE6D6";
-const paperMuted = "#C9BFA4";
-const marigold = "#E8A33D";
-const signal = "#D6491F";
-const textPrimary = "#F3ECDD";
-const textMuted = "#8C8368";
 
 const COUNTRIES = [
   { value: "NG", label: "Nigeria" },
@@ -70,8 +60,20 @@ const INCLUDED = [
   },
 ];
 
-export default function SignUpPage() {
+function SignUpPageInner() {
   const router = useRouter();
+  const { tokens } = useTheme();
+  const {
+    ink,
+    panel,
+    panelSoft,
+    rule,
+    paperMuted,
+    marigold,
+    signal,
+    textPrimary,
+    textMuted,
+  } = tokens;
 
   const [form, setForm] = useState<FormState>({
     full_name: "",
@@ -171,7 +173,7 @@ export default function SignUpPage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col overflow-x-hidden"
+      className="min-h-screen flex flex-col overflow-x-hidden transition-colors duration-300"
       style={{
         background: ink,
         color: textPrimary,
@@ -252,26 +254,31 @@ export default function SignUpPage() {
         </div>
       </div>
 
-      {/* HEADER */}
+      {/* HEADER — toggle sits right next to the back-to-home link, so it
+          reads as "upper left" without floating on top of anything. */}
       <header className="px-5 py-5 sm:px-8 sm:py-7">
         <div className="mx-auto flex max-w-[1180px] items-center justify-between">
-          <Link
-            href="/"
-            className="group inline-flex items-center gap-3"
-            style={{ color: textMuted }}
-          >
-            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Link
+              href="/"
+              className="group inline-flex items-center gap-3"
+              style={{ color: textMuted }}
+            >
+              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
 
-            <Logo
-              size="sm"
-              showWordmark={false}
-              className="h-8 w-8 rounded-lg"
-            />
+              <Logo
+                size="sm"
+                showWordmark={false}
+                className="h-8 w-8 rounded-lg"
+              />
 
-            <span className="font-mono text-[10px] tracking-[0.16em]">
-              BACK TO HOME
-            </span>
-          </Link>
+              <span className="hidden font-mono text-[10px] tracking-[0.16em] sm:inline">
+                BACK TO HOME
+              </span>
+            </Link>
+
+            <ThemeToggle variant="inline" />
+          </div>
 
           <span
             className="hidden font-mono text-[9px] tracking-[0.18em] sm:block"
@@ -316,7 +323,7 @@ export default function SignUpPage() {
 
             <p
               className="font-display mt-8 max-w-[500px] text-lg leading-[1.18] tracking-[-0.02em] sm:text-xl"
-              style={{ color: "#B9B09C" }}
+              style={{ color: textMuted }}
             >
               INRASTUDIO turns the raw material you already have into
               marketing content you can actually use.
@@ -370,8 +377,6 @@ export default function SignUpPage() {
               className="mt-6 flex items-center gap-2 font-mono text-[9px] tracking-[0.1em]"
               style={{ color: textMuted }}
             >
-              
-
               BUILT FOR BUSINESSES THAT NEED TO MOVE FAST
             </div>
           </section>
@@ -428,15 +433,17 @@ export default function SignUpPage() {
                 </div>
               )}
 
-              {/* FORM */}
+              {/* FORM — this inner card is deliberately always "paper"
+                  colored (it represents a physical intake form), so it
+                  keeps dark ink text on a light card in both themes. */}
               <div
                 className="mt-7 rounded-2xl p-1"
-                style={{ background: paper }}
+                style={{ background: "#EDE6D6" }}
               >
                 <div
                   className="rounded-xl p-4 sm:p-5"
                   style={{
-                    border: `1px dashed ${paperMuted}`,
+                    border: "1px dashed #C9BFA4",
                   }}
                   onKeyDown={handleKeyDown}
                 >
@@ -458,14 +465,14 @@ export default function SignUpPage() {
                       onChange={set("full_name")}
                       autoComplete="name"
                       className="campaign-input font-display mt-2 w-full bg-transparent text-base font-medium sm:text-lg"
-                      style={{ color: ink }}
+                      style={{ color: "#16140F" }}
                     />
                   </div>
 
                   {/* EMAIL */}
                   <div
                     className="mt-4 border-t pt-4"
-                    style={{ borderColor: paperMuted }}
+                    style={{ borderColor: "#C9BFA4" }}
                   >
                     <label
                       htmlFor="email"
@@ -483,14 +490,14 @@ export default function SignUpPage() {
                       onChange={set("email")}
                       autoComplete="email"
                       className="campaign-input font-display mt-2 w-full bg-transparent text-base font-medium sm:text-lg"
-                      style={{ color: ink }}
+                      style={{ color: "#16140F" }}
                     />
                   </div>
 
                   {/* COUNTRY */}
                   <div
                     className="mt-4 border-t pt-4"
-                    style={{ borderColor: paperMuted }}
+                    style={{ borderColor: "#C9BFA4" }}
                   >
                     <label
                       htmlFor="country"
@@ -506,7 +513,7 @@ export default function SignUpPage() {
                       onChange={set("country")}
                       className="campaign-select mt-2 w-full cursor-pointer bg-transparent text-base font-medium outline-none sm:text-lg"
                       style={{
-                        color: form.country ? ink : "#6B6250",
+                        color: form.country ? "#16140F" : "#6B6250",
                       }}
                     >
                       <option value="">
@@ -527,7 +534,7 @@ export default function SignUpPage() {
                   {/* PASSWORD */}
                   <div
                     className="mt-4 border-t pt-4"
-                    style={{ borderColor: paperMuted }}
+                    style={{ borderColor: "#C9BFA4" }}
                   >
                     <label
                       htmlFor="password"
@@ -546,7 +553,7 @@ export default function SignUpPage() {
                         onChange={set("password")}
                         autoComplete="new-password"
                         className="campaign-input font-display mt-2 w-full bg-transparent pr-11 text-base font-medium outline-none sm:text-lg"
-                        style={{ color: ink }}
+                        style={{ color: "#16140F" }}
                       />
 
                       <button
@@ -574,7 +581,7 @@ export default function SignUpPage() {
                   {/* CONFIRM PASSWORD */}
                   <div
                     className="mt-4 border-t pt-4"
-                    style={{ borderColor: paperMuted }}
+                    style={{ borderColor: "#C9BFA4" }}
                   >
                     <label
                       htmlFor="confirmPassword"
@@ -597,7 +604,7 @@ export default function SignUpPage() {
                         onChange={set("confirm_password")}
                         autoComplete="new-password"
                         className="campaign-input font-display mt-2 w-full bg-transparent pr-11 text-base font-medium outline-none sm:text-lg"
-                        style={{ color: ink }}
+                        style={{ color: "#16140F" }}
                       />
 
                       <button
@@ -624,7 +631,8 @@ export default function SignUpPage() {
                 </div>
               </div>
 
-              {/* CTA */}
+              {/* CTA — text stays a fixed dark ink so it reads on the
+                  marigold fill in both themes. */}
               <button
                 type="button"
                 onClick={handleSubmit}
@@ -658,7 +666,7 @@ export default function SignUpPage() {
                   color:
                     loading || !formReady
                       ? "#8C7C52"
-                      : ink,
+                      : "#16140F",
                 }}
               >
                 {loading ? (
@@ -735,3 +743,10 @@ export default function SignUpPage() {
   );
 }
 
+export default function SignUpPage() {
+  return (
+    <ThemeProvider>
+      <SignUpPageInner />
+    </ThemeProvider>
+  );
+}

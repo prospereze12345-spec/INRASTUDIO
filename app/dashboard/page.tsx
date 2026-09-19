@@ -25,6 +25,7 @@ import {
   type JobStatus,
 } from "@/lib/campaign-api";
 import { apiFetch } from "@/lib/auth";
+import { ThemeProvider, ThemeToggle, useTheme } from "@/lib/theme";
 
 interface RecentCampaign {
   job_id: string;
@@ -63,21 +64,11 @@ interface DashboardData {
 }
 
 /* ────────────────────────────────────────────────────────────────
-   DESIGN TOKENS — "Campaign Ticket" system.
-   Everything below is deliberately not navy/purple/glass: it borrows
-   from print-shop dockets — kraft paper, stamps, perforation, mono
-   labels — because the product's own output is a printed flyer.
-   Keep these in one place so the palette never drifts per-section.
+   DESIGN TOKENS now live in @/lib/theme as DARK_TOKENS / LIGHT_TOKENS.
+   Every component below reads them via useTheme() instead of the old
+   module-level consts, so flipping the toggle swaps every ink/paper
+   value in one place — nothing here hardcodes a color anymore.
    ──────────────────────────────────────────────────────────────── */
-const ink = "#16140F";
-const panel = "#1D1A14";
-const rule = "#38321F";
-const paper = "#EDE6D6";
-const paperMuted = "#C9BFA4";
-const marigold = "#E8A33D";
-const signal = "#D6491F";
-const textPrimary = "#F3ECDD";
-const textMuted = "#8C8368";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Token helpers
@@ -184,14 +175,7 @@ const PHASE_LABEL: Record<UploadPhase, string> = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ScaledPreview — renders a template at its true design size, then scales the
-// whole thing down as one rigid block. This is the fix for thumbnails that
-// look cramped or overlapping: nothing ever reflows at a smaller width, it's
-// just optically shrunk, exactly like a print proof reduced on a photocopier.
-//
-// TEMPLATE_CANVAS_W / H below must match the pixel size your template
-// components are actually built at. If LuxuryProductTemplate / PremiumBrand
-// Template use a different intrinsic canvas, change these two numbers only —
-// nothing else in this component needs to know about it.
+// whole thing down as one rigid block.
 // ─────────────────────────────────────────────────────────────────────────────
 const TEMPLATE_CANVAS_W = 1000;
 const TEMPLATE_CANVAS_H = 1250;
@@ -232,9 +216,14 @@ function ScaledPreview({ children }: { children: React.ReactNode }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Sidebar
+// Sidebar — the toggle lives here, top-left, next to the logo, so it never
+// overlaps the mobile header's own back-link/logo or the desktop sidebar's
+// logo row.
 // ─────────────────────────────────────────────────────────────────────────────
 function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const { tokens } = useTheme();
+  const { panel, rule, textMuted, textPrimary, marigold } = tokens;
+
   return (
     <>
       <AnimatePresence>
@@ -248,11 +237,14 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         className={`fixed top-0 left-0 bottom-0 w-64 z-50 flex flex-col transition-transform lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
         style={{ background: panel, borderRight: `1px solid ${rule}` }}
       >
-        <div className="p-6 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Logo className="w-8 h-8 rounded-lg" />
+        <div className="p-6 flex items-center justify-between gap-2">
+          <Link href="/" className="flex items-center gap-2 min-w-0">
+            <Logo className="w-8 h-8 rounded-lg shrink-0" />
           </Link>
-          <button className="lg:hidden p-1" style={{ color: textMuted }} onClick={onClose}><X className="w-5 h-5" /></button>
+          <div className="flex items-center gap-2 shrink-0">
+            <ThemeToggle variant="inline" />
+            <button className="lg:hidden p-1" style={{ color: textMuted }} onClick={onClose}><X className="w-5 h-5" /></button>
+          </div>
         </div>
 
         {/* Explicit way back to the marketing site — separate from the
@@ -289,6 +281,8 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 // Small building blocks specific to the "campaign ticket" concept
 // ─────────────────────────────────────────────────────────────────────────────
 function Stamp({ value, label }: { value: string; label: string }) {
+  const { tokens } = useTheme();
+  const { signal } = tokens;
   return (
     <div
       className="w-28 h-28 sm:w-32 sm:h-32 rounded-full flex flex-col items-center justify-center shrink-0"
@@ -301,6 +295,8 @@ function Stamp({ value, label }: { value: string; label: string }) {
 }
 
 function Perforation() {
+  const { tokens } = useTheme();
+  const { rule, ink } = tokens;
   return (
     <div className="relative h-px mx-8 sm:mx-10">
       <div style={{ borderTop: `2px dashed ${rule}` }} />
@@ -313,7 +309,10 @@ function Perforation() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Page
 // ─────────────────────────────────────────────────────────────────────────────
-export default function DashboardPage() {
+function DashboardPageInner() {
+  const { tokens } = useTheme();
+  const { ink, panel, rule, paper, paperMuted, marigold, signal, textPrimary, textMuted } = tokens;
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [generateVideo, setGenerateVideo] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -444,7 +443,7 @@ export default function DashboardPage() {
         .lift { transition: transform .18s ease, border-color .18s ease; }
       `}</style>
 
-      <div className="min-h-screen font-sans flex overflow-x-hidden" style={{ background: ink, color: textPrimary }}>
+      <div className="min-h-screen font-sans flex overflow-x-hidden transition-colors duration-300" style={{ background: ink, color: textPrimary }}>
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <main className="flex-1 lg:ml-64 relative min-h-screen w-full max-w-full overflow-x-hidden">
@@ -454,9 +453,12 @@ export default function DashboardPage() {
               <ArrowLeft className="w-4 h-4" />
               <Logo className="w-8 h-8 rounded-md" />
             </Link>
-            <button onClick={() => setSidebarOpen(true)} className="p-3 -m-3" style={{ color: textMuted }}>
-              <Menu className="w-6 h-6" />
-            </button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle variant="inline" />
+              <button onClick={() => setSidebarOpen(true)} className="p-3 -m-3" style={{ color: textMuted }}>
+                <Menu className="w-6 h-6" />
+              </button>
+            </div>
           </header>
 
           <div className="p-3 sm:p-6 md:p-10 max-w-6xl mx-auto space-y-10 sm:space-y-14 w-full max-w-full">
@@ -828,3 +830,10 @@ export default function DashboardPage() {
   );
 }
 
+export default function DashboardPage() {
+  return (
+    <ThemeProvider>
+      <DashboardPageInner />
+    </ThemeProvider>
+  );
+}

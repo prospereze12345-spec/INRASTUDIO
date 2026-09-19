@@ -13,18 +13,22 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { apiFetch } from "@/lib/auth";
+import { ThemeProvider, ThemeToggle, useTheme } from "@/lib/theme";
 
-const ink = "#16140F";
-const panel = "#1D1A14";
-const panelSoft = "#242019";
-const rule = "#38321F";
-const paper = "#EDE6D6";
-const marigold = "#E8A33D";
-const signal = "#D6491F";
-const textPrimary = "#F3ECDD";
-const textMuted = "#8C8368";
+function LoginPageInner() {
+  const { tokens } = useTheme();
+  const {
+    ink,
+    panel,
+    panelSoft,
+    rule,
+    paper,
+    marigold,
+    signal,
+    textPrimary,
+    textMuted,
+  } = tokens;
 
-export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -66,7 +70,7 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col overflow-x-hidden"
+      className="min-h-screen flex flex-col overflow-x-hidden transition-colors duration-300"
       style={{
         background: ink,
         color: textPrimary,
@@ -142,26 +146,31 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* HEADER */}
+      {/* HEADER — toggle sits right next to the back-to-home link, so it
+          reads as "upper left" without floating on top of anything. */}
       <header className="px-5 py-5 sm:px-8 sm:py-7">
         <div className="mx-auto flex max-w-[1180px] items-center justify-between">
-          <Link
-            href="/"
-            className="group inline-flex items-center gap-3"
-            style={{ color: textMuted }}
-          >
-            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Link
+              href="/"
+              className="group inline-flex items-center gap-3"
+              style={{ color: textMuted }}
+            >
+              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
 
-            <Logo
-              size="sm"
-              showWordmark={false}
-              className="h-8 w-8 rounded-lg"
-            />
+              <Logo
+                size="sm"
+                showWordmark={false}
+                className="h-8 w-8 rounded-lg"
+              />
 
-            <span className="font-mono text-[10px] tracking-[0.16em]">
-              BACK TO HOME
-            </span>
-          </Link>
+              <span className="hidden font-mono text-[10px] tracking-[0.16em] sm:inline">
+                BACK TO HOME
+              </span>
+            </Link>
+
+            <ThemeToggle variant="inline" />
+          </div>
 
           <span
             className="hidden font-mono text-[9px] tracking-[0.18em] sm:block"
@@ -204,7 +213,7 @@ export default function LoginPage() {
 
             <p
               className="font-display mt-8 max-w-[470px] text-xl leading-[1.18] tracking-[-0.025em]"
-              style={{ color: "#B9B09C" }}
+              style={{ color: textMuted }}
             >
               Sign in and pick up where you left off — from your next
               flyer to the campaign behind it.
@@ -276,7 +285,7 @@ export default function LoginPage() {
 
                 <p
                   className="font-display mt-5 max-w-md text-base leading-[1.2]"
-                  style={{ color: "#B9B09C" }}
+                  style={{ color: textMuted }}
                 >
                   Sign in and continue creating marketing content
                   for your business.
@@ -320,10 +329,12 @@ export default function LoginPage() {
                 </div>
               )}
 
-              {/* EMAIL */}
+              {/* EMAIL — this inner card is deliberately always "paper"
+                  colored (it represents a physical intake ticket), so it
+                  keeps dark ink text on a light card in both themes. */}
               <div
                 className="mt-7 rounded-2xl p-1"
-                style={{ background: paper }}
+                style={{ background: "#EDE6D6" }}
               >
                 <div
                   className="rounded-xl p-4 sm:p-5"
@@ -350,12 +361,13 @@ export default function LoginPage() {
                       if (e.key === "Enter") handleSubmit();
                     }}
                     className="login-input font-display mt-2 w-full bg-transparent text-lg font-medium"
-                    style={{ color: ink }}
+                    style={{ color: "#16140F" }}
                   />
                 </div>
               </div>
 
-              {/* CTA */}
+              {/* CTA — text stays a fixed dark ink so it reads on the
+                  marigold fill in both themes. */}
               <button
                 type="button"
                 onClick={handleSubmit}
@@ -389,7 +401,7 @@ export default function LoginPage() {
                   color:
                     loading || !email.trim()
                       ? "#8C7C52"
-                      : ink,
+                      : "#16140F",
                 }}
               >
                 {loading ? (
@@ -470,3 +482,10 @@ export default function LoginPage() {
   );
 }
 
+export default function LoginPage() {
+  return (
+    <ThemeProvider>
+      <LoginPageInner />
+    </ThemeProvider>
+  );
+}

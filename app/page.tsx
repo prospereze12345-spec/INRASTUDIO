@@ -23,32 +23,37 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Navbar } from "@/components/Navbar";
 import { InstallButton } from "@/components/pwa/InstallButton";
+import { ThemeProvider, ThemeToggle, useTheme } from "@/lib/theme";
 
 /**
  * DESIGN NOTES
  * ---------------------------------------------------------------------------
- * Concept:
- * INRASTUDIO should feel like a real working studio, not a generic SaaS
- * landing page. The hero therefore shows the actual kind of output the
- * customer receives, while the workflow section makes the product itself
- * more visually prominent.
+ * Theming scope (read this before touching colors here):
  *
- * Palette:
- *   --ink        #15130F
- *   --paper      #F2EEE2
- *   --paper-dim  #E7E1CF
- *   --signal     #FFC629
- *   --stamp      #C6371B
- *   --ink-soft   #A79A82
+ * This page deliberately alternates dark "ink" bands and light "paper"
+ * bands as part of the print-shop brand identity, and it embeds literal
+ * screenshots/mockups of the product's own (always-dark) UI and printed
+ * flyer output. So the light/dark toggle here only affects the site's own
+ * chrome — section backgrounds and heading/body text that sit directly on
+ * them (Hero, StatsBar, WhoItsFor, Workflow's heading, VideoDemo's heading,
+ * Testimonials' heading, FAQ, CallToAction, Footer).
  *
- * The palette is intentionally unchanged.
+ * Left constant on purpose, in both themes:
+ *  - The brand accent colors (#FFC629 yellow, #C6371B red/stamp).
+ *  - Any "paper" card that represents a literal printed artifact — the
+ *    testimonial clippings, the HowItWorks band, the flyer/video/caption
+ *    mockups inside the studio frame. These are things the product makes,
+ *    not app chrome, so they always render as light paper with dark ink
+ *    text, exactly like a real printed flyer would.
+ *  - The dark device-bezel colors (#0c0a08 / #0f0d0a) used to frame
+ *    screenshots and the video player — those mimic hardware/media
+ *    chrome, which stays dark the same way a video player's background
+ *    does regardless of the site around it.
  *
- * Main refinement:
- * - Hero = promise + actual product output
- * - Workflow = product proof
- * - Other sections = supporting evidence
- * - Less vertical whitespace
- * - No new visual language competing with the existing identity
+ * The Navbar component itself is untouched — the toggle is added next to
+ * it as an independent floating control instead of being wired into it,
+ * since its source isn't part of this file. If it visually overlaps your
+ * Navbar's logo, nudge the `top`/`left` props on <ThemeToggle /> below.
  * ---------------------------------------------------------------------------
  */
 
@@ -194,6 +199,9 @@ function TapeCorner({ className = "" }: { className?: string }) {
 }
 
 // ─── Hero product preview ──────────────────────────────────────────────────
+// Everything inside this component is a screenshot/mockup of the product's
+// own (always-dark) studio UI and its printed output — intentionally left
+// out of the theme system, same reasoning as the design note at the top.
 
 function FlyerHero({
   activeIndex,
@@ -359,6 +367,7 @@ function FlyerHero({
 // ─── Hero ───────────────────────────────────────────────────────────────────
 
 function Hero() {
+  const { tokens } = useTheme();
   const activeIndex = useCaptionCycle(CAPTIONS.length);
 
   return (
@@ -368,7 +377,8 @@ function Hero() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-5 inline-block bg-[#15130F] px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-[#FFC629]"
+          className="mb-5 inline-block px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-[#FFC629]"
+          style={{ background: tokens.ink }}
         >
           Printed for WhatsApp, Instagram &amp; TikTok
         </motion.span>
@@ -377,8 +387,9 @@ function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
-          className="mb-5 text-5xl leading-[1.03] tracking-tight text-[#F2EEE2] md:text-6xl lg:text-[4.6rem]"
+          className="mb-5 text-5xl leading-[1.03] tracking-tight md:text-6xl lg:text-[4.6rem]"
           style={{
+            color: tokens.textPrimary,
             fontFamily:
               "'Archivo Black', var(--font-display), sans-serif",
           }}
@@ -394,7 +405,8 @@ function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
-          className="mx-auto mb-8 max-w-lg text-base leading-relaxed text-[#A79A82] md:text-lg lg:mx-0"
+          className="mx-auto mb-8 max-w-lg text-base leading-relaxed md:text-lg lg:mx-0"
+          style={{ color: tokens.textMuted }}
         >
           Send a photo of what you're selling. You'll get a flyer with your
           logo already on it, captions written for each platform, and a short
@@ -418,13 +430,16 @@ function Hero() {
           <InstallButton />
         </motion.div>
 
-        <p className="mt-3 text-xs text-[#A79A82]/80">
+        <p className="mt-3 text-xs" style={{ color: tokens.textMuted }}>
           No card needed. Cancel any time.
         </p>
 
         {/* Small product cue */}
-        <div className="mt-7 flex items-center justify-center gap-3 font-mono text-[9px] uppercase tracking-[0.18em] text-[#A79A82]/70 lg:justify-start">
-          <span className="h-px w-8 bg-[#A79A82]/30" />
+        <div
+          className="mt-7 flex items-center justify-center gap-3 font-mono text-[9px] uppercase tracking-[0.18em] lg:justify-start"
+          style={{ color: tokens.textMuted }}
+        >
+          <span className="h-px w-8" style={{ background: tokens.rule }} />
           <span>Flyer + video + 5 captions</span>
         </div>
       </div>
@@ -437,14 +452,18 @@ function Hero() {
 // ─── Stats ──────────────────────────────────────────────────────────────────
 
 function StatsBar() {
+  const { tokens } = useTheme();
   return (
-    <section className="border-y border-[#F2EEE2]/10 bg-[#15130F] py-6">
+    <section
+      className="border-y py-6 transition-colors duration-300"
+      style={{ borderColor: tokens.rule, background: tokens.ink }}
+    >
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-1 px-6 text-center">
         <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#FFC629]">
           Last month
         </span>
 
-        <p className="max-w-2xl text-base text-[#F2EEE2] md:text-lg">
+        <p className="max-w-2xl text-base md:text-lg" style={{ color: tokens.textPrimary }}>
           1,102 flyers went out to resellers, skincare sellers, estate agents
           and caterers across Nigeria, Morocco, USA, Accra and Kenya.
         </p>
@@ -506,13 +525,15 @@ const USE_CASES: {
 ];
 
 function WhoItsFor() {
+  const { tokens } = useTheme();
   return (
     <section className="mx-auto max-w-6xl px-6 py-20 md:py-24">
       <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
         <div>
           <h2
-            className="text-3xl text-[#F2EEE2] md:text-4xl"
+            className="text-3xl md:text-4xl"
             style={{
+              color: tokens.textPrimary,
               fontFamily:
                 "'Archivo Black', var(--font-display), sans-serif",
             }}
@@ -520,7 +541,10 @@ function WhoItsFor() {
             If you sell like this, it's built for you.
           </h2>
 
-          <p className="mt-3 max-w-xl text-base leading-relaxed text-[#A79A82] md:text-lg">
+          <p
+            className="mt-3 max-w-xl text-base leading-relaxed md:text-lg"
+            style={{ color: tokens.textMuted }}
+          >
             Not a storefront with a marketing budget — someone selling through
             WhatsApp, Instagram or TikTok, one product at a time.
           </p>
@@ -536,7 +560,8 @@ function WhoItsFor() {
           ({ icon: Icon, label, detail, rotate }) => (
             <div
               key={label}
-              className={`w-full border-2 border-[#F2EEE2] bg-[#15130F] p-5 transition-transform duration-300 hover:-translate-y-1 sm:w-[calc(50%-0.625rem)] lg:w-[calc(33.333%-0.84rem)] ${rotate}`}
+              className={`w-full border-2 p-5 transition-transform duration-300 hover:-translate-y-1 sm:w-[calc(50%-0.625rem)] lg:w-[calc(33.333%-0.84rem)] ${rotate}`}
+              style={{ borderColor: tokens.rule, background: tokens.panel }}
             >
               <div className="mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-[#FFC629]">
                 <Icon className="h-3.5 w-3.5" />
@@ -544,8 +569,9 @@ function WhoItsFor() {
               </div>
 
               <h3
-                className="text-lg text-[#F2EEE2]"
+                className="text-lg"
                 style={{
+                  color: tokens.textPrimary,
                   fontFamily:
                     "'Archivo Black', var(--font-display), sans-serif",
                 }}
@@ -553,7 +579,7 @@ function WhoItsFor() {
                 {label}
               </h3>
 
-              <p className="mt-2 text-sm leading-relaxed text-[#A79A82]">
+              <p className="mt-2 text-sm leading-relaxed" style={{ color: tokens.textMuted }}>
                 {detail}
               </p>
             </div>
@@ -565,6 +591,8 @@ function WhoItsFor() {
 }
 
 // ─── How it works ──────────────────────────────────────────────────────────
+// Intentionally left as a constant "paper" band (see design note above) —
+// it's a fixed contrast interlude, not app chrome, so it doesn't invert.
 
 function HowItWorks() {
   return (
@@ -638,6 +666,8 @@ function HowItWorks() {
 }
 
 // ─── Workflow product showcase ─────────────────────────────────────────────
+// The section shell (heading, wrapper bg) follows the theme; the "studio
+// frame" mockup inside it is a screenshot of the product and stays constant.
 
 function VideoCard({
   src,
@@ -691,10 +721,12 @@ function DeferredVideoTile({
 }
 
 function Workflow() {
+  const { tokens } = useTheme();
   return (
     <section
       id="dashboards"
-      className="border-y border-[#F2EEE2]/10 bg-[#15130F] px-6 py-20 md:py-24"
+      className="border-y px-6 py-20 md:py-24 transition-colors duration-300"
+      style={{ borderColor: tokens.rule, background: tokens.ink }}
     >
       <div className="mx-auto max-w-6xl">
         {/* Product heading */}
@@ -705,8 +737,9 @@ function Workflow() {
             </div>
 
             <h2
-              className="text-3xl text-[#F2EEE2] md:text-5xl"
+              className="text-3xl md:text-5xl"
               style={{
+                color: tokens.textPrimary,
                 fontFamily:
                   "'Archivo Black', var(--font-display), sans-serif",
               }}
@@ -716,7 +749,10 @@ function Workflow() {
               Everything you need out.
             </h2>
 
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-[#A79A82] md:text-lg">
+            <p
+              className="mt-4 max-w-xl text-base leading-relaxed md:text-lg"
+              style={{ color: tokens.textMuted }}
+            >
               No templates to scroll through. INRASTUDIO builds the first draft
               for you, then leaves the final decision in your hands.
             </p>
@@ -724,14 +760,15 @@ function Workflow() {
 
           <Link
             href="/signup"
-            className="hidden shrink-0 items-center gap-2 border border-[#F2EEE2]/30 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-[#F2EEE2] transition-colors hover:border-[#FFC629] hover:text-[#FFC629] md:flex"
+            className="hidden shrink-0 items-center gap-2 border px-4 py-3 font-mono text-[10px] uppercase tracking-widest transition-colors hover:border-[#FFC629] hover:text-[#FFC629] md:flex"
+            style={{ borderColor: tokens.rule, color: tokens.textPrimary }}
           >
             Try the studio
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
-        {/* Actual product/output area */}
+        {/* Actual product/output area — a screenshot mockup, kept constant */}
         <div className="border border-[#F2EEE2]/15 bg-[#0c0a08] p-2 shadow-[8px_8px_0_0_rgba(0,0,0,0.25)]">
           {/* Fake studio toolbar */}
           <div className="flex flex-col gap-2 border-b border-[#F2EEE2]/10 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -842,6 +879,7 @@ function Workflow() {
 // ─── Video demo ─────────────────────────────────────────────────────────────
 
 function VideoDemo() {
+  const { tokens } = useTheme();
   const wrapRef = useRef<HTMLDivElement>(null);
   const inView = useInView(wrapRef, {
     once: true,
@@ -860,8 +898,9 @@ function VideoDemo() {
         </span>
 
         <h2
-          className="mt-2 text-3xl text-[#F2EEE2] md:text-5xl"
+          className="mt-2 text-3xl md:text-5xl"
           style={{
+            color: tokens.textPrimary,
             fontFamily:
               "'Archivo Black', var(--font-display), sans-serif",
           }}
@@ -869,11 +908,13 @@ function VideoDemo() {
           Watch the whole thing happen
         </h2>
 
-        <p className="mx-auto mt-3 max-w-2xl text-base text-[#A79A82] md:text-lg">
+        <p className="mx-auto mt-3 max-w-2xl text-base md:text-lg" style={{ color: tokens.textMuted }}>
           Two minutes, start to finish — from a phone photo to a finished post.
         </p>
       </div>
 
+      {/* Video player chrome stays black in both themes, like any video
+          player — this is a media surface, not page chrome. */}
       <div className="group relative flex aspect-video w-full cursor-pointer items-center justify-center overflow-hidden border-2 border-[#F2EEE2]/20 bg-[#0f0d0a]">
         {inView && (
           <Image
@@ -913,6 +954,7 @@ function VideoDemo() {
 // ─── Testimonials ───────────────────────────────────────────────────────────
 
 function Testimonials() {
+  const { tokens } = useTheme();
   const reviews = [
     {
       name: "Chukwudi N.",
@@ -959,7 +1001,10 @@ function Testimonials() {
   }, []);
 
   return (
-    <section className="border-t border-[#F2EEE2]/10 bg-[#15130F] py-20 md:py-24">
+    <section
+      className="border-t py-20 md:py-24 transition-colors duration-300"
+      style={{ borderColor: tokens.rule, background: tokens.ink }}
+    >
       <div className="mx-auto w-full max-w-7xl">
         <div className="mb-9 px-6">
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#FFC629]">
@@ -967,8 +1012,9 @@ function Testimonials() {
           </span>
 
           <h2
-            className="mt-2 text-3xl text-[#F2EEE2] md:text-4xl"
+            className="mt-2 text-3xl md:text-4xl"
             style={{
+              color: tokens.textPrimary,
               fontFamily:
                 "'Archivo Black', var(--font-display), sans-serif",
             }}
@@ -977,6 +1023,8 @@ function Testimonials() {
           </h2>
         </div>
 
+        {/* The clippings themselves are always paper-colored — real
+            printed-quote cards, not page chrome. */}
         <div
           ref={carouselRef}
           className="w-full cursor-grab overflow-hidden px-6 active:cursor-grabbing"
@@ -1031,6 +1079,7 @@ function Testimonials() {
 // ─── FAQ ────────────────────────────────────────────────────────────────────
 
 function FAQ() {
+  const { tokens } = useTheme();
   const faqs = [
     {
       q: "My photos are taken on an ordinary phone, not a proper camera. Does that matter?",
@@ -1052,21 +1101,22 @@ function FAQ() {
       q: "What if I don't like the result?",
       a: "Editing text, colour or your logo updates instantly, no regenerating needed. You only need to regenerate if you want to swap the product photo itself.",
     },
-    
   ];
 
   return (
     <section
       id="resources"
-      className="mx-auto max-w-3xl border-t border-[#F2EEE2]/10 px-6 py-20 md:py-24"
+      className="mx-auto max-w-3xl border-t px-6 py-20 md:py-24 transition-colors duration-300"
+      style={{ borderColor: tokens.rule }}
     >
       <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#FFC629]">
         FAQ
       </span>
 
       <h2
-        className="mt-2 mb-8 text-3xl text-[#F2EEE2] md:text-4xl"
+        className="mt-2 mb-8 text-3xl md:text-4xl"
         style={{
+          color: tokens.textPrimary,
           fontFamily:
             "'Archivo Black', var(--font-display), sans-serif",
         }}
@@ -1074,14 +1124,18 @@ function FAQ() {
         Questions people actually ask
       </h2>
 
-      <div className="divide-y divide-[#F2EEE2]/10">
-        {faqs.map((faq) => (
-          <div key={faq.q} className="py-5">
-            <h3 className="mb-2 text-base font-semibold text-[#F2EEE2]">
+      <div>
+        {faqs.map((faq, i) => (
+          <div
+            key={faq.q}
+            className="py-5"
+            style={i > 0 ? { borderTop: `1px solid ${tokens.rule}` } : undefined}
+          >
+            <h3 className="mb-2 text-base font-semibold" style={{ color: tokens.textPrimary }}>
               {faq.q}
             </h3>
 
-            <p className="text-[15px] leading-relaxed text-[#A79A82]">
+            <p className="text-[15px] leading-relaxed" style={{ color: tokens.textMuted }}>
               {faq.a}
             </p>
           </div>
@@ -1094,14 +1148,19 @@ function FAQ() {
 // ─── Final CTA ──────────────────────────────────────────────────────────────
 
 function CallToAction() {
+  const { tokens } = useTheme();
   return (
     <section className="mx-auto max-w-7xl px-6 py-8 md:py-12">
-      <div className="relative w-full overflow-hidden border-2 border-[#F2EEE2] bg-[#0c0c0c] shadow-[10px_10px_0_0_rgba(255,198,41,0.25)]">
+      <div
+        className="relative w-full overflow-hidden border-2 shadow-[10px_10px_0_0_rgba(255,198,41,0.25)] transition-colors duration-300"
+        style={{ borderColor: tokens.textPrimary, background: tokens.ink }}
+      >
         <div className="relative z-10 flex flex-col items-center gap-8 p-8 md:flex-row md:gap-12 md:p-16">
           <div className="flex-1 text-center md:text-left">
             <h2
-              className="mb-7 text-4xl leading-[1.05] text-[#F2EEE2] md:text-6xl"
+              className="mb-7 text-4xl leading-[1.05] md:text-6xl"
               style={{
+                color: tokens.textPrimary,
                 fontFamily:
                   "'Archivo Black', var(--font-display), sans-serif",
               }}
@@ -1138,11 +1197,15 @@ function CallToAction() {
 // ─── Footer ─────────────────────────────────────────────────────────────────
 
 function Footer() {
+  const { tokens } = useTheme();
   return (
-    <footer className="relative mt-8 w-full border-t border-[#F2EEE2]/10 bg-[#0c0a08] px-6 pb-12 pt-20 md:pt-24">
+    <footer
+      className="relative mt-8 w-full border-t px-6 pb-12 pt-20 md:pt-24 transition-colors duration-300"
+      style={{ borderColor: tokens.rule, background: tokens.ink }}
+    >
       <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-12 pb-16 lg:flex-row">
         <div className="max-w-2xl flex-1">
-          <h2 className="text-2xl leading-snug tracking-tight text-[#F2EEE2] md:text-4xl">
+          <h2 className="text-2xl leading-snug tracking-tight md:text-4xl" style={{ color: tokens.textPrimary }}>
             We're software, not a design agency.
             <br />
             Give it one photo and it hands back a flyer, five captions and a
@@ -1152,33 +1215,36 @@ function Footer() {
 
         <div className="flex shrink-0 flex-wrap gap-12 font-mono text-xs uppercase tracking-widest sm:gap-24">
           <div className="flex flex-col gap-4">
-            <span className="mb-2 font-bold text-[#A79A82]">
+            <span className="mb-2 font-bold" style={{ color: tokens.textMuted }}>
               Legal
             </span>
 
             <Link
               href="/privacy"
-              className="text-[#F2EEE2] hover:text-[#FFC629]"
+              className="hover:text-[#FFC629]"
+              style={{ color: tokens.textPrimary }}
             >
               Privacy
             </Link>
 
             <Link
               href="/terms"
-              className="text-[#F2EEE2] hover:text-[#FFC629]"
+              className="hover:text-[#FFC629]"
+              style={{ color: tokens.textPrimary }}
             >
               Terms
             </Link>
           </div>
 
           <div className="flex flex-col gap-4">
-            <span className="mb-2 font-bold text-[#A79A82]">
+            <span className="mb-2 font-bold" style={{ color: tokens.textMuted }}>
               Contact
             </span>
 
             <a
               href="#"
-              className="flex items-center gap-2 text-[#F2EEE2] hover:text-[#FFC629]"
+              className="flex items-center gap-2 hover:text-[#FFC629]"
+              style={{ color: tokens.textPrimary }}
             >
               <ArrowUpRight className="h-4 w-4" />
               TikTok
@@ -1186,7 +1252,8 @@ function Footer() {
 
             <a
               href="#"
-              className="flex items-center gap-2 text-[#F2EEE2] hover:text-[#FFC629]"
+              className="flex items-center gap-2 hover:text-[#FFC629]"
+              style={{ color: tokens.textPrimary }}
             >
               <Instagram className="h-4 w-4" />
               Instagram
@@ -1194,7 +1261,8 @@ function Footer() {
 
             <a
               href="mailto:somtohgist@gmail.com"
-              className="flex items-center gap-2 text-[#F2EEE2] hover:text-[#FFC629]"
+              className="flex items-center gap-2 hover:text-[#FFC629]"
+              style={{ color: tokens.textPrimary }}
             >
               <Mail className="h-4 w-4" />
               Support
@@ -1203,7 +1271,10 @@ function Footer() {
         </div>
       </div>
 
-      <div className="mx-auto mt-4 flex max-w-7xl flex-col items-center justify-between gap-4 border-t border-[#F2EEE2]/10 pt-8 text-sm text-[#A79A82] md:flex-row">
+      <div
+        className="mx-auto mt-4 flex max-w-7xl flex-col items-center justify-between gap-4 border-t pt-8 text-sm md:flex-row"
+        style={{ borderColor: tokens.rule, color: tokens.textMuted }}
+      >
         <Logo size="sm" className="h-8 w-8" />
         <p>© 2026 Inrastudio. Made in Lagos.</p>
       </div>
@@ -1213,9 +1284,13 @@ function Footer() {
 
 // ─── Main export ────────────────────────────────────────────────────────────
 
-export default function LandingPage() {
+function LandingPageInner() {
+  const { tokens } = useTheme();
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#15130F] font-sans text-[#F2EEE2] selection:bg-[#FFC629] selection:text-[#15130F]">
+    <div
+      className="relative min-h-screen overflow-x-hidden font-sans transition-colors duration-300 selection:bg-[#FFC629] selection:text-[#15130F]"
+      style={{ background: tokens.ink, color: tokens.textPrimary }}
+    >
       <style jsx global>{`
         @import url("https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;600&display=swap");
 
@@ -1224,7 +1299,10 @@ export default function LandingPage() {
         }
       `}</style>
 
+      {/* Navbar is untouched — the toggle floats independently next to it.
+          Nudge top/left below if it overlaps your Navbar's own logo. */}
       <Navbar />
+      <ThemeToggle top="5.25rem" left="1rem" />
 
       <main>
         <Hero />
@@ -1243,5 +1321,10 @@ export default function LandingPage() {
   );
 }
 
-
-
+export default function LandingPage() {
+  return (
+    <ThemeProvider>
+      <LandingPageInner />
+    </ThemeProvider>
+  );
+}
