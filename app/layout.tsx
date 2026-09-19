@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { Inter, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     'Generate stunning AI Flyers, Captions, and Promo Videos.',
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/icons/icon-192.png',
+    icon: '/favicon.png',
     apple: '/apple-touch-icon.png',
   },
 };
@@ -90,4 +90,5 @@ export default function RootLayout({
     </html>
   );
 }
+
 

@@ -1,7 +1,8 @@
+
 {
   "name": "INRA Studio",
   "short_name": "INRA Studio",
-  "description": "INRA Studio — plan, launch and manage your campaigns.",
+  "description": "INRA Studio - plan, launch and manage your campaigns.",
   "start_url": "/?source=pwa",
   "id": "/?source=pwa",
   "scope": "/",
