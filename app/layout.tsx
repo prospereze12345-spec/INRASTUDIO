@@ -17,6 +17,7 @@ import {
 } from 'next/font/google';
 
 import { PWAProvider } from '@/components/pwa/PWAProvider';
+import { ThemeProvider } from './providers';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -45,12 +46,22 @@ const archivoBlack = Archivo_Black({
   weight: '400',
   variable: '--font-archivo',
 });
-const roboto = Roboto({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-roboto' });
+
+const roboto = Roboto({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-roboto',
+});
+
 const montserrat = Montserrat({ subsets: ['latin'], variable: '--font-montserrat' });
 const oswald = Oswald({ subsets: ['latin'], variable: '--font-oswald' });
 const raleway = Raleway({ subsets: ['latin'], variable: '--font-raleway' });
 const lato = Lato({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-lato' });
-const merriweather = Merriweather({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-merriweather' });
+const merriweather = Merriweather({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-merriweather',
+});
 const nunito = Nunito({ subsets: ['latin'], variable: '--font-nunito' });
 
 const spaceGrotesk = Space_Grotesk({
@@ -60,8 +71,7 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: 'INRASTUDIO | African AI Marketing Studio',
-  description:
-    'Generate stunning AI Flyers, Captions, and Promo Videos.',
+  description: 'Generate stunning AI Flyers, Captions, and Promo Videos.',
   manifest: '/manifest.webmanifest',
   icons: {
     icon: '/favicon.png',
@@ -76,19 +86,20 @@ export default function RootLayout({
 }) {
   return (
     <html
-  lang="en"
-  className={`${inter.variable} ${spaceGrotesk.variable} ${bebas.variable} ${playfair.variable} ${poppins.variable} ${archivoBlack.variable} ${roboto.variable} ${montserrat.variable} ${oswald.variable} ${raleway.variable} ${lato.variable} ${merriweather.variable} ${nunito.variable}`}
->
-      <body
-        className="bg-[#030712] text-slate-50 font-sans antialiased selection:bg-cyan-500 selection:text-white"
-        suppressHydrationWarning
-      >
-        <PWAProvider>
-          {children}
-        </PWAProvider>
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${spaceGrotesk.variable} ${bebas.variable} ${playfair.variable} ${poppins.variable} ${archivoBlack.variable} ${roboto.variable} ${montserrat.variable} ${oswald.variable} ${raleway.variable} ${lato.variable} ${merriweather.variable} ${nunito.variable}`}
+    >
+      <body className="bg-[#030712] text-slate-50 font-sans antialiased selection:bg-cyan-500 selection:text-white">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <PWAProvider>{children}</PWAProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
 }
-
-
