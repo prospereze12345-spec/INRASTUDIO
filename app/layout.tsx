@@ -1,8 +1,8 @@
-﻿import type { Metadata } from 'next';
-import { Inter, Space_Grotesk } from 'next/font/google';
-import './globals.css';
-
+﻿
+import type { Metadata } from 'next';
 import {
+  Inter,
+  Space_Grotesk,
   Bebas_Neue,
   Playfair_Display,
   Poppins,
@@ -15,6 +15,8 @@ import {
   Merriweather,
   Nunito,
 } from 'next/font/google';
+
+import './globals.css';
 
 import { PWAProvider } from '@/components/pwa/PWAProvider';
 import { ThemeProvider } from './providers';
@@ -53,16 +55,37 @@ const roboto = Roboto({
   variable: '--font-roboto',
 });
 
-const montserrat = Montserrat({ subsets: ['latin'], variable: '--font-montserrat' });
-const oswald = Oswald({ subsets: ['latin'], variable: '--font-oswald' });
-const raleway = Raleway({ subsets: ['latin'], variable: '--font-raleway' });
-const lato = Lato({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-lato' });
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  variable: '--font-montserrat',
+});
+
+const oswald = Oswald({
+  subsets: ['latin'],
+  variable: '--font-oswald',
+});
+
+const raleway = Raleway({
+  subsets: ['latin'],
+  variable: '--font-raleway',
+});
+
+const lato = Lato({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-lato',
+});
+
 const merriweather = Merriweather({
   subsets: ['latin'],
   weight: ['400', '700'],
   variable: '--font-merriweather',
 });
-const nunito = Nunito({ subsets: ['latin'], variable: '--font-nunito' });
+
+const nunito = Nunito({
+  subsets: ['latin'],
+  variable: '--font-nunito',
+});
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -90,13 +113,8 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${spaceGrotesk.variable} ${bebas.variable} ${playfair.variable} ${poppins.variable} ${archivoBlack.variable} ${roboto.variable} ${montserrat.variable} ${oswald.variable} ${raleway.variable} ${lato.variable} ${merriweather.variable} ${nunito.variable}`}
     >
-      <body className="bg-[#030712] text-slate-50 font-sans antialiased selection:bg-cyan-500 selection:text-white">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
+      <body className="font-sans antialiased" suppressHydrationWarning>
+        <ThemeProvider>
           <PWAProvider>{children}</PWAProvider>
         </ThemeProvider>
       </body>

@@ -1,17 +1,46 @@
-﻿import Link from "next/link";
+﻿
+"use client";
+
+import Link from "next/link";
 import { ArrowUpRight, Instagram } from "lucide-react";
 
 import { Logo } from "@/components/Logo";
 import { Navbar } from "@/components/Navbar";
+import { useTheme } from "@/lib/theme";
+
+// ============================================================================
+// FOOTER
+// ============================================================================
 
 function Footer() {
+  const { tokens } = useTheme();
+
+  const {
+    ink,
+    rule,
+    textPrimary,
+    textMuted,
+    paperMuted,
+    signal,
+  } = tokens;
+
   return (
-    <footer className="border-t border-[#25231e] bg-[#11100d] text-[#eee7d8]">
+    <footer
+      className="border-t"
+      style={{
+        background: ink,
+        borderColor: rule,
+        color: textPrimary,
+      }}
+    >
       <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
         {/* Main footer */}
         <div className="grid gap-14 py-16 sm:py-20 lg:grid-cols-[1.3fr_1fr] lg:gap-24">
           <div className="max-w-xl">
-            <p className="mb-5 font-mono text-[10px] uppercase tracking-[0.2em] text-[#8d836c]">
+            <p
+              className="mb-5 font-mono text-[10px] uppercase tracking-[0.2em]"
+              style={{ color: textMuted }}
+            >
               INRASTUDIO / LEGAL
             </p>
 
@@ -19,7 +48,10 @@ function Footer() {
               Clear terms for using the studio.
             </h2>
 
-            <p className="mt-5 max-w-md text-sm leading-7 text-[#aaa18f]">
+            <p
+              className="mt-5 max-w-md text-sm leading-7"
+              style={{ color: paperMuted }}
+            >
               The important details about your data, generated content and
               using INRASTUDIO for your business.
             </p>
@@ -28,34 +60,65 @@ function Footer() {
           <div className="grid grid-cols-2 gap-10 sm:gap-16">
             {/* Explore */}
             <div className="flex flex-col gap-4">
-              <span className="mb-2 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#6f6859]">
+              <span
+                className="mb-2 font-mono text-[9px] font-bold uppercase tracking-[0.2em]"
+                style={{ color: textMuted }}
+              >
                 (EXPLORE)
               </span>
 
               <Link
                 href="/privacy"
-                className="text-sm text-[#c9c1b0] transition-colors hover:text-[#d6491f]"
+                className="text-sm transition-colors"
+                style={{ color: paperMuted }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = signal;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = paperMuted;
+                }}
               >
                 Privacy Policy
               </Link>
 
               <Link
                 href="/terms"
-                className="text-sm text-[#c9c1b0] transition-colors hover:text-[#d6491f]"
+                className="text-sm transition-colors"
+                style={{ color: paperMuted }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = signal;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = paperMuted;
+                }}
               >
                 Terms & Conditions
               </Link>
 
               <Link
                 href="/disclosure"
-                className="text-sm text-[#c9c1b0] transition-colors hover:text-[#d6491f]"
+                className="text-sm transition-colors"
+                style={{ color: paperMuted }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = signal;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = paperMuted;
+                }}
               >
                 Disclosure
               </Link>
 
               <Link
                 href="/contact"
-                className="mt-2 inline-flex items-center gap-2 text-sm text-[#c9c1b0] transition-colors hover:text-[#d6491f]"
+                className="mt-2 inline-flex items-center gap-2 text-sm transition-colors"
+                style={{ color: paperMuted }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = signal;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = paperMuted;
+                }}
               >
                 Contact
                 <ArrowUpRight className="h-3.5 w-3.5" />
@@ -64,25 +127,52 @@ function Footer() {
 
             {/* Connect */}
             <div className="flex flex-col gap-4">
-              <span className="mb-2 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#6f6859]">
+              <span
+                className="mb-2 font-mono text-[9px] font-bold uppercase tracking-[0.2em]"
+                style={{ color: textMuted }}
+              >
                 (CONNECT)
               </span>
 
               <a
                 href="#"
-                className="group inline-flex items-center gap-2 text-sm text-[#c9c1b0] transition-colors hover:text-[#d6491f]"
+                className="group inline-flex items-center gap-2 text-sm transition-colors"
+                style={{ color: paperMuted }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = signal;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = paperMuted;
+                }}
               >
-                <ArrowUpRight className="h-4 w-4 text-[#77705f]" />
+                <ArrowUpRight
+                  className="h-4 w-4"
+                  style={{ color: textMuted }}
+                />
+
                 TikTok
+
                 <ArrowUpRight className="h-3 w-3 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
               </a>
 
               <a
                 href="#"
-                className="group inline-flex items-center gap-2 text-sm text-[#c9c1b0] transition-colors hover:text-[#d6491f]"
+                className="group inline-flex items-center gap-2 text-sm transition-colors"
+                style={{ color: paperMuted }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = signal;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = paperMuted;
+                }}
               >
-                <Instagram className="h-4 w-4 text-[#77705f]" />
+                <Instagram
+                  className="h-4 w-4"
+                  style={{ color: textMuted }}
+                />
+
                 Instagram
+
                 <ArrowUpRight className="h-3 w-3 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
               </a>
             </div>
@@ -90,20 +180,32 @@ function Footer() {
         </div>
 
         {/* Footer bottom */}
-        <div className="flex flex-col gap-5 border-t border-[#25231e] py-7 text-xs text-[#756e60] sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/" className="inline-flex items-center gap-3">
+        <div
+          className="flex flex-col gap-5 border-t py-7 text-xs sm:flex-row sm:items-center sm:justify-between"
+          style={{
+            borderColor: rule,
+            color: textMuted,
+          }}
+        >
+          <Link
+            href="/"
+            className="inline-flex items-center gap-3"
+          >
             <Logo
               showWordmark={false}
               className="h-8 w-8"
             />
 
-            <span className="font-mono text-[10px] font-bold tracking-[0.16em] text-[#eee7d8]">
+            <span
+              className="font-mono text-[10px] font-bold tracking-[0.16em]"
+              style={{ color: textPrimary }}
+            >
               INRASTUDIO
             </span>
           </Link>
 
           <p className="font-mono text-[10px] tracking-wide">
-            Â© 2026 INRASTUDIO AI Marketing Studio.
+            © 2026 INRASTUDIO AI Marketing Studio.
           </p>
         </div>
       </div>
@@ -111,18 +213,50 @@ function Footer() {
   );
 }
 
+// ============================================================================
+// MAIN PAGE
+// ============================================================================
+
 export default function PrivacyPolicyRoute() {
+  const { tokens } = useTheme();
+
+  const {
+    ink,
+    panel,
+    panelSoft,
+    rule,
+    paperMuted,
+    signal,
+    textPrimary,
+    textMuted,
+  } = tokens;
+
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#eee7d8] text-[#16140f] selection:bg-[#d6491f] selection:text-[#f7f0e2]">
+    <div
+      className="min-h-screen overflow-x-hidden"
+      style={{
+        background: ink,
+        color: textPrimary,
+      }}
+    >
       <Navbar />
 
       <main>
-        {/* Editorial header */}
-        <section className="border-b border-[#cfc5b0] px-5 pb-16 pt-36 sm:px-8 sm:pb-20 sm:pt-44 lg:px-10">
+        {/* ==================================================================
+            EDITORIAL HEADER
+        ================================================================== */}
+
+        <section
+          className="border-b px-5 pb-16 pt-36 sm:px-8 sm:pb-20 sm:pt-44 lg:px-10"
+          style={{ borderColor: rule }}
+        >
           <div className="mx-auto max-w-7xl">
             <div className="grid gap-10 lg:grid-cols-[1fr_360px] lg:items-end">
               <div>
-                <p className="mb-6 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-[#8d836c]">
+                <p
+                  className="mb-6 font-mono text-[10px] font-semibold uppercase tracking-[0.22em]"
+                  style={{ color: textMuted }}
+                >
                   INRASTUDIO / PRIVACY
                 </p>
 
@@ -133,8 +267,14 @@ export default function PrivacyPolicyRoute() {
                 </h1>
               </div>
 
-              <div className="border-l border-[#cfc5b0] pl-5 lg:mb-1">
-                <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#8d836c]">
+              <div
+                className="border-l pl-5 lg:mb-1"
+                style={{ borderColor: rule }}
+              >
+                <p
+                  className="font-mono text-[9px] uppercase tracking-[0.16em]"
+                  style={{ color: textMuted }}
+                >
                   Last updated
                 </p>
 
@@ -142,7 +282,10 @@ export default function PrivacyPolicyRoute() {
                   27 August 2026
                 </p>
 
-                <p className="mt-5 text-sm leading-6 text-[#625b4e]">
+                <p
+                  className="mt-5 text-sm leading-6"
+                  style={{ color: paperMuted }}
+                >
                   This page explains what information INRASTUDIO collects,
                   why we need it and how it is handled when you use the
                   service.
@@ -152,17 +295,26 @@ export default function PrivacyPolicyRoute() {
           </div>
         </section>
 
-        {/* Policy body */}
+        {/* ==================================================================
+            POLICY BODY
+        ================================================================== */}
+
         <section className="px-5 py-16 sm:px-8 sm:py-20 lg:px-10">
           <div className="mx-auto grid max-w-7xl gap-14 lg:grid-cols-[240px_minmax(0,720px)] lg:gap-24">
             {/* Side index */}
             <aside className="hidden lg:block">
               <div className="sticky top-32">
-                <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#8d836c]">
+                <p
+                  className="font-mono text-[9px] font-bold uppercase tracking-[0.2em]"
+                  style={{ color: textMuted }}
+                >
                   On this page
                 </p>
 
-                <nav className="mt-5 flex flex-col border-l border-[#cfc5b0]">
+                <nav
+                  className="mt-5 flex flex-col border-l"
+                  style={{ borderColor: rule }}
+                >
                   {[
                     ["01", "Introduction"],
                     ["02", "Information we collect"],
@@ -173,7 +325,16 @@ export default function PrivacyPolicyRoute() {
                     <a
                       key={number}
                       href={`#section-${number}`}
-                      className="border-l-2 border-transparent py-2 pl-4 font-mono text-[10px] uppercase tracking-[0.08em] text-[#77705f] transition-colors hover:border-[#d6491f] hover:text-[#16140f]"
+                      className="border-l-2 border-transparent py-2 pl-4 font-mono text-[10px] uppercase tracking-[0.08em] transition-colors"
+                      style={{ color: textMuted }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = signal;
+                        e.currentTarget.style.color = textPrimary;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = "transparent";
+                        e.currentTarget.style.color = textMuted;
+                      }}
                     >
                       {number} / {label}
                     </a>
@@ -188,9 +349,12 @@ export default function PrivacyPolicyRoute() {
                 id="section-01"
                 number="01"
                 title="Introduction"
+                borderColor={rule}
+                numberColor={signal}
+                bodyColor={paperMuted}
               >
                 <p>
-                  At INRASTUDIO AI Marketing Studio (â€œweâ€, â€œourâ€, or â€œusâ€),
+                  At INRASTUDIO AI Marketing Studio (“we”, “our”, or “us”),
                   we respect your privacy and are committed to handling your
                   information responsibly.
                 </p>
@@ -207,6 +371,9 @@ export default function PrivacyPolicyRoute() {
                 id="section-02"
                 number="02"
                 title="Information we collect"
+                borderColor={rule}
+                numberColor={signal}
+                bodyColor={paperMuted}
               >
                 <p>
                   We may collect information you provide directly to us, as
@@ -219,10 +386,12 @@ export default function PrivacyPolicyRoute() {
                     Information such as your name, email address, telephone
                     number or other contact details.
                   </li>
+
                   <li>
                     Information you provide when creating an account,
                     contacting us or using our services.
                   </li>
+
                   <li>
                     Information about your device, browser, connection and
                     how you interact with the website.
@@ -234,6 +403,9 @@ export default function PrivacyPolicyRoute() {
                 id="section-03"
                 number="03"
                 title="How we use your information"
+                borderColor={rule}
+                numberColor={signal}
+                bodyColor={paperMuted}
               >
                 <p>
                   We use information we collect to operate and maintain
@@ -241,13 +413,18 @@ export default function PrivacyPolicyRoute() {
                 </p>
 
                 <ul>
-                  <li>To provide and improve the website and its services.</li>
+                  <li>
+                    To provide and improve the website and its services.
+                  </li>
+
                   <li>
                     To process requests, account activity and transactions.
                   </li>
+
                   <li>
                     To communicate with you about your account or enquiries.
                   </li>
+
                   <li>
                     To protect the service and prevent misuse or fraudulent
                     activity.
@@ -259,6 +436,9 @@ export default function PrivacyPolicyRoute() {
                 id="section-04"
                 number="04"
                 title="AI processing"
+                borderColor={rule}
+                numberColor={signal}
+                bodyColor={paperMuted}
               >
                 <p>
                   INRASTUDIO uses AI systems to process images and text you
@@ -284,6 +464,9 @@ export default function PrivacyPolicyRoute() {
                 id="section-05"
                 number="05"
                 title="Data security"
+                borderColor={rule}
+                numberColor={signal}
+                bodyColor={paperMuted}
               >
                 <p>
                   We take reasonable measures to protect information held by
@@ -300,8 +483,14 @@ export default function PrivacyPolicyRoute() {
               </PolicySection>
 
               {/* Contact block */}
-              <div className="mt-20 border-t-2 border-[#16140f] pt-8">
-                <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#8d836c]">
+              <div
+                className="mt-20 border-t-2 pt-8"
+                style={{ borderColor: textPrimary }}
+              >
+                <p
+                  className="font-mono text-[9px] font-bold uppercase tracking-[0.2em]"
+                  style={{ color: textMuted }}
+                >
                   Questions about your data?
                 </p>
 
@@ -312,7 +501,12 @@ export default function PrivacyPolicyRoute() {
 
                   <Link
                     href="/contact"
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-[10px] bg-[#16140f] px-5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[#eee7d8] transition-transform hover:-translate-y-0.5"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-[10px] px-5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] transition-transform hover:-translate-y-0.5"
+                    style={{
+                      background: panelSoft,
+                      color: textPrimary,
+                      border: `1px solid ${rule}`,
+                    }}
                   >
                     Contact us
                     <ArrowUpRight className="h-3.5 w-3.5" />
@@ -329,21 +523,38 @@ export default function PrivacyPolicyRoute() {
   );
 }
 
+// ============================================================================
+// POLICY SECTION
+// ============================================================================
+
 function PolicySection({
   id,
   number,
   title,
   children,
+  borderColor,
+  numberColor,
+  bodyColor,
 }: {
   id: string;
   number: string;
   title: string;
   children: React.ReactNode;
+  borderColor: string;
+  numberColor: string;
+  bodyColor: string;
 }) {
   return (
-    <section id={id} className="scroll-mt-32 border-b border-[#cfc5b0] py-10 first:pt-0">
+    <section
+      id={id}
+      className="scroll-mt-32 border-b py-10 first:pt-0"
+      style={{ borderColor }}
+    >
       <div className="grid gap-5 sm:grid-cols-[70px_1fr] sm:gap-8">
-        <div className="font-mono text-[10px] font-bold tracking-[0.12em] text-[#d6491f]">
+        <div
+          className="font-mono text-[10px] font-bold tracking-[0.12em]"
+          style={{ color: numberColor }}
+        >
           {number}
         </div>
 
@@ -352,7 +563,10 @@ function PolicySection({
             {title}
           </h2>
 
-          <div className="mt-6 space-y-5 text-[15px] leading-7 text-[#625b4e]">
+          <div
+            className="mt-6 space-y-5 text-[15px] leading-7"
+            style={{ color: bodyColor }}
+          >
             {children}
           </div>
         </div>
@@ -360,6 +574,3 @@ function PolicySection({
     </section>
   );
 }
-
-
-

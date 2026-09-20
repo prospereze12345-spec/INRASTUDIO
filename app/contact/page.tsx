@@ -1,4 +1,5 @@
-﻿"use client";
+﻿
+"use client";
 
 import { useState } from "react";
 import {
@@ -12,25 +13,34 @@ import Link from "next/link";
 
 import { Logo } from "@/components/Logo";
 import { Navbar } from "@/components/Navbar";
-
-const ink = "#16140F";
-const paper = "#EEE7D8";
-const paperDark = "#DCD2BD";
-const signal = "#D6491F";
-const marigold = "#E8A33D";
-const muted = "#756D5C";
+import { useTheme } from "@/lib/theme";
 
 // -----------------------------------------------------------------------------
 // FOOTER
 // -----------------------------------------------------------------------------
 
 function Footer() {
+  const { tokens } = useTheme();
+
+  const {
+    ink,
+    panel,
+    panelSoft,
+    rule,
+    paper,
+    paperMuted,
+    marigold,
+    signal,
+    textPrimary,
+    textMuted,
+  } = tokens;
+
   return (
     <footer
       className="w-full border-t"
       style={{
         background: ink,
-        borderColor: "rgba(238,231,216,0.12)",
+        borderColor: rule,
       }}
     >
       <div className="mx-auto max-w-[1180px] px-5 pb-8 pt-12 sm:px-8 sm:pt-16">
@@ -39,7 +49,7 @@ function Footer() {
           <div>
             <div
               className="mb-5 font-mono text-[9px] tracking-[0.2em]"
-              style={{ color: "#8D836C" }}
+              style={{ color: textMuted }}
             >
               INRASTUDIO / 2026
             </div>
@@ -63,7 +73,7 @@ function Footer() {
           <div className="lg:pt-6">
             <p
               className="max-w-md font-display text-xl leading-[1.15] tracking-[-0.025em] sm:text-2xl"
-              style={{ color: "#C5BCAA" }}
+              style={{ color: paperMuted }}
             >
               Good marketing should earn attention before it asks for a sale.
             </p>
@@ -74,14 +84,14 @@ function Footer() {
         <div
           className="grid grid-cols-1 gap-8 border-b border-t py-7 sm:grid-cols-2 sm:py-8"
           style={{
-            borderColor: "rgba(238,231,216,0.12)",
+            borderColor: rule,
           }}
         >
           {/* CONNECT */}
           <div>
             <p
               className="mb-4 font-mono text-[9px] tracking-[0.18em]"
-              style={{ color: "#77705F" }}
+              style={{ color: textMuted }}
             >
               (01) CONNECT
             </p>
@@ -125,7 +135,7 @@ function Footer() {
           <div>
             <p
               className="mb-4 font-mono text-[9px] tracking-[0.18em]"
-              style={{ color: "#77705F" }}
+              style={{ color: textMuted }}
             >
               (02) READ
             </p>
@@ -169,7 +179,7 @@ function Footer() {
 
             <span
               className="font-mono text-[9px] tracking-[0.16em]"
-              style={{ color: "#8D836C" }}
+              style={{ color: textMuted }}
             >
               INRASTUDIO
             </span>
@@ -177,7 +187,7 @@ function Footer() {
 
           <p
             className="font-mono text-[9px] tracking-[0.08em]"
-            style={{ color: "#77705F" }}
+            style={{ color: textMuted }}
           >
             © 2026 INRASTUDIO AI MARKETING STUDIO.
           </p>
@@ -197,18 +207,26 @@ function Field({
   type = "text",
   placeholder,
   required = true,
+  textColor,
+  mutedColor,
+  borderColor,
+  signalColor,
 }: {
   label: string;
   name: string;
   type?: string;
   placeholder: string;
   required?: boolean;
+  textColor: string;
+  mutedColor: string;
+  borderColor: string;
+  signalColor: string;
 }) {
   return (
     <label className="block">
       <span
         className="mb-2 block font-mono text-[9px] tracking-[0.16em]"
-        style={{ color: muted }}
+        style={{ color: mutedColor }}
       >
         {label}
       </span>
@@ -231,11 +249,17 @@ function Field({
           outline-none
           transition-colors
           placeholder:opacity-40
-          focus:border-[#D6491F]
         "
         style={{
-          color: ink,
-          borderColor: "rgba(22,20,15,0.2)",
+          color: textColor,
+          borderColor,
+          ["--contact-signal" as string]: signalColor,
+        }}
+        onFocus={(event) => {
+          event.currentTarget.style.borderColor = signalColor;
+        }}
+        onBlur={(event) => {
+          event.currentTarget.style.borderColor = borderColor;
         }}
       />
     </label>
@@ -247,6 +271,21 @@ function Field({
 // -----------------------------------------------------------------------------
 
 export default function ContactRoute() {
+  const { tokens } = useTheme();
+
+  const {
+    ink,
+    panel,
+    panelSoft,
+    rule,
+    paper,
+    paperMuted,
+    marigold,
+    signal,
+    textPrimary,
+    textMuted,
+  } = tokens;
+
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [statusMessage, setStatusMessage] = useState("");
@@ -306,12 +345,15 @@ export default function ContactRoute() {
     }
   }
 
+  const borderSoft = rule;
+  const borderStrong = rule;
+
   return (
     <div
       className="min-h-screen overflow-x-hidden"
       style={{
-        background: paper,
-        color: ink,
+        background: ink,
+        color: textPrimary,
       }}
     >
       <Navbar />
@@ -323,7 +365,7 @@ export default function ContactRoute() {
             <div className="mb-6 flex items-center gap-4 sm:mb-8">
               <span
                 className="font-mono text-[9px] tracking-[0.2em]"
-                style={{ color: muted }}
+                style={{ color: textMuted }}
               >
                 01 / CONTACT
               </span>
@@ -331,13 +373,13 @@ export default function ContactRoute() {
               <span
                 className="h-px max-w-[180px] flex-1"
                 style={{
-                  background: "rgba(22,20,15,0.18)",
+                  background: borderSoft,
                 }}
               />
 
               <span
                 className="hidden font-mono text-[9px] tracking-[0.16em] sm:block"
-                style={{ color: muted }}
+                style={{ color: textMuted }}
               >
                 LAGOS / NIGERIA
               </span>
@@ -353,6 +395,7 @@ export default function ContactRoute() {
                   leading-[0.82]
                   tracking-[-0.07em]
                 "
+                style={{ color: textPrimary }}
               >
                 LET&apos;S MAKE
                 <br />
@@ -376,7 +419,7 @@ export default function ContactRoute() {
               <div className="pb-1 lg:pb-3">
                 <p
                   className="max-w-[280px] font-display text-lg leading-[1.2] tracking-[-0.02em] sm:text-xl"
-                  style={{ color: "#514B3E" }}
+                  style={{ color: paperMuted }}
                 >
                   Have a question, an idea, or a campaign that needs a
                   sharper edge? Tell us what you&apos;re working on.
@@ -387,7 +430,7 @@ export default function ContactRoute() {
             <div
               className="mt-8 border-t sm:mt-10"
               style={{
-                borderColor: "rgba(22,20,15,0.2)",
+                borderColor: borderStrong,
               }}
             >
               <div className="grid grid-cols-2 sm:grid-cols-4">
@@ -401,7 +444,7 @@ export default function ContactRoute() {
                     key={number}
                     className="border-r py-3.5 last:border-r-0 sm:py-4"
                     style={{
-                      borderColor: "rgba(22,20,15,0.14)",
+                      borderColor: borderSoft,
                     }}
                   >
                     <div
@@ -413,7 +456,7 @@ export default function ContactRoute() {
 
                     <div
                       className="font-mono text-[8px] tracking-[0.13em]"
-                      style={{ color: muted }}
+                      style={{ color: textMuted }}
                     >
                       {label}
                     </div>
@@ -432,7 +475,7 @@ export default function ContactRoute() {
               <aside>
                 <div
                   className="mb-6 font-mono text-[9px] tracking-[0.2em]"
-                  style={{ color: muted }}
+                  style={{ color: textMuted }}
                 >
                   02 / FIND US
                 </div>
@@ -441,7 +484,7 @@ export default function ContactRoute() {
                 <div
                   className="mb-8 border-t pt-5"
                   style={{
-                    borderColor: "rgba(22,20,15,0.2)",
+                    borderColor: borderStrong,
                   }}
                 >
                   <div className="flex gap-4">
@@ -453,7 +496,7 @@ export default function ContactRoute() {
                     <div>
                       <p
                         className="mb-1.5 font-mono text-[9px] tracking-[0.14em]"
-                        style={{ color: muted }}
+                        style={{ color: textMuted }}
                       >
                         CONTACT
                       </p>
@@ -461,6 +504,7 @@ export default function ContactRoute() {
                       <a
                         href="mailto:prospereze12345@gmail.com"
                         className="font-display text-lg transition-opacity hover:opacity-60 sm:text-xl"
+                        style={{ color: textPrimary }}
                       >
                         prospereze12345@gmail.com
                       </a>
@@ -468,6 +512,7 @@ export default function ContactRoute() {
                       <a
                         href="tel:+2349018367110"
                         className="mt-1 block font-display text-lg transition-opacity hover:opacity-60 sm:text-xl"
+                        style={{ color: textPrimary }}
                       >
                         +234 901 836 7110
                       </a>
@@ -479,7 +524,7 @@ export default function ContactRoute() {
                 <div
                   className="mb-8 border-t pt-5"
                   style={{
-                    borderColor: "rgba(22,20,15,0.2)",
+                    borderColor: borderStrong,
                   }}
                 >
                   <div className="flex gap-4">
@@ -491,12 +536,15 @@ export default function ContactRoute() {
                     <div>
                       <p
                         className="mb-1.5 font-mono text-[9px] tracking-[0.14em]"
-                        style={{ color: muted }}
+                        style={{ color: textMuted }}
                       >
                         LOCATION
                       </p>
 
-                      <p className="font-display text-lg leading-[1.15] sm:text-xl">
+                      <p
+                        className="font-display text-lg leading-[1.15] sm:text-xl"
+                        style={{ color: textPrimary }}
+                      >
                         Lagos
                         <br />
                         Nigeria
@@ -509,20 +557,20 @@ export default function ContactRoute() {
                 <div
                   className="mt-8 border p-5 sm:p-6"
                   style={{
-                    background: paperDark,
-                    borderColor: "rgba(22,20,15,0.14)",
+                    background: panelSoft,
+                    borderColor: borderSoft,
                   }}
                 >
                   <div
                     className="mb-3 font-mono text-[9px] tracking-[0.16em]"
-                    style={{ color: muted }}
+                    style={{ color: textMuted }}
                   >
                     A QUICK NOTE
                   </div>
 
                   <p
                     className="font-display text-base leading-[1.3]"
-                    style={{ color: "#514B3E" }}
+                    style={{ color: paperMuted }}
                   >
                     You don&apos;t need a polished brief. A rough idea is
                     enough. Give us the useful bits and we&apos;ll take it
@@ -535,7 +583,7 @@ export default function ContactRoute() {
               <div>
                 <div
                   className="mb-6 font-mono text-[9px] tracking-[0.2em]"
-                  style={{ color: muted }}
+                  style={{ color: textMuted }}
                 >
                   03 / SEND A NOTE
                 </div>
@@ -543,7 +591,7 @@ export default function ContactRoute() {
                 <div
                   className="border-t"
                   style={{
-                    borderColor: "rgba(22,20,15,0.2)",
+                    borderColor: borderStrong,
                   }}
                 >
                   <form
@@ -555,12 +603,20 @@ export default function ContactRoute() {
                         label="01 / FIRST NAME"
                         name="firstName"
                         placeholder="Jane"
+                        textColor={textPrimary}
+                        mutedColor={textMuted}
+                        borderColor={borderSoft}
+                        signalColor={signal}
                       />
 
                       <Field
                         label="02 / LAST NAME"
                         name="lastName"
                         placeholder="Doe"
+                        textColor={textPrimary}
+                        mutedColor={textMuted}
+                        borderColor={borderSoft}
+                        signalColor={signal}
                       />
 
                       <div className="sm:col-span-2">
@@ -569,6 +625,10 @@ export default function ContactRoute() {
                           name="email"
                           type="email"
                           placeholder="jane@example.com"
+                          textColor={textPrimary}
+                          mutedColor={textMuted}
+                          borderColor={borderSoft}
+                          signalColor={signal}
                         />
                       </div>
 
@@ -576,7 +636,7 @@ export default function ContactRoute() {
                         <label className="block">
                           <span
                             className="mb-2 block font-mono text-[9px] tracking-[0.16em]"
-                            style={{ color: muted }}
+                            style={{ color: textMuted }}
                           >
                             04 / WHAT&apos;S ON YOUR MIND?
                           </span>
@@ -599,11 +659,17 @@ export default function ContactRoute() {
                               outline-none
                               transition-colors
                               placeholder:opacity-40
-                              focus:border-[#D6491F]
                             "
                             style={{
-                              color: ink,
-                              borderColor: "rgba(22,20,15,0.2)",
+                              color: textPrimary,
+                              borderColor: borderSoft,
+                            }}
+                            onFocus={(event) => {
+                              event.currentTarget.style.borderColor = signal;
+                            }}
+                            onBlur={(event) => {
+                              event.currentTarget.style.borderColor =
+                                borderSoft;
                             }}
                           />
                         </label>
@@ -617,16 +683,16 @@ export default function ContactRoute() {
                         style={{
                           background:
                             status === "success"
-                              ? "rgba(40,120,70,0.08)"
-                              : "rgba(214,73,31,0.08)",
+                              ? "rgba(40,120,70,0.10)"
+                              : `${signal}18`,
                           borderColor:
                             status === "success"
-                              ? "rgba(40,120,70,0.2)"
-                              : "rgba(214,73,31,0.2)",
+                              ? "rgba(40,120,70,0.24)"
+                              : `${signal}35`,
                           color:
                             status === "success"
-                              ? "#285C3A"
-                              : "#A83820",
+                              ? "#4FA56C"
+                              : signal,
                         }}
                       >
                         {statusMessage}
@@ -647,12 +713,12 @@ export default function ContactRoute() {
                         sm:justify-between
                       "
                       style={{
-                        borderColor: "rgba(22,20,15,0.2)",
+                        borderColor: borderStrong,
                       }}
                     >
                       <p
                         className="max-w-[260px] font-mono text-[9px] leading-[1.5]"
-                        style={{ color: muted }}
+                        style={{ color: textMuted }}
                       >
                         We read every message. No automated maze, no sales
                         script.
@@ -709,8 +775,8 @@ export default function ContactRoute() {
         <section
           className="border-t"
           style={{
-            background: "#E5DDCC",
-            borderColor: "rgba(22,20,15,0.15)",
+            background: panel,
+            borderColor: borderSoft,
           }}
         >
           <div className="mx-auto max-w-[1180px] px-5 py-12 sm:px-8 sm:py-16">
@@ -718,7 +784,7 @@ export default function ContactRoute() {
               <div>
                 <div
                   className="mb-5 font-mono text-[9px] tracking-[0.2em]"
-                  style={{ color: muted }}
+                  style={{ color: textMuted }}
                 >
                   04 / BEFORE YOU GO
                 </div>
@@ -731,6 +797,7 @@ export default function ContactRoute() {
                     leading-[0.88]
                     tracking-[-0.06em]
                   "
+                  style={{ color: textPrimary }}
                 >
                   HAVE SOMETHING
                   <br />
@@ -755,10 +822,10 @@ export default function ContactRoute() {
                   tracking-[0.14em]
                   transition-all
                   hover:-translate-y-0.5
-                  hover:text-[#D6491F]
                 "
                 style={{
                   borderColor: signal,
+                  color: textPrimary,
                 }}
               >
                 BACK TO STUDIO
