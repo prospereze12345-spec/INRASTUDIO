@@ -61,8 +61,21 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode] = useState<ThemeMode>("dark");
+interface ThemeProviderProps {
+  children: ReactNode;
+  /**
+   * Theme to use before any stored preference is read. Defaults to
+   * "light" so the app opens white/light by default; a returning
+   * visitor's saved choice in localStorage still overrides this.
+   */
+  defaultTheme?: ThemeMode;
+}
+
+export function ThemeProvider({
+  children,
+  defaultTheme = "light",
+}: ThemeProviderProps) {
+  const [mode, setMode] = useState<ThemeMode>(defaultTheme);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
