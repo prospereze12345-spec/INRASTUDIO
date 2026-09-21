@@ -17,6 +17,20 @@ import { Navbar } from "@/components/Navbar";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/auth";
+import { useTheme } from "@/lib/theme";
+
+/**
+ * DESIGN NOTES
+ * ---------------------------------------------------------------------------
+ * This page used to hardcode ink/panel/paper/marigold/signal/etc. as
+ * module-level constants (always the old dark-mode hex values), which is
+ * why it never reacted when the site's theme was switched — it was reading
+ * fixed strings, not the live ThemeTokens object. Every color reference has
+ * been swapped for `tokens.<name>` from `useTheme()` instead. No business
+ * logic changed: plan fetching, purchase flow, loading/error states, and
+ * the free-trial redirect all work exactly as before.
+ * ---------------------------------------------------------------------------
+ */
 
 interface Plan {
   id: number;
@@ -40,25 +54,17 @@ interface InitiatePaymentResponse {
   transaction_id: string;
 }
 
-const ink = "#16140F";
-const panel = "#1D1A14";
-const panelSoft = "#242016";
-const rule = "#38321F";
-const paper = "#EDE6D6";
-const paperMuted = "#C9BFA4";
-const marigold = "#E8A33D";
-const signal = "#D6491F";
-const textPrimary = "#F3ECDD";
-const textMuted = "#8C8368";
-
 // -----------------------------------------------------------------------------
 // FOOTER
 // -----------------------------------------------------------------------------
 
 function Footer() {
+  const { tokens } = useTheme();
+  const { ink, rule, paperMuted, textPrimary, textMuted } = tokens;
+
   return (
     <footer
-      className="relative mt-12 w-full overflow-hidden px-6 pb-12 pt-24"
+      className="relative mt-12 w-full overflow-hidden px-6 pb-12 pt-24 transition-colors duration-300"
       style={{
         background: ink,
         borderTop: `1px solid ${rule}`,
@@ -181,6 +187,19 @@ function Footer() {
 
 function Pricing() {
   const router = useRouter();
+  const { tokens } = useTheme();
+  const {
+    ink,
+    panel,
+    panelSoft,
+    rule,
+    paper,
+    paperMuted,
+    marigold,
+    signal,
+    textPrimary,
+    textMuted,
+  } = tokens;
 
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -304,7 +323,7 @@ function Pricing() {
     return (
       <section
         id="pricing"
-        className="mx-auto max-w-6xl px-6 py-32"
+        className="mx-auto max-w-6xl px-6 py-32 transition-colors duration-300"
         style={{ background: ink }}
       >
         <div className="flex min-h-[400px] items-center justify-center">
@@ -333,10 +352,10 @@ function Pricing() {
         className="mx-auto max-w-6xl px-6 py-32"
       >
         <div
-          className="rounded-2xl p-8 text-center"
+          className="rounded-2xl p-8 text-center transition-colors duration-300"
           style={{
             background: panel,
-            border: "1px solid rgba(214,73,31,0.35)",
+            border: `1px solid ${signal}59`,
           }}
         >
           <AlertCircle
@@ -407,10 +426,10 @@ function Pricing() {
       {/* PAYMENT ERROR */}
       {paymentError && (
         <div
-          className="mb-8 flex items-start gap-3 rounded-2xl p-4 text-sm sm:items-center"
+          className="mb-8 flex items-start gap-3 rounded-2xl p-4 text-sm sm:items-center transition-colors duration-300"
           style={{
-            background: "rgba(214,73,31,0.08)",
-            border: "1px solid rgba(214,73,31,0.3)",
+            background: `${signal}14`,
+            border: `1px solid ${signal}4d`,
             color: signal,
           }}
         >
@@ -539,7 +558,7 @@ function Pricing() {
                       {plan.old_price_display && (
                         <div
                           className="mb-1 font-mono text-sm line-through"
-                          style={{ color: "#655D4C" }}
+                          style={{ color: textMuted }}
                         >
                           {plan.old_price_display}
                         </div>
@@ -752,7 +771,7 @@ function Pricing() {
 
       {/* TRUST STRIP */}
       <div
-        className="mt-8 rounded-2xl px-5 py-5 sm:px-8"
+        className="mt-8 rounded-2xl px-5 py-5 sm:px-8 transition-colors duration-300"
         style={{
           background: panel,
           border: `1px solid ${rule}`,
@@ -825,15 +844,19 @@ function Pricing() {
 // -----------------------------------------------------------------------------
 
 export default function PricingRoute() {
+  const { tokens } = useTheme();
+  const { ink, marigold, textPrimary } = tokens;
+
   return (
     <div
-      className="relative min-h-screen overflow-x-hidden font-sans"
+      suppressHydrationWarning
+      className="relative min-h-screen overflow-x-hidden font-sans transition-colors duration-300"
       style={{
         background: ink,
         color: textPrimary,
       }}
     >
-      <style>{`
+      <style suppressHydrationWarning>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 
         .font-display {
