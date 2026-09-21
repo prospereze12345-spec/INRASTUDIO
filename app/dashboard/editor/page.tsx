@@ -1440,7 +1440,7 @@ async function downloadBlob(blob: Blob, filename: string): Promise<void> {
 
 // ---------- Main Editor ----------
 function EditorContent() {
-  const { mode, toggle } = useTheme();
+  const { mode, tokens, toggle } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
   const canvasWrapRef = useRef<HTMLDivElement>(null);
@@ -1828,7 +1828,20 @@ function EditorContent() {
   return (
     <div
       className="h-[100dvh] w-screen font-sans flex flex-col overflow-hidden overscroll-none"
-      style={{ background: T.ink, color: T.text }}
+      style={{
+        background: T.ink,
+        color: T.text,
+        "--inra-ink": tokens.ink,
+        "--inra-panel": tokens.panel,
+        "--inra-panel-soft": tokens.panelSoft,
+        "--inra-rule": tokens.rule,
+        "--inra-paper": tokens.paper,
+        "--inra-paper-muted": tokens.paperMuted,
+        "--inra-marigold": tokens.marigold,
+        "--inra-signal": tokens.signal,
+        "--inra-text-primary": tokens.textPrimary,
+        "--inra-text-muted": tokens.textMuted,
+      } as React.CSSProperties}
     >
       {/* HEADER */}
       <header
