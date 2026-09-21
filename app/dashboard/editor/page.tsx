@@ -35,9 +35,12 @@ import {
   Play,
   Pause,
   Volume2,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 import { Logo } from "@/components/Logo";
+import { useTheme } from "@/lib/theme";
 import { loadJobResult, fetchJobById, ApiError } from "@/lib/campaign-api";
 import type { PromoVideoProps } from "@/remotion/PromoVideo";
 
@@ -1437,6 +1440,7 @@ async function downloadBlob(blob: Blob, filename: string): Promise<void> {
 
 // ---------- Main Editor ----------
 function EditorContent() {
+  const { mode, toggle } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
   const canvasWrapRef = useRef<HTMLDivElement>(null);
@@ -1828,7 +1832,7 @@ function EditorContent() {
     >
       {/* HEADER */}
       <header
-        className="h-[52px] shrink-0 flex items-center justify-between gap-2 px-2 md:px-4 z-40"
+        className="h-[52px] shrink-0 flex items-center justify-between gap-2 px-2 md:px-4 z-40 relative"
         style={{ background: T.panel, borderBottom: `1px solid ${T.rule}`, paddingTop: "env(safe-area-inset-top)" }}
       >
         <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
@@ -1848,6 +1852,21 @@ function EditorContent() {
             {flyer.headline || "Untitled flyer"}
           </span>
         </div>
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label={mode === "dark" ? "Switch to bright mode" : "Switch to dark mode"}
+          title={mode === "dark" ? "Switch to bright mode" : "Switch to dark mode"}
+          className="absolute left-1/2 -translate-x-1/2 inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-[11px] font-semibold transition-colors touch-manipulation"
+          style={{
+            background: T.panelRaised,
+            color: T.text,
+            border: `1px solid ${T.rule}`,
+          }}
+        >
+          {mode === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+          <span className="hidden sm:inline">{mode === "dark" ? "Bright mode" : "Dark mode"}</span>
+        </button>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <ExportDropdown onExport={exportFlyer} exportingFormat={exportingFormat} />
         </div>

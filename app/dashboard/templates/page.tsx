@@ -22,20 +22,21 @@ import {
   MINIMAL_PRODUCT_VARIATIONS,
   PREMIUM_BRAND_VARIATIONS,
 } from "@/lib/template-data";
+import { useTheme } from "@/lib/theme";
 
 /* =========================================================
-   DESIGN TOKENS
+   DESIGN NOTES
+   ---------------------------------------------------------
+   Same fix as the pricing page: this file used to hardcode
+   ink/panel/paper/marigold/etc. as module-level constants,
+   which is why it never reacted to the site's theme. Every
+   color reference below now comes from `tokens` via
+   useTheme(), called inside each component that needs it
+   (Sidebar, TemplatePreview, FeaturedTemplate, and the page
+   itself). No logic changed — sidebar open/close, the
+   sessionStorage campaign-image read, and the
+   handleUseTemplate routing all work exactly as before.
 ========================================================= */
-
-const ink = "#16140F";
-const panel = "#1D1A14";
-const panelSoft = "#211E17";
-const rule = "#38321F";
-const paper = "#EDE6D6";
-const paperMuted = "#C9BFA4";
-const marigold = "#E8A33D";
-const textPrimary = "#F3ECDD";
-const textMuted = "#8C8368";
 
 /* =========================================================
    SIDEBAR
@@ -48,6 +49,9 @@ function Sidebar({
   isOpen: boolean;
   onClose: () => void;
 }) {
+  const { tokens } = useTheme();
+  const { panel, rule, marigold, textPrimary, textMuted } = tokens;
+
   return (
     <>
       <AnimatePresence>
@@ -113,9 +117,9 @@ function Sidebar({
               href="/dashboard/templates"
               className="flex items-center gap-3 px-4 py-3 rounded-xl"
               style={{
-                background: "rgba(232,163,61,0.10)",
+                background: `${marigold}1a`,
                 color: textPrimary,
-                border: `1px solid rgba(232,163,61,0.16)`,
+                border: `1px solid ${marigold}29`,
               }}
             >
               <LayoutTemplate
@@ -137,8 +141,8 @@ function Sidebar({
             href="/pricing"
             className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:-translate-y-0.5"
             style={{
-              background: "rgba(232,163,61,0.08)",
-              border: "1px solid rgba(232,163,61,0.18)",
+              background: `${marigold}14`,
+              border: `1px solid ${marigold}2e`,
               color: marigold,
             }}
           >
@@ -202,6 +206,9 @@ function TemplatePreview({
   campaignImage: string | null;
   onUse: () => void;
 }) {
+  const { tokens } = useTheme();
+  const { rule, paper, marigold, textPrimary, textMuted, ink } = tokens;
+
   const isLuxury = category === "Luxury Product";
   const isMinimal = category === "Minimal Product";
   const isPremium = category === "Premium Brand";
@@ -267,8 +274,8 @@ function TemplatePreview({
           <span
             className="font-mono text-[9px] sm:text-[10px] tracking-[0.13em] uppercase px-2.5 py-1.5 rounded-full backdrop-blur-md"
             style={{
-              background: "rgba(22,20,15,0.72)",
-              border: `1px solid rgba(237,230,214,0.16)`,
+              background: `${ink}b8`,
+              border: `1px solid ${textPrimary}29`,
               color: textPrimary,
             }}
           >
@@ -280,8 +287,7 @@ function TemplatePreview({
         <div
           className="absolute inset-0 z-30 flex items-end p-4 sm:p-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           style={{
-            background:
-              "linear-gradient(to top, rgba(22,20,15,0.92), rgba(22,20,15,0.05) 65%)",
+            background: `linear-gradient(to top, ${ink}eb, ${ink}0d 65%)`,
           }}
         >
           <button
@@ -344,6 +350,9 @@ function FeaturedTemplate({
   campaignImage: string | null;
   onUse: () => void;
 }) {
+  const { tokens } = useTheme();
+  const { panel, rule, marigold, textPrimary, textMuted, ink } = tokens;
+
   const TemplateComp = templateType;
 
   return (
@@ -373,8 +382,7 @@ function FeaturedTemplate({
         <div
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-5 sm:p-6"
           style={{
-            background:
-              "linear-gradient(to top, rgba(22,20,15,0.95), transparent 65%)",
+            background: `linear-gradient(to top, ${ink}f2, transparent 65%)`,
           }}
         >
           <button
@@ -394,9 +402,9 @@ function FeaturedTemplate({
           <span
             className="font-mono text-[9px] tracking-[0.13em] px-3 py-1.5 rounded-full"
             style={{
-              background: "rgba(22,20,15,0.75)",
+              background: `${ink}bf`,
               color: textPrimary,
-              border: `1px solid rgba(237,230,214,0.15)`,
+              border: `1px solid ${textPrimary}26`,
             }}
           >
             FEATURED
@@ -438,6 +446,10 @@ function FeaturedTemplate({
 ========================================================= */
 
 export default function TemplatesPage() {
+  const { tokens } = useTheme();
+  const { ink, rule, paper, paperMuted, marigold, textPrimary, textMuted } =
+    tokens;
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [campaignImage, setCampaignImage] = useState<string | null>(null);
 
@@ -474,7 +486,7 @@ export default function TemplatesPage() {
 
   return (
     <>
-      <style>{`
+      <style suppressHydrationWarning>{`
         button,
         a,
         label,
@@ -508,7 +520,8 @@ export default function TemplatesPage() {
       `}</style>
 
       <div
-        className="min-h-screen flex overflow-x-hidden"
+        suppressHydrationWarning
+        className="min-h-screen flex overflow-x-hidden transition-colors duration-300"
         style={{
           background: ink,
           color: textPrimary,
@@ -526,7 +539,7 @@ export default function TemplatesPage() {
           <header
             className="lg:hidden sticky top-0 z-40 h-[72px] px-4 flex items-center justify-between backdrop-blur-xl border-b"
             style={{
-              background: "rgba(29,26,20,0.92)",
+              background: `${tokens.panel}eb`,
               borderColor: rule,
             }}
           >
@@ -539,7 +552,7 @@ export default function TemplatesPage() {
               className="p-3 rounded-xl"
               style={{
                 color: textPrimary,
-                background: "rgba(237,230,214,0.05)",
+                background: `${textPrimary}0d`,
               }}
               aria-label="Open menu"
             >
@@ -567,7 +580,10 @@ export default function TemplatesPage() {
                 CAMPAIGN TEMPLATES
               </p>
 
-              <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mt-2 leading-[1.05]">
+              <h1
+                className="font-display text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mt-2 leading-[1.05]"
+                style={{ color: textPrimary }}
+              >
                 Start with a look
                 <br className="hidden sm:block" /> that fits your business.
               </h1>
@@ -587,8 +603,8 @@ export default function TemplatesPage() {
               <div
                 className="mt-8 rounded-2xl px-4 py-3.5 flex items-center gap-3"
                 style={{
-                  background: "rgba(232,163,61,0.07)",
-                  border: "1px solid rgba(232,163,61,0.15)",
+                  background: `${marigold}12`,
+                  border: `1px solid ${marigold}26`,
                 }}
               >
                 <div
@@ -619,7 +635,10 @@ export default function TemplatesPage() {
                     A GOOD PLACE TO START
                   </p>
 
-                  <h2 className="font-display text-xl sm:text-2xl font-semibold mt-1">
+                  <h2
+                    className="font-display text-xl sm:text-2xl font-semibold mt-1"
+                    style={{ color: textPrimary }}
+                  >
                     Featured templates
                   </h2>
                 </div>
@@ -686,7 +705,10 @@ export default function TemplatesPage() {
                       {category.title.toUpperCase()}
                     </p>
 
-                    <h2 className="font-display text-2xl sm:text-3xl font-semibold mt-1">
+                    <h2
+                      className="font-display text-2xl sm:text-3xl font-semibold mt-1"
+                      style={{ color: textPrimary }}
+                    >
                       {category.title}
                     </h2>
 
@@ -730,8 +752,11 @@ export default function TemplatesPage() {
               }}
             >
               <div>
-                <p className="font-display text-sm font-semibold">
-                  Can't decide?
+                <p
+                  className="font-display text-sm font-semibold"
+                  style={{ color: textPrimary }}
+                >
+                  Can&apos;t decide?
                 </p>
 
                 <p
@@ -760,4 +785,3 @@ export default function TemplatesPage() {
     </>
   );
 }
-
