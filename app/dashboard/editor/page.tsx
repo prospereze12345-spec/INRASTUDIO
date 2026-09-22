@@ -53,30 +53,53 @@ import { LuxuryProductTemplate } from "@/components/templates/LuxuryProduct";
 import { SleekFlyerTemplate as MinimalProductTemplate } from "@/components/templates/MinimalProduct";
 import { PremiumBrandTemplate } from "@/components/templates/PremiumBrand";
 
-const T = {
-  ink: "#16140F",
-  panel: "#1D1A14",
-  panelRaised: "#221E15",
-  rule: "#38321F",
-  paper: "#EDE6D6",
-  paperMuted: "#C9BFA4",
-  marigold: "#E8A33D",
-  marigoldHover: "#F0B158",
-  marigoldDown: "#C98A2E",
-  signal: "#D6491F",
-  text: "#F3ECDD",
-  muted: "#8C8368",
-};
+/* =========================================================
+   DESIGN NOTES
+   ---------------------------------------------------------
+   This file used to hang all of its chrome off a module-level
+   `const T = {...}` object — a frozen dark palette that never
+   touched the theme context. That's why the header's dark/bright
+   toggle looked broken: it correctly flipped `mode` in context,
+   but nothing on screen was reading from context, so nothing
+   visibly changed.
+
+   Fix: every component below that renders editor chrome now
+   calls `useTheme()` itself and reads its colors from `tokens`.
+   Mapping from the old T.* names to ThemeTokens fields:
+     T.ink          -> tokens.ink
+     T.panel        -> tokens.panel
+     T.panelRaised  -> tokens.panelSoft
+     T.rule         -> tokens.rule
+     T.paper        -> tokens.paper
+     T.paperMuted   -> tokens.paperMuted
+     T.marigold     -> tokens.marigold
+     T.signal       -> tokens.signal
+     T.text         -> tokens.textPrimary
+     T.muted        -> tokens.textMuted
+
+   Left untouched, intentionally:
+     - TEMPLATE_THEMES / COLOR_SWATCHES: these are content the
+       user picks for their *flyer*, not site chrome.
+     - VoiceoverCard's small set of custom grays ("#5a523f" etc.):
+       that card is deliberately styled against a fixed paper
+       background in both modes, not against site chrome.
+
+   Default theme: this page has no local ThemeProvider — it reads
+   whatever the root layout's ThemeProvider defaults to. Bright is
+   now the default there (see lib/theme.tsx's `defaultTheme = "light"`);
+   nothing in this file overrides that.
+========================================================= */
 
 function EditorChrome() {
+  const { tokens } = useTheme();
   return (
-    <style>{`
+    <style suppressHydrationWarning>{`
       @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap');
       .sg { font-family: 'Space Grotesk', sans-serif; }
       .mono { font-family: 'IBM Plex Mono', monospace; }
 
       .je-scroll::-webkit-scrollbar { width: 4px; }
-      .je-scroll::-webkit-scrollbar-thumb { background: ${T.rule}; border-radius: 4px; }
+      .je-scroll::-webkit-scrollbar-thumb { background: ${tokens.rule}; border-radius: 4px; }
       .je-scroll::-webkit-scrollbar-track { background: transparent; }
 
       .job-btn { transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease; }
@@ -91,7 +114,7 @@ function EditorChrome() {
         appearance: none;
         height: 3px;
         border-radius: 999px;
-        background: ${T.paperMuted};
+        background: ${tokens.paperMuted};
         outline: none;
       }
       input[type="range"].voice-range::-webkit-slider-thumb {
@@ -99,8 +122,8 @@ function EditorChrome() {
         width: 13px;
         height: 13px;
         border-radius: 50%;
-        background: ${T.signal};
-        border: 2px solid ${T.paper};
+        background: ${tokens.signal};
+        border: 2px solid ${tokens.paper};
         cursor: pointer;
         box-shadow: 0 1px 3px rgba(0,0,0,.35);
       }
@@ -108,8 +131,8 @@ function EditorChrome() {
         width: 13px;
         height: 13px;
         border-radius: 50%;
-        background: ${T.signal};
-        border: 2px solid ${T.paper};
+        background: ${tokens.signal};
+        border: 2px solid ${tokens.paper};
         cursor: pointer;
       }
       input[type="range"].voice-range:disabled::-webkit-slider-thumb { background: #9a927c; cursor: not-allowed; }
@@ -118,7 +141,8 @@ function EditorChrome() {
 }
 
 function Hairline() {
-  return <div style={{ borderTop: `1px dashed ${T.rule}` }} />;
+  const { tokens } = useTheme();
+  return <div style={{ borderTop: `1px dashed ${tokens.rule}` }} />;
 }
 
 interface JobResult {
@@ -374,6 +398,7 @@ function Movable({
   extra?: React.ReactNode;
   dragHandleOnly?: boolean;
 }) {
+  const { tokens } = useTheme();
   const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
   const resizeRef = useRef<{ startDist: number; origScale: number } | null>(null);
 
@@ -436,7 +461,7 @@ function Movable({
     >
       <div
         style={{
-          outline: selected ? `2px dashed ${T.marigold}` : "none",
+          outline: selected ? `2px dashed ${tokens.marigold}` : "none",
           outlineOffset: 6,
           borderRadius: 10,
           cursor: dragHandleOnly ? "default" : "grab",
@@ -453,7 +478,7 @@ function Movable({
               title="Drag to move"
               className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full
                          flex items-center justify-center shadow-lg cursor-grab touch-none"
-              style={{ touchAction: "none", background: T.marigold, color: T.ink }}
+              style={{ touchAction: "none", background: tokens.marigold, color: tokens.ink }}
             >
               <GripVertical size={14} />
             </div>
@@ -465,7 +490,7 @@ function Movable({
               title="Remove"
               className="absolute -top-3 -left-3 w-6 h-6 rounded-full text-white text-[12px]
                          flex items-center justify-center shadow-lg touch-manipulation"
-              style={{ background: T.signal }}
+              style={{ background: tokens.signal }}
             >
               <X size={12} />
             </button>
@@ -474,7 +499,7 @@ function Movable({
             onPointerDown={beginResize}
             title="Drag to resize"
             className="absolute -bottom-3 -right-3 w-7 h-7 rounded-full shadow-lg cursor-nwse-resize touch-none"
-            style={{ touchAction: "none", background: T.marigold, border: `2px solid ${T.ink}` }}
+            style={{ touchAction: "none", background: tokens.marigold, border: `2px solid ${tokens.ink}` }}
           />
           {extra}
         </>
@@ -618,29 +643,32 @@ function DiscountBadgeSticker({
 }
 
 function Label({ children }: { children: React.ReactNode }) {
+  const { tokens } = useTheme();
   return (
-    <p className="mono text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.muted }}>
+    <p className="mono text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: tokens.textMuted }}>
       {children}
     </p>
   );
 }
 function Divider() {
-  return <div style={{ height: 1, background: T.rule }} />;
+  const { tokens } = useTheme();
+  return <div style={{ height: 1, background: tokens.rule }} />;
 }
 
 function SectionToggle({ title, active, onToggle }: {
   title: string; active: boolean; onToggle: (v: boolean) => void;
 }) {
+  const { tokens } = useTheme();
   return (
     <button
       onClick={() => onToggle(!active)}
       className="w-full flex items-center justify-between px-3 py-3 rounded-lg mb-2 touch-manipulation"
-      style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}
+      style={{ background: tokens.panelSoft, border: `1px solid ${tokens.rule}` }}
     >
-      <span className="text-[13px]" style={{ color: T.text }}>{title}</span>
+      <span className="text-[13px]" style={{ color: tokens.textPrimary }}>{title}</span>
       <span
         className="w-9 h-5 rounded-full relative transition-colors"
-        style={{ background: active ? T.signal : T.rule }}
+        style={{ background: active ? tokens.signal : tokens.rule }}
       >
         <span
           className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all"
@@ -654,18 +682,19 @@ function SectionToggle({ title, active, onToggle }: {
 function TextField({ label, value, onChange, placeholder, type = "text" }: {
   label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string;
 }) {
+  const { tokens } = useTheme();
   return (
     <label className="block mb-3">
-      <span className="text-[11px] mb-1 block" style={{ color: T.muted }}>{label}</span>
+      <span className="text-[11px] mb-1 block" style={{ color: tokens.textMuted }}>{label}</span>
       <input
         type={type}
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         className="w-full rounded-lg px-3 py-2.5 text-[16px] focus:outline-none"
-        style={{ background: T.panelRaised, border: `1px solid ${T.rule}`, color: T.text }}
-        onFocus={(e) => (e.currentTarget.style.borderColor = T.marigold)}
-        onBlur={(e) => (e.currentTarget.style.borderColor = T.rule)}
+        style={{ background: tokens.panelSoft, border: `1px solid ${tokens.rule}`, color: tokens.textPrimary }}
+        onFocus={(e) => (e.currentTarget.style.borderColor = tokens.marigold)}
+        onBlur={(e) => (e.currentTarget.style.borderColor = tokens.rule)}
       />
     </label>
   );
@@ -682,6 +711,7 @@ const DesignPanel = memo(function DesignPanel({
   badge: DiscountBadge;
   onBadgeChange: (b: DiscountBadge) => void;
 }) {
+  const { tokens } = useTheme();
   const [colorLayer, setColorLayer] = useState<"bg" | "accent" | "text">("accent");
   const [activeTheme, setActiveTheme] = useState<number | null>(null);
 
@@ -713,7 +743,7 @@ const DesignPanel = memo(function DesignPanel({
               key={t.label}
               onClick={() => applyTheme(i)}
               className="h-14 rounded-lg overflow-hidden border-2 relative transition-all text-left touch-manipulation"
-              style={{ background: t.bg, borderColor: activeTheme === i ? T.marigold : "transparent" }}
+              style={{ background: t.bg, borderColor: activeTheme === i ? tokens.marigold : "transparent" }}
             >
               <span style={{
                 position: "absolute", bottom: 5, left: 7,
@@ -729,15 +759,15 @@ const DesignPanel = memo(function DesignPanel({
 
       <div>
         <Label>Brand colours</Label>
-        <div className="flex rounded-lg p-0.5 gap-0.5 mb-3" style={{ background: T.panelRaised }}>
+        <div className="flex rounded-lg p-0.5 gap-0.5 mb-3" style={{ background: tokens.panelSoft }}>
           {(["bg", "accent", "text"] as const).map((l) => (
             <button
               key={l}
               onClick={() => setColorLayer(l)}
               className="flex-1 py-2 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors touch-manipulation"
               style={{
-                background: colorLayer === l ? `${T.marigold}26` : "transparent",
-                color: colorLayer === l ? T.marigold : T.muted,
+                background: colorLayer === l ? `${tokens.marigold}26` : "transparent",
+                color: colorLayer === l ? tokens.marigold : tokens.textMuted,
               }}
             >
               {l === "bg" ? "BG" : l === "accent" ? "Accent" : "Text"}
@@ -752,9 +782,9 @@ const DesignPanel = memo(function DesignPanel({
               className="w-7 h-7 md:w-6 md:h-6 rounded-full border-2 hover:scale-110 transition-transform touch-manipulation shrink-0"
               style={{
                 background: hex,
-                borderColor: currentLayerColor === hex ? T.paper : "transparent",
-                boxShadow: currentLayerColor === hex ? `0 0 0 1px ${T.marigold}` : "none",
-                outline: hex === "#ffffff" ? `1px solid ${T.rule}` : "none",
+                borderColor: currentLayerColor === hex ? tokens.paper : "transparent",
+                boxShadow: currentLayerColor === hex ? `0 0 0 1px ${tokens.marigold}` : "none",
+                outline: hex === "#ffffff" ? `1px solid ${tokens.rule}` : "none",
               }}
             />
           ))}
@@ -765,7 +795,7 @@ const DesignPanel = memo(function DesignPanel({
             value={currentLayerColor}
             onChange={(e) => applyColor(e.target.value)}
             className="w-10 h-10 rounded-lg cursor-pointer p-1 shrink-0"
-            style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}
+            style={{ background: tokens.panelSoft, border: `1px solid ${tokens.rule}` }}
           />
           <input
             type="text"
@@ -773,7 +803,7 @@ const DesignPanel = memo(function DesignPanel({
             inputMode="text"
             onChange={(e) => /^#[0-9a-fA-F]{6}$/.test(e.target.value) && applyColor(e.target.value)}
             className="mono flex-1 rounded-lg px-3 py-2.5 text-[16px] md:text-[12px] focus:outline-none"
-            style={{ background: T.panelRaised, border: `1px solid ${T.rule}`, color: T.text }}
+            style={{ background: tokens.panelSoft, border: `1px solid ${tokens.rule}`, color: tokens.textPrimary }}
           />
         </div>
       </div>
@@ -784,10 +814,10 @@ const DesignPanel = memo(function DesignPanel({
         <Label>Logo</Label>
         <label
           className="flex flex-col items-center gap-1.5 rounded-xl p-4 cursor-pointer transition-all touch-manipulation"
-          style={{ border: `1.5px dashed ${T.rule}` }}
+          style={{ border: `1.5px dashed ${tokens.rule}` }}
         >
-          <UploadCloud size={18} style={{ color: T.muted }} />
-          <span className="text-[11px] text-center" style={{ color: T.muted }}>Upload a logo — PNG works best</span>
+          <UploadCloud size={18} style={{ color: tokens.textMuted }} />
+          <span className="text-[11px] text-center" style={{ color: tokens.textMuted }}>Upload a logo — PNG works best</span>
           <input type="file" accept="image/*" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) onLogoUpload(f); }} />
         </label>
@@ -806,6 +836,7 @@ const ContentPanel = memo(function ContentPanel({
   badge: DiscountBadge;
   onBadgeChange: (b: DiscountBadge) => void;
 }) {
+  const { tokens } = useTheme();
   return (
     <div className="space-y-5">
       <div>
@@ -840,7 +871,7 @@ const ContentPanel = memo(function ContentPanel({
                 value={badge.textColor}
                 onChange={(e) => onBadgeChange({ ...badge, textColor: e.target.value })}
                 className="w-full h-10 rounded-lg cursor-pointer p-1"
-                style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}
+                style={{ background: tokens.panelSoft, border: `1px solid ${tokens.rule}` }}
               />
             </div>
             <div className="flex-1">
@@ -850,7 +881,7 @@ const ContentPanel = memo(function ContentPanel({
                 value={badge.bgColor}
                 onChange={(e) => onBadgeChange({ ...badge, bgColor: e.target.value })}
                 className="w-full h-10 rounded-lg cursor-pointer p-1"
-                style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}
+                style={{ background: tokens.panelSoft, border: `1px solid ${tokens.rule}` }}
               />
             </div>
           </div>
@@ -860,7 +891,7 @@ const ContentPanel = memo(function ContentPanel({
               value={badge.textColor}
               onChange={(e) => /^#[0-9a-fA-F]{6}$/.test(e.target.value) && onBadgeChange({ ...badge, textColor: e.target.value })}
               className="mono flex-1 rounded-lg px-3 py-2 text-[12px] focus:outline-none"
-              style={{ background: T.panelRaised, border: `1px solid ${T.rule}`, color: T.text }}
+              style={{ background: tokens.panelSoft, border: `1px solid ${tokens.rule}`, color: tokens.textPrimary }}
               placeholder="#000000"
             />
             <input
@@ -868,7 +899,7 @@ const ContentPanel = memo(function ContentPanel({
               value={badge.bgColor}
               onChange={(e) => /^#[0-9a-fA-F]{6}$/.test(e.target.value) && onBadgeChange({ ...badge, bgColor: e.target.value })}
               className="mono flex-1 rounded-lg px-3 py-2 text-[12px] focus:outline-none"
-              style={{ background: T.panelRaised, border: `1px solid ${T.rule}`, color: T.text }}
+              style={{ background: tokens.panelSoft, border: `1px solid ${tokens.rule}`, color: tokens.textPrimary }}
               placeholder="#ffffff"
             />
           </div>
@@ -887,6 +918,11 @@ function VoiceoverCard({
   enabled: boolean;
   onToggle: (v: boolean) => void;
 }) {
+  // Note: this card is deliberately styled against a fixed "paper" swatch
+  // in both themes (it reads as a printed voice-memo ticket, not site
+  // chrome), so `tokens.paper`/`tokens.ink` are used for its base surface
+  // but the small supporting grays below stay hardcoded on purpose.
+  const { tokens } = useTheme();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -945,14 +981,14 @@ function VoiceoverCard({
   return (
     <div
       className="rounded-2xl p-4"
-      style={{ background: T.paper, opacity: enabled ? 1 : 0.6, transition: "opacity .18s ease" }}
+      style={{ background: tokens.paper, opacity: enabled ? 1 : 0.6, transition: "opacity .18s ease" }}
     >
       <audio ref={audioRef} src={url} preload="auto" />
 
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Volume2 size={13} color={T.ink} />
-          <span className="mono text-[10.5px] font-bold tracking-widest" style={{ color: T.ink }}>
+          <Volume2 size={13} color={tokens.ink} />
+          <span className="mono text-[10.5px] font-bold tracking-widest" style={{ color: tokens.ink }}>
             AI VOICEOVER
           </span>
         </div>
@@ -968,7 +1004,7 @@ function VoiceoverCard({
           </span>
           <span
             className="w-8 h-[18px] rounded-full relative transition-colors"
-            style={{ background: enabled ? T.signal : "#B7AC8E" }}
+            style={{ background: enabled ? tokens.signal : "#B7AC8E" }}
           >
             <span
               className="absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white transition-all"
@@ -985,8 +1021,8 @@ function VoiceoverCard({
           disabled={!enabled}
           className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 touch-manipulation"
           style={{
-            background: T.ink,
-            color: T.paper,
+            background: tokens.ink,
+            color: tokens.paper,
             cursor: enabled ? "pointer" : "not-allowed",
             border: "none",
           }}
@@ -1032,6 +1068,7 @@ const VideoPanel = memo(function VideoPanel({
   badgeOverlay,
   voiceoverUrl,
 }: VideoPanelProps) {
+  const { tokens } = useTheme();
   const [selectedFormat, setSelectedFormat] = useState<FormatId>(activeFormatId);
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
@@ -1137,14 +1174,14 @@ const VideoPanel = memo(function VideoPanel({
               onClick={() => setSelectedFormat(f.id)}
               className="py-2.5 px-1 rounded-lg border text-center transition-all touch-manipulation"
               style={{
-                borderColor: active ? T.marigold : T.rule,
-                background: active ? `${T.marigold}1a` : "transparent",
-                color: active ? T.marigold : T.muted,
+                borderColor: active ? tokens.marigold : tokens.rule,
+                background: active ? `${tokens.marigold}1a` : "transparent",
+                color: active ? tokens.marigold : tokens.textMuted,
               }}
             >
               <Icon size={14} className="mx-auto mb-1" />
               <div className="text-[9px] font-bold leading-none">{f.label}</div>
-              <div className="text-[8px] mt-0.5" style={{ color: active ? T.marigold : T.rule }}>{f.ratio}</div>
+              <div className="text-[8px] mt-0.5" style={{ color: active ? tokens.marigold : tokens.rule }}>{f.ratio}</div>
             </button>
           );
         })}
@@ -1155,7 +1192,7 @@ const VideoPanel = memo(function VideoPanel({
       <Label>Preview ({fmt.durationS}s promo)</Label>
       <div
         className="rounded-xl overflow-hidden"
-        style={{ aspectRatio: `${fmt.rw}/${fmt.rh}`, maxHeight: 260, background: T.ink, border: `1px solid ${T.rule}` }}
+        style={{ aspectRatio: `${fmt.rw}/${fmt.rh}`, maxHeight: 260, background: tokens.ink, border: `1px solid ${tokens.rule}` }}
       >
         <Player
           ref={playerRef}
@@ -1179,8 +1216,8 @@ const VideoPanel = memo(function VideoPanel({
 
       <Divider />
 
-      <div className="rounded-xl p-3 space-y-1.5" style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}>
-        <p className="mono text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: T.muted }}>
+      <div className="rounded-xl p-3 space-y-1.5" style={{ background: tokens.panelSoft, border: `1px solid ${tokens.rule}` }}>
+        <p className="mono text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: tokens.textMuted }}>
           Included in every render
         </p>
         {[
@@ -1192,14 +1229,14 @@ const VideoPanel = memo(function VideoPanel({
           "Ambient accent light circles",
         ].map((t) => (
           <div key={t} className="flex items-center gap-2">
-            <div className="w-1 h-1 rounded-full shrink-0" style={{ background: T.marigold }} />
-            <span className="text-[10px]" style={{ color: T.muted }}>{t}</span>
+            <div className="w-1 h-1 rounded-full shrink-0" style={{ background: tokens.marigold }} />
+            <span className="text-[10px]" style={{ color: tokens.textMuted }}>{t}</span>
           </div>
         ))}
       </div>
 
       {downloadError && (
-        <p className="text-[11px]" style={{ color: T.signal }}>{downloadError}</p>
+        <p className="text-[11px]" style={{ color: tokens.signal }}>{downloadError}</p>
       )}
 
       <button
@@ -1209,8 +1246,8 @@ const VideoPanel = memo(function VideoPanel({
         aria-busy={downloading}
         className="job-btn w-full py-3.5 md:py-2.5 rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 touch-manipulation"
         style={{
-          background: downloading ? T.rule : T.marigold,
-          color: downloading ? T.muted : T.ink,
+          background: downloading ? tokens.rule : tokens.marigold,
+          color: downloading ? tokens.textMuted : tokens.ink,
           cursor: downloading ? "not-allowed" : "pointer",
           border: "none",
         }}
@@ -1219,7 +1256,7 @@ const VideoPanel = memo(function VideoPanel({
           <>
             <div
               className="w-4 h-4 rounded-full animate-spin"
-              style={{ border: `2px solid transparent`, borderTopColor: T.text, borderRightColor: T.text }}
+              style={{ border: `2px solid transparent`, borderTopColor: tokens.textPrimary, borderRightColor: tokens.textPrimary }}
             />
             <span>Rendering{elapsedSeconds > 0 ? ` (${Math.floor(elapsedSeconds)}s)` : "…"}</span>
           </>
@@ -1237,6 +1274,7 @@ const VideoPanel = memo(function VideoPanel({
 });
 
 const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Caption[] }) {
+  const { tokens } = useTheme();
   const [copied, setCopied] = useState<string | null>(null);
 
   const copy = (platform: string, text: string) => {
@@ -1249,10 +1287,10 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
     return (
       <div
         className="flex flex-col items-center justify-center py-12 gap-3 rounded-xl"
-        style={{ border: `1px dashed ${T.rule}` }}
+        style={{ border: `1px dashed ${tokens.rule}` }}
       >
-        <MessageSquare size={24} style={{ color: T.rule }} />
-        <p className="text-[11px] text-center max-w-[180px]" style={{ color: T.muted }}>
+        <MessageSquare size={24} style={{ color: tokens.rule }} />
+        <p className="text-[11px] text-center max-w-[180px]" style={{ color: tokens.textMuted }}>
           Captions will appear here once your job has finished processing.
         </p>
       </div>
@@ -1261,19 +1299,19 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
 
   return (
     <div className="space-y-3">
-      <p className="text-[11px] leading-relaxed mb-1" style={{ color: T.muted }}>
+      <p className="text-[11px] leading-relaxed mb-1" style={{ color: tokens.textMuted }}>
         Written from your product photo. Tap to copy.
       </p>
       {captions.map((cap) => (
-        <div key={cap.platform} className="rounded-xl overflow-hidden" style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}>
-          <div className="flex items-center justify-between px-3.5 py-2.5" style={{ borderBottom: `1px solid ${T.rule}` }}>
+        <div key={cap.platform} className="rounded-xl overflow-hidden" style={{ background: tokens.panelSoft, border: `1px solid ${tokens.rule}` }}>
+          <div className="flex items-center justify-between px-3.5 py-2.5" style={{ borderBottom: `1px solid ${tokens.rule}` }}>
             <span className={`mono text-[10px] font-bold uppercase tracking-wider ${cap.color}`}>
               {cap.platform}
             </span>
             <button
               onClick={() => copy(cap.platform, cap.text)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] transition-colors touch-manipulation"
-              style={{ background: T.rule, color: T.muted }}
+              style={{ background: tokens.rule, color: tokens.textMuted }}
             >
               {copied === cap.platform ? (
                 <><Check size={10} /> Copied</>
@@ -1282,7 +1320,7 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
               )}
             </button>
           </div>
-          <p className="px-3.5 py-3 text-[11px] leading-relaxed whitespace-pre-wrap" style={{ color: T.muted }}>
+          <p className="px-3.5 py-3 text-[11px] leading-relaxed whitespace-pre-wrap" style={{ color: tokens.textMuted }}>
             {cap.text}
           </p>
         </div>
@@ -1298,6 +1336,7 @@ function ExportDropdown({
   onExport: (format: "png" | "jpg" | "pdf") => void;
   exportingFormat: "png" | "jpg" | "pdf" | null;
 }) {
+  const { tokens } = useTheme();
   const [open, setOpen] = useState(false);
   const isExporting = exportingFormat !== null;
 
@@ -1308,8 +1347,8 @@ function ExportDropdown({
         disabled={isExporting}
         className="job-btn px-3 sm:px-4 py-2 sm:py-1.5 rounded-lg text-[12px] font-bold flex items-center gap-1.5 touch-manipulation"
         style={{
-          background: T.marigold,
-          color: T.ink,
+          background: tokens.marigold,
+          color: tokens.ink,
           opacity: isExporting ? 0.6 : 1,
           cursor: isExporting ? "not-allowed" : "pointer",
           border: "none",
@@ -1331,14 +1370,14 @@ function ExportDropdown({
       {open && !isExporting && (
         <div
           className="absolute right-0 mt-1 w-36 rounded-xl shadow-2xl overflow-hidden z-50"
-          style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}
+          style={{ background: tokens.panelSoft, border: `1px solid ${tokens.rule}` }}
         >
           {(["png", "jpg", "pdf"] as const).map((f) => (
             <button
               key={f}
               onClick={() => { onExport(f); setOpen(false); }}
               className="mono w-full text-left px-3.5 py-2.5 text-[12px] hover:bg-black/20"
-              style={{ color: T.text }}
+              style={{ color: tokens.textPrimary }}
             >
               {f.toUpperCase()}
             </button>
@@ -1452,7 +1491,14 @@ function EditorContent() {
   const [captions, setCaptions] = useState<Caption[]>([]);
   const [activeTab, setActiveTab] = useState<RsbTab>("design");
   const [activeFormat, setActiveFormat] = useState<FormatId>("ig");
-  const [scale, setScale] = useState(1);
+  // Was `useState(1)`: the canvas rendered at its full, un-scaled export
+  // size (e.g. 1080×1350px) for one frame on load, before the fit-scale
+  // below had a chance to run, then visibly snapped down — that's the
+  // "too big when it first loads" flash. Starting at `null` and hiding
+  // the canvas (opacity 0, see the flyer node's style below) until the
+  // real fit-scale is computed removes the flash instead of guessing at
+  // the exact timing race that caused it.
+  const [scale, setScale] = useState<number | null>(null);
   const [sheetExpanded, setSheetExpanded] = useState(false);
   const [voiceoverUrl, setVoiceoverUrl] = useState<string | undefined>(undefined);
 
@@ -1816,7 +1862,7 @@ function EditorContent() {
     return (
       <div
         className="h-[100dvh] w-screen flex items-center justify-center mono tracking-widest text-sm"
-        style={{ background: T.ink, color: T.marigold }}
+        style={{ background: tokens.ink, color: tokens.marigold }}
       >
         Warming up the press…
       </div>
@@ -1827,26 +1873,16 @@ function EditorContent() {
 
   return (
     <div
-      className="h-[100dvh] w-screen font-sans flex flex-col overflow-hidden overscroll-none"
+      className="h-[100dvh] w-screen font-sans flex flex-col overflow-hidden overscroll-none transition-colors duration-300"
       style={{
-        background: T.ink,
-        color: T.text,
-        "--inra-ink": tokens.ink,
-        "--inra-panel": tokens.panel,
-        "--inra-panel-soft": tokens.panelSoft,
-        "--inra-rule": tokens.rule,
-        "--inra-paper": tokens.paper,
-        "--inra-paper-muted": tokens.paperMuted,
-        "--inra-marigold": tokens.marigold,
-        "--inra-signal": tokens.signal,
-        "--inra-text-primary": tokens.textPrimary,
-        "--inra-text-muted": tokens.textMuted,
-      } as React.CSSProperties}
+        background: tokens.ink,
+        color: tokens.textPrimary,
+      }}
     >
       {/* HEADER */}
       <header
         className="h-[52px] shrink-0 flex items-center justify-between gap-2 px-2 md:px-4 z-40 relative"
-        style={{ background: T.panel, borderBottom: `1px solid ${T.rule}`, paddingTop: "env(safe-area-inset-top)" }}
+        style={{ background: tokens.panel, borderBottom: `1px solid ${tokens.rule}`, paddingTop: "env(safe-area-inset-top)" }}
       >
         <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
           <Link
@@ -1854,14 +1890,14 @@ function EditorContent() {
             aria-label="Back to dashboard"
             className="w-9 h-9 rounded-full flex items-center justify-center transition-colors shrink-0 touch-manipulation"
           >
-            <ArrowLeft size={15} style={{ color: T.muted }} />
+            <ArrowLeft size={15} style={{ color: tokens.textMuted }} />
           </Link>
           <div className="flex items-center gap-2 shrink-0">
             <Logo className="w-5 h-5 rounded-md" />
             <span className="sg hidden sm:inline text-[13px] font-semibold tracking-wide">Editor</span>
           </div>
-          <div className="hidden sm:block w-px h-4 shrink-0" style={{ background: T.rule }} />
-          <span className="text-[12px] truncate min-w-0" style={{ color: T.muted }}>
+          <div className="hidden sm:block w-px h-4 shrink-0" style={{ background: tokens.rule }} />
+          <span className="text-[12px] truncate min-w-0" style={{ color: tokens.textMuted }}>
             {flyer.headline || "Untitled flyer"}
           </span>
         </div>
@@ -1872,9 +1908,9 @@ function EditorContent() {
           title={mode === "dark" ? "Switch to bright mode" : "Switch to dark mode"}
           className="absolute left-1/2 -translate-x-1/2 inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-[11px] font-semibold transition-colors touch-manipulation"
           style={{
-            background: T.panelRaised,
-            color: T.text,
-            border: `1px solid ${T.rule}`,
+            background: tokens.panelSoft,
+            color: tokens.textPrimary,
+            border: `1px solid ${tokens.rule}`,
           }}
         >
           {mode === "dark" ? <Sun size={14} /> : <Moon size={14} />}
@@ -1886,7 +1922,7 @@ function EditorContent() {
       </header>
 
       {exportError && (
-        <div className="px-4 py-1.5" style={{ background: `${T.signal}22`, borderBottom: `1px solid ${T.signal}44` }}>
+        <div className="px-4 py-1.5" style={{ background: `${tokens.signal}22`, borderBottom: `1px solid ${tokens.signal}44` }}>
           <p className="text-[11px]" style={{ color: "#F0A98D" }}>{exportError}</p>
         </div>
       )}
@@ -1894,19 +1930,23 @@ function EditorContent() {
       {/* MAIN AREA */}
       <div className="flex flex-1 overflow-hidden relative">
         {/* CANVAS */}
-        <section className="flex-1 flex flex-col overflow-hidden pb-[52px] md:pb-0" style={{ background: T.ink }}>
+        <section className="flex-1 flex flex-col overflow-hidden pb-[52px] md:pb-0" style={{ background: tokens.ink }}>
           <div
             ref={canvasWrapRef}
             className="flex-1 flex items-center justify-center overflow-hidden relative"
             style={{
               backgroundImage:
-                `linear-gradient(45deg,${T.panel} 25%,transparent 25%),linear-gradient(-45deg,${T.panel} 25%,transparent 25%),linear-gradient(45deg,transparent 75%,${T.panel} 75%),linear-gradient(-45deg,transparent 75%,${T.panel} 75%)`,
+                `linear-gradient(45deg,${tokens.panel} 25%,transparent 25%),linear-gradient(-45deg,${tokens.panel} 25%,transparent 25%),linear-gradient(45deg,transparent 75%,${tokens.panel} 75%),linear-gradient(-45deg,transparent 75%,${tokens.panel} 75%)`,
               backgroundSize: "16px 16px",
               backgroundPosition: "0 0,0 8px,8px -8px,-8px 0",
               cursor: "default",
             }}
           >
-            {/* LIVE flyer node — what the user sees and what gets captured. */}
+            {/* LIVE flyer node — what the user sees and what gets captured.
+                Stays invisible (opacity 0, scaled to a near-zero fallback)
+                until the fit-scale effect above has actually measured the
+                available space and called setScale — this is what removes
+                the oversized flash on first load. */}
             <div
               key={`flyer-${activeFormat}`}
               ref={flyerNodeRef}
@@ -1966,17 +2006,17 @@ function EditorContent() {
                   extra={
                     <div
                       className="absolute top-0 left-full ml-2 p-2 rounded shadow-lg z-50"
-                      style={{ background: T.panelRaised, border: `1px solid ${T.rule}` }}
+                      style={{ background: tokens.panelSoft, border: `1px solid ${tokens.rule}` }}
                     >
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px]" style={{ color: T.muted }}>Text</span>
+                        <span className="text-[10px]" style={{ color: tokens.textMuted }}>Text</span>
                         <input
                           type="color"
                           value={badgeOverlay.textColor}
                           onChange={(e) => setBadgeOverlay((prev) => ({ ...prev, textColor: e.target.value }))}
                           className="w-6 h-6 p-0 border-0"
                         />
-                        <span className="text-[10px]" style={{ color: T.muted }}>Bg</span>
+                        <span className="text-[10px]" style={{ color: tokens.textMuted }}>Bg</span>
                         <input
                           type="color"
                           value={badgeOverlay.bgColor}
@@ -2011,8 +2051,8 @@ function EditorContent() {
             md:h-auto md:flex-1
           `}
           style={{
-            background: T.panel,
-            borderTop: `1px solid ${T.rule}`,
+            background: tokens.panel,
+            borderTop: `1px solid ${tokens.rule}`,
             paddingBottom: sheetExpanded ? 0 : "env(safe-area-inset-bottom)",
           }}
         >
@@ -2020,16 +2060,16 @@ function EditorContent() {
             className="md:hidden flex flex-col items-center pt-2 pb-1.5 shrink-0"
             onClick={() => setSheetExpanded((v) => !v)}
           >
-            <div className="w-9 h-1 rounded-full mb-2" style={{ background: T.rule }} />
-            <span className="mono text-[10px] uppercase tracking-wider font-bold" style={{ color: T.muted }}>
+            <div className="w-9 h-1 rounded-full mb-2" style={{ background: tokens.rule }} />
+            <span className="mono text-[10px] uppercase tracking-wider font-bold" style={{ color: tokens.textMuted }}>
               {sheetExpanded ? "Drag down to collapse" : "Drag up for more"}
             </span>
           </div>
 
           {/* Format selector */}
-          <div className="px-3 py-2 shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ borderBottom: `1px solid ${T.rule}` }}>
+          <div className="px-3 py-2 shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ borderBottom: `1px solid ${tokens.rule}` }}>
             <div className="flex gap-1.5 items-center justify-start">
-              <span className="mono text-[10px] font-bold uppercase tracking-wider mr-1 shrink-0" style={{ color: T.rule }}>
+              <span className="mono text-[10px] font-bold uppercase tracking-wider mr-1 shrink-0" style={{ color: tokens.rule }}>
                 Format
               </span>
               {SOCIAL_FORMATS.map((f) => {
@@ -2041,9 +2081,9 @@ function EditorContent() {
                     onClick={() => setActiveFormat(f.id)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all shrink-0 touch-manipulation"
                     style={{
-                      borderColor: active ? T.marigold : T.rule,
-                      background: active ? `${T.marigold}1a` : "transparent",
-                      color: active ? T.marigold : T.muted,
+                      borderColor: active ? tokens.marigold : tokens.rule,
+                      background: active ? `${tokens.marigold}1a` : "transparent",
+                      color: active ? tokens.marigold : tokens.textMuted,
                     }}
                   >
                     <Icon size={11} />
@@ -2055,7 +2095,7 @@ function EditorContent() {
           </div>
 
           {/* Tabs */}
-          <div className="flex shrink-0" style={{ borderBottom: `1px solid ${T.rule}` }}>
+          <div className="flex shrink-0" style={{ borderBottom: `1px solid ${tokens.rule}` }}>
             {TABS.map((tab) => {
               const active = activeTab === tab.id;
               return (
@@ -2063,14 +2103,14 @@ function EditorContent() {
                   key={tab.id}
                   onClick={() => { setActiveTab(tab.id); setSheetExpanded(true); }}
                   className="mono flex-1 py-3 md:py-2.5 text-[10px] font-bold uppercase tracking-wider border-b-2 transition-colors touch-manipulation flex items-center justify-center gap-1.5"
-                  style={{ color: active ? T.marigold : T.rule, borderColor: active ? T.marigold : "transparent" }}
+                  style={{ color: active ? tokens.marigold : tokens.rule, borderColor: active ? tokens.marigold : "transparent" }}
                 >
                   <span className="md:hidden">{tab.icon}</span>
                   {tab.label}
                   {tab.id === "captions" && captions.length > 0 && (
                     <span
                       className="ml-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-[8px] font-black"
-                      style={{ background: T.marigold, color: T.ink }}
+                      style={{ background: tokens.marigold, color: tokens.ink }}
                     >
                       {captions.length}
                     </span>
@@ -2131,6 +2171,7 @@ function EditorContent() {
 }
 
 export default function FlyerEditor() {
+  const { tokens } = useTheme();
   return (
     <>
       <EditorChrome />
@@ -2138,7 +2179,7 @@ export default function FlyerEditor() {
         fallback={
           <div
             className="h-[100dvh] w-screen flex items-center justify-center mono tracking-widest text-sm"
-            style={{ background: T.ink, color: T.marigold }}
+            style={{ background: tokens.ink, color: tokens.marigold }}
           >
             Warming up the press…
           </div>
