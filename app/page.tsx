@@ -655,11 +655,31 @@ function HowItWorks() {
 // The section shell (heading, wrapper bg) follows the theme; the "studio
 // frame" mockup inside it — including its captions panel — is a screenshot
 // of the product and stays constant, same as FlyerHero.
+//
+// All three media panels (flyer / video / captions) share the same
+// Instagram-feed aspect ratio (4:5) so they read as one uniform row.
 
-function VideoCard({ src, poster }: { src: string; poster: string }) {
+const IG_ASPECT = "aspect-[4/5]";
+
+function VideoCard({
+  src,
+  poster,
+  className = "",
+}: {
+  src: string;
+  poster: string;
+  className?: string;
+}) {
   return (
-    <LazyReveal className="relative aspect-[4/5] bg-[#F2EEE2]">
-      {(inView) => <DeferredVideoTile inView={inView} src={src} poster={poster} />}
+    <LazyReveal className={`relative ${IG_ASPECT} bg-[#F2EEE2]`}>
+      {(inView) => (
+        <DeferredVideoTile
+          inView={inView}
+          src={src}
+          poster={poster}
+          className={className}
+        />
+      )}
     </LazyReveal>
   );
 }
@@ -668,10 +688,12 @@ function DeferredVideoTile({
   inView,
   src,
   poster,
+  className = "",
 }: {
   inView: boolean;
   src: string;
   poster: string;
+  className?: string;
 }) {
   const canLoad = useDeferredVideo(inView);
 
@@ -680,7 +702,7 @@ function DeferredVideoTile({
       <img
         src={poster}
         alt="Preview frame of the promo video"
-        className="absolute inset-0 h-full w-full object-contain p-4"
+        className={`absolute inset-0 h-full w-full object-cover ${className}`}
         loading="lazy"
       />
 
@@ -688,7 +710,7 @@ function DeferredVideoTile({
         <FadeInVideo
           src={src}
           poster={poster}
-          className="absolute inset-0 h-full w-full object-contain p-4"
+          className={`absolute inset-0 h-full w-full object-cover ${className}`}
         />
       )}
     </>
@@ -759,16 +781,16 @@ function Workflow() {
           </div>
 
           <div className="grid grid-cols-1 gap-2 p-2 md:grid-cols-[1fr_1fr_0.8fr]">
-            {/* Flyer */}
+            {/* Flyer — now shows the 940c… image */}
             <div className="overflow-hidden border border-[#F2EEE2]/10 bg-black/20">
-              <div className="relative aspect-[4/5]">
+              <div className={`relative ${IG_ASPECT}`}>
                 <Image
-                  src="/images/flyer-1784495302024.png"
+                  src="/images/940c038f-3019-49a3-b115-83f2953cde21.png"
                   alt="Generated flyer"
                   fill
                   loading="lazy"
                   sizes="(max-width: 768px) 100vw, 34vw"
-                  className="object-contain p-4"
+                  className="object-cover"
                 />
               </div>
 
@@ -783,9 +805,15 @@ function Workflow() {
               </div>
             </div>
 
-            {/* Video */}
+            {/* Video — loops automatically (autoPlay + loop + muted + playsInline in FadeInVideo) */}
             <div className="overflow-hidden border border-[#F2EEE2]/10 bg-black/20">
-              <VideoCard src="/videos/promo-tiktok (3).mp4" poster="/images/flyer.png" />
+              <div className={`relative ${IG_ASPECT}`}>
+                <VideoCard
+                  src="/videos/promo-ig (7).mp4"
+                  poster="/images/940c038f-3019-49a3-b115-83f2953cde21.png"
+                  className="object-cover"
+                />
+              </div>
 
               <div className="flex items-center justify-between border-t border-[#F2EEE2]/10 px-4 py-3">
                 <span className="font-mono text-[10px] uppercase tracking-widest text-[#F2EEE2]">
@@ -793,40 +821,23 @@ function Workflow() {
                 </span>
 
                 <span className="font-mono text-[9px] text-[#A79A82]">
-                  9:16
+                  1080 × 1350
                 </span>
               </div>
             </div>
 
-            {/* Captions */}
-            <div className="flex min-h-[280px] flex-col border border-[#F2EEE2]/10 bg-[#F2EEE2]">
-              <div className="flex items-center justify-between border-b border-[#15130F]/10 px-4 py-3">
-                <span className="font-mono text-[10px] uppercase tracking-widest text-[#15130F]">
-                  Captions
-                </span>
-
-                <span className="font-mono text-[9px] text-[#15130F]/50">
-                  ×5
-                </span>
-              </div>
-
-              <div className="flex flex-1 flex-col justify-between p-5">
-                <div>
-                  <span className="font-mono text-[9px] uppercase tracking-widest text-[#15130F]/45">
-                    Instagram
-                  </span>
-
-                  <p className="mt-3 text-sm leading-relaxed text-[#15130F]/85">
-                    Tired of plain handbags? This vibrant red patent-leather
-                    top-handle bag goes from the office to a wedding without
-                    looking out of place. From ₦12,000, free delivery today.
-                    DM to order.
-                  </p>
-                </div>
-
-                <div className="mt-8 border-t border-dashed border-[#15130F]/20 pt-4 font-mono text-[9px] uppercase tracking-wider text-[#15130F]/55">
-                  Instagram · TikTok · TikTok · X · WhatsApp
-                </div>
+            {/* Captions — text removed; now shows the 322a… image that
+                used to be in the flyer slot */}
+            <div className="overflow-hidden border border-[#F2EEE2]/10 bg-black/20">
+              <div className={`relative ${IG_ASPECT}`}>
+                <Image
+                  src="/images/322a5f2f-385f-43ad-a7d2-81fbc44861c8.png"
+                  alt="Caption preview"
+                  fill
+                  loading="lazy"
+                  sizes="(max-width: 768px) 100vw, 27vw"
+                  className="object-cover"
+                />
               </div>
             </div>
           </div>
@@ -1166,15 +1177,7 @@ function CallToAction() {
 
 function Footer() {
   const { tokens } = useTheme();
-  const {
-    ink,
-    rule,
-    panelSoft,
-    paper,
-    paperMuted,
-    marigold,
-    textMuted,
-  } = tokens;
+  const { ink, rule, paper, paperMuted, marigold, textMuted } = tokens;
 
   return (
     <footer
