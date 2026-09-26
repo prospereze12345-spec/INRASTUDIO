@@ -37,6 +37,7 @@ import {
   Volume2,
   Sun,
   Moon,
+  LayoutTemplate,
 } from "lucide-react";
 
 import { Logo } from "@/components/Logo";
@@ -99,6 +100,8 @@ function EditorChrome() {
       .mono { font-family: 'IBM Plex Mono', monospace; }
 
       .je-scroll::-webkit-scrollbar { width: 4px; }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       .je-scroll::-webkit-scrollbar-thumb { background: ${tokens.rule}; border-radius: 4px; }
       .je-scroll::-webkit-scrollbar-track { background: transparent; }
 
@@ -1329,6 +1332,99 @@ const CaptionsPanel = memo(function CaptionsPanel({ captions }: { captions: Capt
   );
 });
 
+function TemplateDropdown({
+  value,
+  onChange,
+}: {
+  value: FlyerState["templateCategory"];
+  onChange: (c: FlyerState["templateCategory"]) => void;
+}) {
+  const { tokens } = useTheme();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="job-btn px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-lg text-[11px] sm:text-[12px] font-bold flex items-center gap-1.5 touch-manipulation whitespace-nowrap"
+        style={{ background: tokens.panelSoft, color: tokens.textPrimary, border: `1px solid ${tokens.rule}` }}
+      >
+        <LayoutTemplate size={13} />
+        <span className="hidden sm:inline">Template:</span>
+        <span style={{ color: tokens.marigold }}>{value}</span>
+        <ChevronDown size={12} />
+      </button>
+      {open && (
+        <div
+          className="absolute left-0 mt-1 w-44 rounded-xl shadow-2xl overflow-hidden z-50"
+          style={{ background: tokens.panelSoft, border: `1px solid ${tokens.rule}` }}
+        >
+          {VALID_CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => { onChange(cat); setOpen(false); }}
+              className="mono w-full text-left px-3.5 py-2.5 text-[12px] hover:bg-black/20 flex items-center justify-between"
+              style={{ color: cat === value ? tokens.marigold : tokens.textPrimary }}
+            >
+              {cat}
+              {cat === value && <Check size={12} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FormatDropdown({
+  value,
+  onChange,
+}: {
+  value: FormatId;
+  onChange: (f: FormatId) => void;
+}) {
+  const { tokens } = useTheme();
+  const [open, setOpen] = useState(false);
+  const fmt = SOCIAL_FORMATS.find((f) => f.id === value)!;
+  const Icon = fmt.icon;
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="job-btn px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-lg text-[11px] sm:text-[12px] font-bold flex items-center gap-1.5 touch-manipulation whitespace-nowrap"
+        style={{ background: tokens.panelSoft, color: tokens.textPrimary, border: `1px solid ${tokens.rule}` }}
+      >
+        <Icon size={13} />
+        <span>{fmt.ratio}</span>
+        <ChevronDown size={12} />
+      </button>
+      {open && (
+        <div
+          className="absolute left-0 mt-1 w-40 rounded-xl shadow-2xl overflow-hidden z-50"
+          style={{ background: tokens.panelSoft, border: `1px solid ${tokens.rule}` }}
+        >
+          {SOCIAL_FORMATS.map((f) => {
+            const FIcon = f.icon;
+            return (
+              <button
+                key={f.id}
+                onClick={() => { onChange(f.id); setOpen(false); }}
+                className="mono w-full text-left px-3.5 py-2.5 text-[12px] hover:bg-black/20 flex items-center gap-2"
+                style={{ color: f.id === value ? tokens.marigold : tokens.textPrimary }}
+              >
+                <FIcon size={13} />
+                {f.label} ({f.ratio})
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function ExportDropdown({
   onExport,
   exportingFormat,
@@ -1388,6 +1484,8 @@ function ExportDropdown({
   );
 }
 
+
+const DEFAULT_TEMPLATE_CATEGORY: FlyerState["templateCategory"] = "Premium Brand";
 const EMPTY_FLYER_STATE: FlyerState = {
   headline: "",
   subtext: "",
@@ -1411,7 +1509,7 @@ const EMPTY_FLYER_STATE: FlyerState = {
   productImage: "",
   logoImage: null,
   templateVariant: "",
-  templateCategory: "Premium Brand",
+  templateCategory: DEFAULT_TEMPLATE_CATEGORY,
   colors: {
     primary: "#0a0a0a",
     secondary: "#ffffff",
@@ -1916,7 +2014,9 @@ function EditorContent() {
           {mode === "dark" ? <Sun size={14} /> : <Moon size={14} />}
           <span className="hidden sm:inline">{mode === "dark" ? "Bright mode" : "Dark mode"}</span>
         </button>
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 overflow-x-auto no-scrollbar max-w-[62vw] sm:max-w-none">
+          <TemplateDropdown value={flyer.templateCategory} onChange={(c) => update("templateCategory", c)} />
+          <FormatDropdown value={activeFormat} onChange={setActiveFormat} />
           <ExportDropdown onExport={exportFlyer} exportingFormat={exportingFormat} />
         </div>
       </header>

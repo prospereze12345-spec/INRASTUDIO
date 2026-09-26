@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
-  Home, LayoutTemplate, ImageIcon, Crown, Plus,
+  Home, ImageIcon, Crown, Plus,
   Video, Type, X, History, Upload, Menu, Loader2, AlertCircle, Pencil, Clock,
   LogOut, User, ArrowLeft,
 } from "lucide-react";
@@ -263,9 +263,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
           <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 mt-4 rounded-xl font-medium" style={{ background: "rgba(232,163,61,0.12)", color: textPrimary }}>
             <Home className="w-5 h-5" style={{ color: marigold }} /> Dashboard
           </Link>
-          <Link href="/dashboard/templates" className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors" style={{ color: textMuted }}>
-            <LayoutTemplate className="w-5 h-5" /> Templates
-          </Link>
+         
         </nav>
         <div className="p-4" style={{ borderTop: `1px solid ${rule}` }}>
           <Link href="/pricing" className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors" style={{ background: "rgba(232,163,61,0.08)", color: marigold, border: `1px solid rgba(232,163,61,0.3)` }}>
@@ -407,7 +405,7 @@ function DashboardPageInner() {
       } catch (trackError) {
         console.error('Error tracking generation:', trackError);
       }
-      router.push("/dashboard/templates");
+      router.push(`/dashboard/editor?job=${job_id}`);
     } catch (err: any) {
       console.error("[Campaign]", err);
       setPhase("error");
@@ -698,13 +696,7 @@ function DashboardPageInner() {
       Templates people reach for
     </h2>
 
-    <Link
-      href="/dashboard/templates"
-      className="font-mono text-xs tracking-wide px-3 py-2 -my-2 min-h-[44px] flex items-center"
-      style={{ color: marigold }}
-    >
-      VIEW ALL →
-    </Link>
+   
   </div>
 
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
