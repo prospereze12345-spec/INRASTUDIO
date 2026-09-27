@@ -709,16 +709,17 @@ function DashboardPageInner() {
                 className="group relative w-full aspect-video rounded-2xl overflow-hidden cursor-pointer"
                 style={{ background: panel, border: `1px solid ${rule}` }}
               >
-                {videoInView && (
-                  <Image
-                    src="https://picsum.photos/seed/apppreview/1200/675"
-                    alt="Preview still from the walkthrough video"
-                    fill
-                    loading="lazy"
-                    sizes="(max-width: 768px) 100vw, 1024px"
-                    className="object-cover opacity-70 transition-opacity duration-300 group-hover:opacity-90"
-                  />
-                )}
+               {videoInView && (
+  <video
+    src="/videos/WhatsApp%20Video%202026-09-27%20at%2020.55.32.mp4"
+    className="absolute inset-0 w-full h-full object-cover"
+    autoPlay
+    muted
+    loop
+    playsInline
+    preload="metadata"
+  />
+)}
 
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                   <div
