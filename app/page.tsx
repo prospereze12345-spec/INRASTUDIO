@@ -860,74 +860,6 @@ function Workflow() {
 
 // ─── Video demo ─────────────────────────────────────────────────────────────
 
-function VideoDemo() {
-  const { tokens } = useTheme();
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const inView = useInView(wrapRef, {
-    once: true,
-    margin: "150px",
-  });
-
-  return (
-    <section id="demo" className="mx-auto max-w-5xl px-6 py-16 md:py-20" ref={wrapRef}>
-      <div className="mb-8 text-center">
-        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--marigold)]">
-          See it happen
-        </span>
-
-        <h2
-          className="mt-2 text-3xl md:text-5xl"
-          style={{
-            color: tokens.textPrimary,
-            fontFamily: "'Archivo Black', var(--font-display), sans-serif",
-          }}
-        >
-          Watch the whole thing happen
-        </h2>
-
-        <p className="mx-auto mt-3 max-w-2xl text-base md:text-lg" style={{ color: tokens.textMuted }}>
-          Two minutes, start to finish — from a phone photo to a finished post.
-        </p>
-      </div>
-
-      {/* Video player chrome stays black in both themes, like any video
-          player — this is a media surface, not page chrome. */}
-      <div className="group relative flex aspect-video w-full cursor-pointer items-center justify-center overflow-hidden border-2 border-[#F2EEE2]/20 bg-[#0f0d0a]">
-        {inView && (
-          <Image
-            src="https://picsum.photos/seed/apppreview/1200/675"
-            fill
-            loading="lazy"
-            sizes="(max-width: 1024px) 100vw, 1024px"
-            className="object-cover opacity-60 transition-opacity duration-700 group-hover:opacity-80"
-            alt="Still frame from the walkthrough video"
-          />
-        )}
-
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFC629] shadow-[4px_4px_0_0_rgba(0,0,0,0.4)] transition-transform duration-300 group-hover:scale-110 md:h-20 md:w-20">
-            <Play className="ml-1 h-7 w-7 fill-[#15130F] text-[#15130F] md:h-8 md:w-8" />
-          </div>
-        </div>
-
-        <div className="pointer-events-none absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4 font-mono text-[9px] uppercase tracking-widest md:bottom-6 md:gap-3 md:text-xs">
-          <span className="bg-[#15130F] px-2 py-1.5 text-[#FFC629] md:px-3 md:py-2">
-            1. Upload
-          </span>
-
-          <span className="bg-[#15130F] px-2 py-1.5 text-[#F2EEE2] md:px-3 md:py-2">
-            2. Generate
-          </span>
-
-          <span className="bg-[#15130F] px-2 py-1.5 text-[#F2EEE2] md:px-3 md:py-2">
-            3. Download
-          </span>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 // ─── Testimonials ───────────────────────────────────────────────────────────
 // The clippings are the other "paper, not screenshot" surface — same
 // tokens.paper / var(--ink) treatment as HowItWorks.
@@ -1377,7 +1309,6 @@ function LandingPageInner() {
         <WhoItsFor />
         <HowItWorks />
         <Workflow />
-        <VideoDemo />
         <Testimonials />
         <FAQ />
         <CallToAction />

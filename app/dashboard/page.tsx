@@ -5,9 +5,9 @@ import Link from "next/link";
 import {
   Home, ImageIcon, Crown, Plus,
   Video, Type, X, History, Upload, Menu, Loader2, AlertCircle, Pencil, Clock,
-  LogOut, User, ArrowLeft,
+  LogOut, User, ArrowLeft, Play,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, useInView } from "motion/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
@@ -248,7 +248,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         </div>
 
         {/* Explicit way back to the marketing site — separate from the
-            in-app "Dashboard" link below, since that one stays inside the app. */}
+            in-app "Studio" link below, since that one stays inside the app. */}
         <div className="px-6 pb-4">
           <Link
             href="/"
@@ -260,8 +260,11 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         </div>
 
         <nav className="flex-1 overflow-y-auto py-2 px-4 flex flex-col gap-1" style={{ borderTop: `1px solid ${rule}` }}>
+          {/* Renamed from "Dashboard" to "Studio" — this is the page where
+              people actually build a flyer/caption/video, not a reporting
+              or analytics overview, so "Studio" better matches what it does. */}
           <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 mt-4 rounded-xl font-medium" style={{ background: "rgba(232,163,61,0.12)", color: textPrimary }}>
-            <Home className="w-5 h-5" style={{ color: marigold }} /> Dashboard
+            <Home className="w-5 h-5" style={{ color: marigold }} /> Studio
           </Link>
          
         </nav>
@@ -326,6 +329,11 @@ function DashboardPageInner() {
   const router = useRouter();
   const { user, loading } = useUser();
   const greeting = useGreeting();
+
+  // Demo video section — lazy-loads its still image only once it scrolls
+  // into view, same pattern as the rest of the page's async pieces.
+  const videoWrapRef = useRef<HTMLDivElement>(null);
+  const videoInView = useInView(videoWrapRef, { once: true, margin: "150px" });
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout/", {
@@ -689,7 +697,49 @@ function DashboardPageInner() {
               )}
             </section>
 
-           {/* ── Templates people reach for ── */}
+            {/* ── See how it works: demo video, same width/rounding/heading
+                treatment as "Recent campaigns" above so it reads as one more
+                row in the page rather than a bolted-on marketing block ── */}
+            <section ref={videoWrapRef}>
+              <div className="flex items-center justify-between mb-4 sm:mb-5">
+                <h2 className="font-display text-lg sm:text-xl font-semibold tracking-tight">See how it works</h2>
+              </div>
+
+              <div
+                className="group relative w-full aspect-video rounded-2xl overflow-hidden cursor-pointer"
+                style={{ background: panel, border: `1px solid ${rule}` }}
+              >
+                {videoInView && (
+                  <Image
+                    src="https://picsum.photos/seed/apppreview/1200/675"
+                    alt="Preview still from the walkthrough video"
+                    fill
+                    loading="lazy"
+                    sizes="(max-width: 768px) 100vw, 1024px"
+                    className="object-cover opacity-70 transition-opacity duration-300 group-hover:opacity-90"
+                  />
+                )}
+
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <div
+                    className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-110"
+                    style={{ background: marigold, boxShadow: "0 4px 14px rgba(0,0,0,0.35)" }}
+                  >
+                    <Play className="ml-1 h-5 w-5 sm:h-6 sm:w-6" style={{ color: ink, fill: ink }} />
+                  </div>
+                </div>
+
+                <div className="pointer-events-none absolute bottom-2 sm:bottom-3 left-0 right-0 flex justify-center gap-1.5 sm:gap-2 px-2 sm:px-3 font-mono text-[8px] sm:text-[10px] uppercase tracking-widest">
+                  <span className="px-2 py-1 sm:px-3 sm:py-1.5 rounded" style={{ background: `${ink}d0`, color: marigold }}>1. Upload</span>
+                  <span className="px-2 py-1 sm:px-3 sm:py-1.5 rounded" style={{ background: `${ink}d0`, color: textPrimary }}>2. Generate</span>
+                  <span className="px-2 py-1 sm:px-3 sm:py-1.5 rounded" style={{ background: `${ink}d0`, color: textPrimary }}>3. Download</span>
+                </div>
+              </div>
+
+              <p className="mt-3 text-sm" style={{ color: textMuted }}>
+                Two minutes, start to finish — from a phone photo to a finished post.
+              </p>
+            </section>
 
             {/* ── Security ── */}
             <section className="rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4" style={{ background: panel, border: `1px solid ${rule}` }}>
