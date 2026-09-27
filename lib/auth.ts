@@ -127,7 +127,7 @@ export async function apiFetch<T = unknown>(
     });
   } catch (err) {
     if (err instanceof DOMException && err.name === "AbortError") {
-      throw new ApiError(`Request timed out after ${timeoutMs}ms`, 0, null);
+      throw new ApiError(`Make sure network is connected `, 0, null);
     }
     throw err;
   } finally {
