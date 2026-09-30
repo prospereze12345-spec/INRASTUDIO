@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -21,6 +20,10 @@ import {
   LogOut,
   ArrowLeft,
   Play,
+  CalendarDays,
+  CreditCard,
+  Coins,
+  CheckCircle2,
 } from "lucide-react";
 import { motion, AnimatePresence, useInView } from "motion/react";
 import Image from "next/image";
@@ -74,8 +77,10 @@ interface DashboardData {
   campaigns_used: number;
   campaigns_generated: number;
   campaigns_remaining: number | string;
+  payg_credits?: number;
   start_date: string;
   end_date: string | null;
+  last_payment_at?: string | null;
 }
 
 /* ────────────────────────────────────────────────────────────────
@@ -697,17 +702,19 @@ function DashboardPageInner() {
       /*
        * IMPORTANT:
        *
-       * createCampaignJob() now calls the backend CreateAIJobView.
+       * createCampaignJob() calls the backend CreateAIJobView.
        *
-       * The backend checks and CONSUMES the user's entitlement there:
+       * The backend ONLY CHECKS that the user has entitlement when
+       * the job starts. It does not consume the campaign here.
        *
-       * Free  -> consumes free campaign
-       * PAYG   -> consumes one PAYG credit
-       * Pro    -> consumes one generation from the daily allowance
+       * Usage is consumed once the complete campaign succeeds:
+       * Free  -> consumes one free campaign
+       * PAYG  -> consumes one PAYG credit
+       * Pro   -> consumes one successful generation from the daily allowance
        *
        * Therefore we MUST NOT call /api/pricing/track_generation/
-       * after this request succeeds. Doing so would consume the
-       * same generation twice.
+       * from the frontend. The backend's successful-render path is
+       * the single authoritative usage accounting point.
        */
       const { job_id } =
         await createCampaignJob(imageFile);
@@ -742,13 +749,12 @@ function DashboardPageInner() {
         .catch(() => {});
 
       /*
-       * Refresh the dashboard entitlement display.
+       * Refresh the dashboard billing/entitlement display.
        *
-       * We no longer call track_generation here because
-       * CreateAIJobView already consumed the entitlement.
-       *
-       * This request is READ-ONLY and only gets the latest
-       * campaigns_remaining / campaigns_generated values.
+       * Usage has now been finalized by the backend because the
+       * campaign completed successfully. This is READ-ONLY and
+       * gets the latest campaigns_remaining, payg_credits and
+       * billing dates.
        */
       try {
         const updatedData =
@@ -820,6 +826,49 @@ function DashboardPageInner() {
 
     return planType;
   };
+
+  const getAvailableCampaigns = (data: DashboardData | null) => {
+    if (!data) return 0;
+
+    if (data.plan.plan_type === "payg") {
+      return data.payg_credits ?? 0;
+    }
+
+    return data.campaigns_remaining;
+  };
+
+  const formatBillingDate = (
+    iso: string | null | undefined,
+    fallback = "Not available"
+  ) => {
+    if (!iso) return fallback;
+
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return fallback;
+
+    return date.toLocaleDateString(undefined, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const getProDaysRemaining = (endDate: string | null) => {
+    if (!endDate) return null;
+
+    const diff = new Date(endDate).getTime() - Date.now();
+    if (diff <= 0) return 0;
+
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  };
+
+  const isProExpired = (data: DashboardData | null) => {
+    if (!data || data.plan.plan_type !== "pro") return false;
+    if (!data.end_date) return false;
+    return new Date(data.end_date).getTime() <= Date.now();
+  };
+
+
 
   return (
     <>
@@ -999,7 +1048,7 @@ function DashboardPageInner() {
                   dashboardData && (
                     <Stamp
                       value={getCampaignsDisplay(
-                        dashboardData.campaigns_remaining
+                        getAvailableCampaigns(dashboardData)
                       )}
                       label="CAMPAIGNS LEFT"
                     />
@@ -1312,8 +1361,7 @@ function DashboardPageInner() {
                   <>
                     <p className="font-mono text-3xl font-bold mt-1">
                       {getCampaignsDisplay(
-                        dashboardData?.campaigns_remaining ??
-                          0
+                        getAvailableCampaigns(dashboardData)
                       )}
                     </p>
 
@@ -1428,6 +1476,224 @@ function DashboardPageInner() {
                   </>
                 )}
               </div>
+            </section>
+
+            {/* ── PLAN & BILLING ── */}
+            <section
+              className="rounded-2xl overflow-hidden"
+              style={{ background: panel, border: `1px solid ${rule}` }}
+            >
+              <div className="p-5 sm:p-6 border-b" style={{ borderColor: rule }}>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="font-mono text-[10px] tracking-[0.2em] uppercase" style={{ color: textMuted }}>
+                      ACCOUNT BILLING
+                    </p>
+                    <h2 className="font-display text-lg sm:text-xl font-semibold mt-1">Your plan &amp; payments</h2>
+                    <p className="text-sm mt-1 max-w-2xl leading-6" style={{ color: textMuted }}>
+                      See exactly what your account has, what each campaign uses, and when your paid access ends.
+                    </p>
+                  </div>
+                  <CreditCard className="w-5 h-5 shrink-0 mt-1" style={{ color: marigold }} />
+                </div>
+              </div>
+
+              {dashboardLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-px" style={{ background: rule }}>
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="p-5 sm:p-6 min-h-[128px]" style={{ background: panel }}>
+                      <div className="h-3 w-24 rounded-full animate-pulse" style={{ background: rule }} />
+                      <div className="h-7 w-32 rounded-lg mt-3 animate-pulse" style={{ background: rule }} />
+                      <div className="h-3 w-40 rounded-full mt-2 animate-pulse" style={{ background: rule }} />
+                    </div>
+                  ))}
+                </div>
+              ) : dashboardData ? (
+                <>
+                  {dashboardData.plan.plan_type === "pro" ? (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-px" style={{ background: rule }}>
+                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
+                          <div className="flex items-center gap-2">
+                            <Crown className="w-4 h-4" style={{ color: marigold }} />
+                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Plan</p>
+                          </div>
+                          <p className="font-mono text-xl font-bold mt-3">Pro</p>
+                          <p className="text-xs mt-1 flex items-center gap-1.5" style={{ color: isProExpired(dashboardData) ? signal : "#5FA05F" }}>
+                            <span className="inline-block w-2 h-2 rounded-full" style={{ background: isProExpired(dashboardData) ? signal : "#5FA05F" }} />
+                            {isProExpired(dashboardData) ? "Pro expired" : "Active"}
+                          </p>
+                        </div>
+
+                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
+                          <div className="flex items-center gap-2">
+                            <CalendarDays className="w-4 h-4" style={{ color: marigold }} />
+                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Started</p>
+                          </div>
+                          <p className="font-mono text-base sm:text-lg font-bold mt-3 break-words">{formatBillingDate(dashboardData.start_date)}</p>
+                          <p className="text-xs mt-1" style={{ color: textMuted }}>Current Pro period start</p>
+                        </div>
+
+                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
+                          <div className="flex items-center gap-2">
+                            <CalendarDays className="w-4 h-4" style={{ color: marigold }} />
+                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Renews / expires</p>
+                          </div>
+                          <p className="font-mono text-base sm:text-lg font-bold mt-3 break-words" style={{ color: isProExpired(dashboardData) ? signal : textPrimary }}>
+                            {formatBillingDate(dashboardData.end_date)}
+                          </p>
+                          <p className="text-xs mt-1" style={{ color: isProExpired(dashboardData) ? signal : textMuted }}>
+                            {isProExpired(dashboardData)
+                              ? "Pro expired"
+                              : `${getProDaysRemaining(dashboardData.end_date) ?? 0} day${(getProDaysRemaining(dashboardData.end_date) ?? 0) === 1 ? "" : "s"} remaining`}
+                          </p>
+                        </div>
+
+
+
+
+                      </div>
+
+                      <div className="px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3" style={{ borderTop: `1px solid ${rule}` }}>
+                        <div className="min-w-0">
+                          <p className="text-sm" style={{ color: textMuted }}>
+                            Last payment: <span style={{ color: textPrimary }}>{formatBillingDate(dashboardData.last_payment_at, "Payment date unavailable")}</span>
+                          </p>
+                          <p className="text-xs mt-1 leading-5" style={{ color: textMuted }}>
+                            Total assets generated on this account: <span style={{ color: textPrimary, fontWeight: 700 }}>{dashboardData.campaigns_generated}</span>.
+                          </p>
+                        </div>
+                        {(dashboardData.payg_credits ?? 0) > 0 && (
+                          <div
+                            className="rounded-lg px-3 py-2 shrink-0"
+                            style={{ background: "rgba(232,163,61,0.08)", border: `1px solid ${rule}` }}
+                          >
+                            <p className="font-mono text-xs font-semibold" style={{ color: textPrimary }}>
+                              {dashboardData.payg_credits} PAYG credit{dashboardData.payg_credits === 1 ? "" : "s"} saved
+                            </p>
+                            <p className="text-[11px] mt-0.5" style={{ color: textMuted }}>
+                              Available after Pro when needed
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  ) : dashboardData.plan.plan_type === "payg" ? (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-px" style={{ background: rule }}>
+                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="w-4 h-4" style={{ color: marigold }} />
+                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Plan</p>
+                          </div>
+                          <p className="font-mono text-xl font-bold mt-3">Pay as you go</p>
+                          <p className="text-xs mt-1 flex items-center gap-1.5" style={{ color: dashboardData.is_active ? "#5FA05F" : signal }}>
+                            <span className="inline-block w-2 h-2 rounded-full" style={{ background: dashboardData.is_active ? "#5FA05F" : signal }} />
+                            {dashboardData.is_active ? "Active" : "Inactive"}
+                          </p>
+                        </div>
+
+                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
+                          <div className="flex items-center gap-2">
+                            <Coins className="w-4 h-4" style={{ color: marigold }} />
+                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Campaign credits</p>
+                          </div>
+                          <p className="font-mono text-3xl font-bold mt-3">{dashboardData.payg_credits ?? 0}</p>
+                          <p className="text-xs mt-1" style={{ color: textMuted }}>1 successful campaign uses 1 credit</p>
+                        </div>
+
+                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
+                          <div className="flex items-center gap-2">
+                            <CalendarDays className="w-4 h-4" style={{ color: marigold }} />
+                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Last payment</p>
+                          </div>
+                          <p className="font-mono text-base sm:text-lg font-bold mt-3 break-words">{formatBillingDate(dashboardData.last_payment_at, "Payment date unavailable")}</p>
+                          <p className="text-xs mt-1" style={{ color: textMuted }}>Most recent successful PAYG purchase</p>
+                        </div>
+
+                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4" style={{ color: "#5FA05F" }} />
+                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Total assets generated</p>
+                          </div>
+                          <p className="font-mono text-3xl font-bold mt-3">{dashboardData.campaigns_generated}</p>
+                          <p className="text-xs mt-1" style={{ color: textMuted }}>All successful campaigns</p>
+                        </div>
+
+                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4" style={{ color: "#5FA05F" }} />
+                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Expiry</p>
+                          </div>
+                          <p className="font-mono text-xl font-bold mt-3">No expiry</p>
+                          <p className="text-xs mt-1" style={{ color: textMuted }}>Credits remain until used</p>
+                        </div>
+                      </div>
+
+                      <div className="px-5 sm:px-6 py-4" style={{ borderTop: `1px solid ${rule}` }}>
+                        <p className="text-sm leading-6" style={{ color: textMuted }}>
+                          <span style={{ color: textPrimary, fontWeight: 700 }}>What happens:</span>{" "}
+                          each successful campaign uses exactly 1 credit. Credits do not expire and remain available until used.
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-px" style={{ background: rule }}>
+                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="w-4 h-4" style={{ color: marigold }} />
+                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Plan</p>
+                          </div>
+                          <p className="font-mono text-xl font-bold mt-3">Free Trial</p>
+                          <p className="text-xs mt-1 flex items-center gap-1.5" style={{ color: dashboardData.is_active ? "#5FA05F" : signal }}>
+                            <span className="inline-block w-2 h-2 rounded-full" style={{ background: dashboardData.is_active ? "#5FA05F" : signal }} />
+                            {dashboardData.is_active ? "Active" : "Inactive"}
+                          </p>
+                        </div>
+
+                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
+                          <div className="flex items-center gap-2">
+                            <Coins className="w-4 h-4" style={{ color: marigold }} />
+                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Campaigns remaining</p>
+                          </div>
+                          <p className="font-mono text-3xl font-bold mt-3">{getCampaignsDisplay(dashboardData.campaigns_remaining)}</p>
+                          <p className="text-xs mt-1" style={{ color: textMuted }}>Included in your free trial</p>
+                        </div>
+
+                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
+                          <div className="flex items-center gap-2">
+                            <CalendarDays className="w-4 h-4" style={{ color: marigold }} />
+                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Trial started</p>
+                          </div>
+                          <p className="font-mono text-base sm:text-lg font-bold mt-3 break-words">{formatBillingDate(dashboardData.start_date)}</p>
+                          <p className="text-xs mt-1" style={{ color: textMuted }}>No payment required</p>
+                        </div>
+
+                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="w-4 h-4" style={{ color: marigold }} />
+                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>What happens next</p>
+                          </div>
+                          <p className="font-mono text-base sm:text-lg font-bold mt-3">PAYG or Pro</p>
+                          <p className="text-xs mt-1 leading-5" style={{ color: textMuted }}>After your free campaign is used, buy a campaign or upgrade to Pro.</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : null}
+
+              {!dashboardLoading && dashboardData?.plan.plan_type === "payg" && (dashboardData.payg_credits ?? 0) === 0 && (
+                <div className="px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3" style={{ background: "rgba(214,73,31,0.08)", borderTop: `1px solid ${rule}` }}>
+                  <p className="text-sm leading-6" style={{ color: textPrimary }}>
+                    No campaign credits remaining — buy another campaign or upgrade to Pro.
+                  </p>
+                  <Link href="/pricing" className="inline-flex items-center justify-center px-4 py-2 rounded-lg font-mono text-xs tracking-wide shrink-0 min-h-[44px]" style={{ background: marigold, color: ink }}>
+                    BUY CREDITS
+                  </Link>
+                </div>
+              )}
             </section>
 
             {/* ── Recent Campaigns: contact sheet ── */}
