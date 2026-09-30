@@ -1,11 +1,26 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
-  Home, ImageIcon, Crown, Plus,
-  Video, Type, X, History, Upload, Menu, Loader2, AlertCircle, Pencil, Clock,
-  LogOut, User, ArrowLeft, Play,
+  Home,
+  ImageIcon,
+  Crown,
+  Plus,
+  Video,
+  Type,
+  X,
+  History,
+  Upload,
+  Menu,
+  Loader2,
+  AlertCircle,
+  Pencil,
+  Clock,
+  LogOut,
+  ArrowLeft,
+  Play,
 } from "lucide-react";
 import { motion, AnimatePresence, useInView } from "motion/react";
 import Image from "next/image";
@@ -85,12 +100,15 @@ function getRefreshToken(): string | null {
 
 async function refreshAccessToken(): Promise<string | null> {
   const refresh = getRefreshToken();
+
   if (!refresh) return null;
 
   try {
     const res = await fetch("/api/auth/token/refresh/", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ refresh }),
     });
 
@@ -109,11 +127,18 @@ async function refreshAccessToken(): Promise<string | null> {
 
 async function fetchMe(token: string): Promise<UserProfile> {
   const res = await fetch("/api/auth/me/", {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
 
-  if (res.status === 401) throw new Error("UNAUTHORIZED");
-  if (!res.ok) throw new Error("FETCH_ERROR");
+  if (res.status === 401) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  if (!res.ok) {
+    throw new Error("FETCH_ERROR");
+  }
 
   return res.json();
 }
@@ -137,7 +162,9 @@ function useUser() {
       try {
         const profile = await fetchMe(token);
 
-        if (!cancelled) setUser(profile);
+        if (!cancelled) {
+          setUser(profile);
+        }
       } catch (err: any) {
         if (err.message === "UNAUTHORIZED") {
           const newToken = await refreshAccessToken();
@@ -152,7 +179,9 @@ function useUser() {
           try {
             const profile = await fetchMe(newToken);
 
-            if (!cancelled) setUser(profile);
+            if (!cancelled) {
+              setUser(profile);
+            }
           } catch {
             localStorage.removeItem("access");
             localStorage.removeItem("refresh");
@@ -160,7 +189,9 @@ function useUser() {
           }
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
@@ -171,12 +202,17 @@ function useUser() {
     };
   }, [router]);
 
-  return { user, loading };
+  return {
+    user,
+    loading,
+  };
 }
 
 function useGreeting(): string {
   const getGreeting = () => {
-    const watHour = new Date(Date.now() + 60 * 60 * 1000).getUTCHours();
+    const watHour = new Date(
+      Date.now() + 60 * 60 * 1000
+    ).getUTCHours();
 
     if (watHour < 12) return "Good morning";
     if (watHour < 17) return "Good afternoon";
@@ -187,7 +223,10 @@ function useGreeting(): string {
   const [greeting, setGreeting] = useState(getGreeting);
 
   useEffect(() => {
-    const id = setInterval(() => setGreeting(getGreeting()), 60_000);
+    const id = setInterval(
+      () => setGreeting(getGreeting()),
+      60_000
+    );
 
     return () => clearInterval(id);
   }, []);
@@ -223,12 +262,18 @@ function getFirstName(fullName: string): string {
 // ─────────────────────────────────────────────────────────────────────────────
 // Upload state machine
 // ─────────────────────────────────────────────────────────────────────────────
-type UploadPhase = "idle" | "uploading" | "processing" | "done" | "error";
+type UploadPhase =
+  | "idle"
+  | "uploading"
+  | "processing"
+  | "done"
+  | "error";
 
 const PHASE_LABEL: Record<UploadPhase, string> = {
   idle: "",
   uploading: "Sending your photo across…",
-  processing: "Putting your flyer, caption and video together…",
+  processing:
+    "Putting your flyer, caption and video together…",
   done: "Done — taking you to it now…",
   error: "That didn't go through. Please try again.",
 };
@@ -240,7 +285,11 @@ const PHASE_LABEL: Record<UploadPhase, string> = {
 const TEMPLATE_CANVAS_W = 1000;
 const TEMPLATE_CANVAS_H = 1250;
 
-function ScaledPreview({ children }: { children: React.ReactNode }) {
+function ScaledPreview({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.25);
 
@@ -249,7 +298,8 @@ function ScaledPreview({ children }: { children: React.ReactNode }) {
 
     if (!el) return;
 
-    const measure = () => setScale(el.offsetWidth / TEMPLATE_CANVAS_W);
+    const measure = () =>
+      setScale(el.offsetWidth / TEMPLATE_CANVAS_W);
 
     measure();
 
@@ -263,7 +313,9 @@ function ScaledPreview({ children }: { children: React.ReactNode }) {
     <div
       ref={ref}
       className="relative w-full overflow-hidden rounded-lg"
-      style={{ aspectRatio: `${TEMPLATE_CANVAS_W}/${TEMPLATE_CANVAS_H}` }}
+      style={{
+        aspectRatio: `${TEMPLATE_CANVAS_W}/${TEMPLATE_CANVAS_H}`,
+      }}
     >
       <div
         className="absolute top-0 left-0 pointer-events-none select-none"
@@ -293,7 +345,14 @@ function Sidebar({
   onClose: () => void;
 }) {
   const { tokens } = useTheme();
-  const { panel, rule, textMuted, textPrimary, marigold } = tokens;
+
+  const {
+    panel,
+    rule,
+    textMuted,
+    textPrimary,
+    marigold,
+  } = tokens;
 
   return (
     <>
@@ -311,7 +370,9 @@ function Sidebar({
 
       <motion.aside
         className={`fixed top-0 left-0 bottom-0 w-64 z-50 flex flex-col transition-transform lg:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          isOpen
+            ? "translate-x-0"
+            : "-translate-x-full"
         }`}
         style={{
           background: panel,
@@ -319,7 +380,10 @@ function Sidebar({
         }}
       >
         <div className="p-6 flex items-center justify-between gap-2">
-          <Link href="/" className="flex items-center gap-2 min-w-0">
+          <Link
+            href="/"
+            className="flex items-center gap-2 min-w-0"
+          >
             <Logo className="w-8 h-8 rounded-lg shrink-0" />
           </Link>
 
@@ -344,13 +408,16 @@ function Sidebar({
             className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.15em]"
             style={{ color: textMuted }}
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> BACK TO HOME
+            <ArrowLeft className="w-3.5 h-3.5" />
+            BACK TO HOME
           </Link>
         </div>
 
         <nav
           className="flex-1 overflow-y-auto py-2 px-4 flex flex-col gap-1"
-          style={{ borderTop: `1px solid ${rule}` }}
+          style={{
+            borderTop: `1px solid ${rule}`,
+          }}
         >
           {/* Renamed from "Dashboard" to "Studio" — this is the page where
               people actually build a flyer/caption/video, not a reporting
@@ -363,14 +430,19 @@ function Sidebar({
               color: textPrimary,
             }}
           >
-            <Home className="w-5 h-5" style={{ color: marigold }} />
+            <Home
+              className="w-5 h-5"
+              style={{ color: marigold }}
+            />
             Studio
           </Link>
         </nav>
 
         <div
           className="p-4"
-          style={{ borderTop: `1px solid ${rule}` }}
+          style={{
+            borderTop: `1px solid ${rule}`,
+          }}
         >
           <Link
             href="/pricing"
@@ -378,10 +450,11 @@ function Sidebar({
             style={{
               background: "rgba(232,163,61,0.08)",
               color: marigold,
-              border: `1px solid rgba(232,163,61,0.3)`,
+              border: "1px solid rgba(232,163,61,0.3)",
             }}
           >
-            <Crown className="w-5 h-5" /> Move up to Pro
+            <Crown className="w-5 h-5" />
+            Move up to Pro
           </Link>
         </div>
       </motion.aside>
@@ -433,16 +506,24 @@ function Perforation() {
 
   return (
     <div className="relative h-px mx-8 sm:mx-10">
-      <div style={{ borderTop: `2px dashed ${rule}` }} />
+      <div
+        style={{
+          borderTop: `2px dashed ${rule}`,
+        }}
+      />
 
       <div
         className="absolute -left-[10px] -top-[9px] w-[18px] h-[18px] rounded-full"
-        style={{ background: ink }}
+        style={{
+          background: ink,
+        }}
       />
 
       <div
         className="absolute -right-[10px] -top-[9px] w-[18px] h-[18px] rounded-full"
-        style={{ background: ink }}
+        style={{
+          background: ink,
+        }}
       />
     </div>
   );
@@ -453,6 +534,7 @@ function Perforation() {
 // ─────────────────────────────────────────────────────────────────────────────
 function DashboardPageInner() {
   const { tokens } = useTheme();
+
   const {
     ink,
     panel,
@@ -469,28 +551,48 @@ function DashboardPageInner() {
   const [generateVideo, setGenerateVideo] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [phase, setPhase] = useState<UploadPhase>("idle");
+  const [phase, setPhase] =
+    useState<UploadPhase>("idle");
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [dashboardData, setDashboardData] =
     useState<DashboardData | null>(null);
-  const [dashboardLoading, setDashboardLoading] = useState(true);
-  const [dashboardError, setDashboardError] = useState<string | null>(null);
-  const [recentCampaigns, setRecentCampaigns] = useState<RecentCampaign[]>([]);
-  const [recentCampaignsLoading, setRecentCampaignsLoading] = useState(true);
-  const [showAllCampaigns, setShowAllCampaigns] = useState(false);
+  const [dashboardLoading, setDashboardLoading] =
+    useState(true);
+  const [dashboardError, setDashboardError] =
+    useState<string | null>(null);
+  const [recentCampaigns, setRecentCampaigns] =
+    useState<RecentCampaign[]>([]);
+  const [recentCampaignsLoading, setRecentCampaignsLoading] =
+    useState(true);
+  const [showAllCampaigns, setShowAllCampaigns] =
+    useState(false);
 
   const router = useRouter();
-  const { user, loading } = useUser();
+
+  const {
+    user,
+    loading,
+  } = useUser();
+
   const greeting = useGreeting();
 
   // Demo video section — lazy-loads only once it scrolls into view.
-  const videoWrapRef = useRef<HTMLDivElement>(null);
-  const videoInView = useInView(videoWrapRef, {
-    once: true,
-    margin: "150px",
-  });
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const videoWrapRef =
+    useRef<HTMLDivElement>(null);
+
+  const videoInView = useInView(
+    videoWrapRef,
+    {
+      once: true,
+      margin: "150px",
+    }
+  );
+
+  const videoRef =
+    useRef<HTMLVideoElement>(null);
+
+  const [isVideoPlaying, setIsVideoPlaying] =
+    useState(false);
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout/", {
@@ -509,20 +611,27 @@ function DashboardPageInner() {
       if (!user) return;
 
       try {
-        const data = await apiFetch<RecentCampaign[]>(
-          "/api/campaign/recent/"
-        );
+        const data =
+          await apiFetch<RecentCampaign[]>(
+            "/api/campaign/recent/"
+          );
 
         setRecentCampaigns(data);
       } catch (error) {
-        console.error("Error fetching recent campaigns:", error);
+        console.error(
+          "Error fetching recent campaigns:",
+          error
+        );
+
         setRecentCampaigns([]);
       } finally {
         setRecentCampaignsLoading(false);
       }
     }
 
-    if (user) fetchRecentCampaigns();
+    if (user) {
+      fetchRecentCampaigns();
+    }
   }, [user]);
 
   useEffect(() => {
@@ -530,14 +639,18 @@ function DashboardPageInner() {
       if (!user) return;
 
       try {
-        const data = await apiFetch<DashboardData>(
-          "/api/pricing/dashboard/"
-        );
+        const data =
+          await apiFetch<DashboardData>(
+            "/api/pricing/dashboard/"
+          );
 
         setDashboardData(data);
         setDashboardError(null);
       } catch (error) {
-        console.error("Error fetching dashboard data:", error);
+        console.error(
+          "Error fetching dashboard data:",
+          error
+        );
 
         setDashboardError(
           error instanceof Error
@@ -549,7 +662,9 @@ function DashboardPageInner() {
       }
     }
 
-    if (user) fetchDashboardData();
+    if (user) {
+      fetchDashboardData();
+    }
   }, [user]);
 
   const handleImageUpload = (
@@ -560,7 +675,9 @@ function DashboardPageInner() {
     if (!file) return;
 
     setImageFile(file);
-    setPreviewImage(URL.createObjectURL(file));
+    setPreviewImage(
+      URL.createObjectURL(file)
+    );
     setPhase("idle");
     setErrorMsg("");
   };
@@ -575,59 +692,100 @@ function DashboardPageInner() {
 
     try {
       setPhase("uploading");
+      setErrorMsg("");
 
-      const { job_id } = await createCampaignJob(imageFile);
+      /*
+       * IMPORTANT:
+       *
+       * createCampaignJob() now calls the backend CreateAIJobView.
+       *
+       * The backend checks and CONSUMES the user's entitlement there:
+       *
+       * Free  -> consumes free campaign
+       * PAYG   -> consumes one PAYG credit
+       * Pro    -> consumes one generation from the daily allowance
+       *
+       * Therefore we MUST NOT call /api/pricing/track_generation/
+       * after this request succeeds. Doing so would consume the
+       * same generation twice.
+       */
+      const { job_id } =
+        await createCampaignJob(imageFile);
 
       setPhase("processing");
 
-      const result = await pollUntilDone(job_id, {
-        intervalMs: 2000,
-        maxAttempts: 90,
-        onStatus: (status: JobStatus) => {
-          if (status === "processing") {
-            setPhase("processing");
-          }
-        },
-      });
+      const result =
+        await pollUntilDone(job_id, {
+          intervalMs: 2000,
+          maxAttempts: 90,
+          onStatus: (
+            status: JobStatus
+          ) => {
+            if (status === "processing") {
+              setPhase("processing");
+            }
+          },
+        });
 
       saveJobResult(result);
+
       setPhase("done");
 
-      apiFetch<RecentCampaign[]>("/api/campaign/recent/")
+      /*
+       * Refresh recent campaigns after the generation completes.
+       * The backend has already created/recorded the campaign.
+       */
+      apiFetch<RecentCampaign[]>(
+        "/api/campaign/recent/"
+      )
         .then(setRecentCampaigns)
         .catch(() => {});
 
+      /*
+       * Refresh the dashboard entitlement display.
+       *
+       * We no longer call track_generation here because
+       * CreateAIJobView already consumed the entitlement.
+       *
+       * This request is READ-ONLY and only gets the latest
+       * campaigns_remaining / campaigns_generated values.
+       */
       try {
-        await apiFetch("/api/pricing/track_generation/", {
-          method: "POST",
-          body: JSON.stringify({
-            campaign_id: job_id,
-            action: "generated",
-          }),
-        });
-
-        const updatedData = await apiFetch<DashboardData>(
-          "/api/pricing/dashboard/"
-        );
+        const updatedData =
+          await apiFetch<DashboardData>(
+            "/api/pricing/dashboard/"
+          );
 
         setDashboardData(updatedData);
-      } catch (trackError) {
+        setDashboardError(null);
+      } catch (dashboardRefreshError) {
         console.error(
-          "Error tracking generation:",
-          trackError
+          "Error refreshing dashboard data:",
+          dashboardRefreshError
         );
       }
 
-      router.push(`/dashboard/editor?job=${job_id}`);
+      router.push(
+        `/dashboard/editor?job=${job_id}`
+      );
     } catch (err: any) {
-      console.error("[Campaign]", err);
+      console.error(
+        "[Campaign]",
+        err
+      );
+
       setPhase("error");
-      setErrorMsg(err?.message ?? "Unknown error");
+
+      setErrorMsg(
+        err?.message ??
+          "Unknown error"
+      );
     }
   };
 
   const isWorking =
-    phase === "uploading" || phase === "processing";
+    phase === "uploading" ||
+    phase === "processing";
 
   const getCampaignsDisplay = (
     remaining: number | string
@@ -645,10 +803,20 @@ function DashboardPageInner() {
       : remaining;
   };
 
-  const getPlanDisplay = (planType: string) => {
-    if (planType === "free") return "Free trial";
-    if (planType === "payg") return "Pay as you go";
-    if (planType === "pro") return "Pro plan";
+  const getPlanDisplay = (
+    planType: string
+  ) => {
+    if (planType === "free") {
+      return "Free trial";
+    }
+
+    if (planType === "payg") {
+      return "Pay as you go";
+    }
+
+    if (planType === "pro") {
+      return "Pro plan";
+    }
 
     return planType;
   };
@@ -657,15 +825,49 @@ function DashboardPageInner() {
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
-        .font-display { font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif; }
-        .font-mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
-        button, a, label, [role="button"] { touch-action: manipulation; }
-        html, body { overflow-x: hidden; max-width: 100%; }
-        .job-btn { transition: transform .15s ease; }
-        .job-btn:hover:not(:disabled) { transform: translateY(-2px); }
-        .job-btn:active:not(:disabled) { transform: translateY(0); }
-        .lift:hover { transform: translateY(-3px); }
-        .lift { transition: transform .18s ease, border-color .18s ease; }
+
+        .font-display {
+          font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+        }
+
+        .font-mono {
+          font-family: 'IBM Plex Mono', ui-monospace, monospace;
+        }
+
+        button,
+        a,
+        label,
+        [role="button"] {
+          touch-action: manipulation;
+        }
+
+        html,
+        body {
+          overflow-x: hidden;
+          max-width: 100%;
+        }
+
+        .job-btn {
+          transition: transform .15s ease;
+        }
+
+        .job-btn:hover:not(:disabled) {
+          transform: translateY(-2px);
+        }
+
+        .job-btn:active:not(:disabled) {
+          transform: translateY(0);
+        }
+
+        .lift:hover {
+          transform: translateY(-3px);
+        }
+
+        .lift {
+          transition:
+            transform .18s ease,
+            border-color .18s ease;
+        }
       `}</style>
 
       <div
@@ -677,11 +879,12 @@ function DashboardPageInner() {
       >
         <Sidebar
           isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
+          onClose={() =>
+            setSidebarOpen(false)
+          }
         />
 
         <main className="flex-1 lg:ml-64 relative min-h-screen w-full max-w-full overflow-x-hidden">
-
           <header
             className="lg:hidden flex items-center justify-between p-4 sticky top-0 z-30"
             style={{
@@ -693,7 +896,9 @@ function DashboardPageInner() {
             <Link
               href="/"
               className="flex items-center gap-2"
-              style={{ color: textMuted }}
+              style={{
+                color: textMuted,
+              }}
             >
               <ArrowLeft className="w-4 h-4" />
               <Logo className="w-8 h-8 rounded-md" />
@@ -703,9 +908,13 @@ function DashboardPageInner() {
               <ThemeToggle variant="inline" />
 
               <button
-                onClick={() => setSidebarOpen(true)}
+                onClick={() =>
+                  setSidebarOpen(true)
+                }
                 className="p-3 -m-3"
-                style={{ color: textMuted }}
+                style={{
+                  color: textMuted,
+                }}
               >
                 <Menu className="w-6 h-6" />
               </button>
@@ -713,7 +922,6 @@ function DashboardPageInner() {
           </header>
 
           <div className="p-3 sm:p-6 md:p-10 max-w-6xl mx-auto space-y-10 sm:space-y-14 w-full max-w-full">
-
             {/* ── CAMPAIGN TICKET: greeting + create-campaign as one torn ticket ── */}
             <section
               className="rounded-3xl overflow-hidden"
@@ -722,7 +930,6 @@ function DashboardPageInner() {
                 border: `1px solid ${rule}`,
               }}
             >
-
               {/* stub */}
               <div className="p-6 sm:p-9 pb-6 sm:pb-7 flex flex-col sm:flex-row justify-between items-start gap-6">
                 <div className="min-w-0">
@@ -730,56 +937,73 @@ function DashboardPageInner() {
                     <div className="animate-pulse space-y-3">
                       <div
                         className="h-3 w-40 rounded-full"
-                        style={{ background: rule }}
+                        style={{
+                          background: rule,
+                        }}
                       />
 
                       <div
                         className="h-9 w-72 rounded-xl"
-                        style={{ background: rule }}
+                        style={{
+                          background: rule,
+                        }}
                       />
                     </div>
                   ) : (
                     <>
                       <span
                         className="font-mono text-xs tracking-[0.2em]"
-                        style={{ color: textMuted }}
+                        style={{
+                          color: textMuted,
+                        }}
                       >
                         CAMPAIGN TICKET —{" "}
                         {new Date()
-                          .toLocaleDateString("en-GB", {
-                            weekday: "short",
-                            day: "2-digit",
-                            month: "short",
-                          })
+                          .toLocaleDateString(
+                            "en-GB",
+                            {
+                              weekday: "short",
+                              day: "2-digit",
+                              month: "short",
+                            }
+                          )
                           .toUpperCase()}
                       </span>
 
                       <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-semibold mt-2 leading-tight break-words">
                         {greeting},{" "}
-                        {getFirstName(user?.full_name ?? "")}.
-                        <br className="hidden sm:block" /> Let&apos;s get
-                        something printed.
+                        {getFirstName(
+                          user?.full_name ?? ""
+                        )}
+                        .
+                        <br className="hidden sm:block" />
+                        {" "}Let&apos;s get something printed.
                       </h1>
 
                       <p
                         className="mt-3 max-w-md text-sm sm:text-base"
-                        style={{ color: textMuted }}
+                        style={{
+                          color: textMuted,
+                        }}
                       >
-                        Upload one product photo. We turn it into a flyer,
-                        a caption and a short video — ready to post.
+                        Upload one product photo. We
+                        turn it into a flyer, a caption
+                        and a short video — ready to
+                        post.
                       </p>
                     </>
                   )}
                 </div>
 
-                {!dashboardLoading && dashboardData && (
-                  <Stamp
-                    value={getCampaignsDisplay(
-                      dashboardData.campaigns_remaining
-                    )}
-                    label="CAMPAIGNS LEFT"
-                  />
-                )}
+                {!dashboardLoading &&
+                  dashboardData && (
+                    <Stamp
+                      value={getCampaignsDisplay(
+                        dashboardData.campaigns_remaining
+                      )}
+                      label="CAMPAIGNS LEFT"
+                    />
+                  )}
               </div>
 
               <Perforation />
@@ -787,11 +1011,12 @@ function DashboardPageInner() {
               {/* order form */}
               <div className="p-6 sm:p-9 pt-6 sm:pt-7">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
-
                   <div>
                     <p
                       className="font-mono text-[11px] tracking-[0.2em]"
-                      style={{ color: textMuted }}
+                      style={{
+                        color: textMuted,
+                      }}
                     >
                       THIS CAMPAIGN INCLUDES
                     </p>
@@ -804,12 +1029,16 @@ function DashboardPageInner() {
                           checked
                           readOnly
                           disabled
-                          style={{ accentColor: marigold }}
+                          style={{
+                            accentColor: marigold,
+                          }}
                         />
 
                         <ImageIcon
                           className="w-4 h-4 shrink-0"
-                          style={{ color: textMuted }}
+                          style={{
+                            color: textMuted,
+                          }}
                         />
 
                         <span className="text-sm font-medium">
@@ -818,7 +1047,9 @@ function DashboardPageInner() {
 
                         <span
                           className="font-mono text-[10px] ml-auto"
-                          style={{ color: textMuted }}
+                          style={{
+                            color: textMuted,
+                          }}
                         >
                           REQUIRED
                         </span>
@@ -831,12 +1062,16 @@ function DashboardPageInner() {
                           checked
                           readOnly
                           disabled
-                          style={{ accentColor: marigold }}
+                          style={{
+                            accentColor: marigold,
+                          }}
                         />
 
                         <Type
                           className="w-4 h-4 shrink-0"
-                          style={{ color: textMuted }}
+                          style={{
+                            color: textMuted,
+                          }}
                         />
 
                         <span className="text-sm font-medium">
@@ -845,29 +1080,34 @@ function DashboardPageInner() {
 
                         <span
                           className="font-mono text-[10px] ml-auto"
-                          style={{ color: textMuted }}
+                          style={{
+                            color: textMuted,
+                          }}
                         >
                           REQUIRED
                         </span>
                       </label>
 
-                      <label
-                        className="flex items-center gap-3 px-2 py-2.5 rounded-lg cursor-pointer transition-colors"
-                        style={{}}
-                      >
+                      <label className="flex items-center gap-3 px-2 py-2.5 rounded-lg cursor-pointer transition-colors">
                         <input
                           type="checkbox"
                           className="w-4 h-4 shrink-0"
                           checked={generateVideo}
                           onChange={(e) =>
-                            setGenerateVideo(e.target.checked)
+                            setGenerateVideo(
+                              e.target.checked
+                            )
                           }
-                          style={{ accentColor: marigold }}
+                          style={{
+                            accentColor: marigold,
+                          }}
                         />
 
                         <Video
                           className="w-4 h-4 shrink-0"
-                          style={{ color: textMuted }}
+                          style={{
+                            color: textMuted,
+                          }}
                         />
 
                         <span className="text-sm font-medium">
@@ -879,7 +1119,9 @@ function DashboardPageInner() {
 
                   <div
                     className="rounded-2xl p-1"
-                    style={{ background: paper }}
+                    style={{
+                      background: paper,
+                    }}
                   >
                     <label
                       className={`flex-1 flex flex-col items-center justify-center min-h-[132px] sm:min-h-[152px] rounded-xl relative overflow-hidden ${
@@ -902,19 +1144,25 @@ function DashboardPageInner() {
                         <div className="flex flex-col items-center justify-center py-6 px-4 text-center">
                           <Upload
                             className="w-6 h-6 mb-2"
-                            style={{ color: ink }}
+                            style={{
+                              color: ink,
+                            }}
                           />
 
                           <p
                             className="text-sm font-semibold"
-                            style={{ color: ink }}
+                            style={{
+                              color: ink,
+                            }}
                           >
                             Click to upload a photo
                           </p>
 
                           <p
                             className="font-mono text-[11px] mt-1"
-                            style={{ color: "#6b6250" }}
+                            style={{
+                              color: "#6b6250",
+                            }}
                           >
                             PNG, JPG OR WEBP
                           </p>
@@ -936,9 +1184,18 @@ function DashboardPageInner() {
                   {phase !== "idle" && (
                     <motion.div
                       key="status"
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
+                      initial={{
+                        opacity: 0,
+                        y: -8,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        y: 0,
+                      }}
+                      exit={{
+                        opacity: 0,
+                        y: -8,
+                      }}
                       className="mt-5 sm:mt-6 flex items-center gap-3 px-4 sm:px-5 py-3 rounded-xl text-sm font-medium"
                       style={{
                         background:
@@ -970,7 +1227,8 @@ function DashboardPageInner() {
 
                       <span className="flex-1 break-words">
                         {phase === "error"
-                          ? errorMsg || PHASE_LABEL.error
+                          ? errorMsg ||
+                            PHASE_LABEL.error
                           : PHASE_LABEL[phase]}
                       </span>
                     </motion.div>
@@ -979,15 +1237,20 @@ function DashboardPageInner() {
 
                 <button
                   onClick={handleStartGenerating}
-                  disabled={isWorking || !imageFile}
+                  disabled={
+                    isWorking ||
+                    !imageFile
+                  }
                   className="job-btn flex items-center justify-center gap-2 w-full sm:w-auto mt-6 px-7 py-4 rounded-full font-bold transition-colors disabled:cursor-not-allowed min-h-[44px] whitespace-nowrap"
                   style={{
                     background:
-                      isWorking || !imageFile
+                      isWorking ||
+                      !imageFile
                         ? "#5A4A22"
                         : marigold,
                     color:
-                      isWorking || !imageFile
+                      isWorking ||
+                      !imageFile
                         ? "#8C7C52"
                         : ink,
                   }}
@@ -995,7 +1258,9 @@ function DashboardPageInner() {
                   {isWorking ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      {phase === "uploading"
+
+                      {phase ===
+                      "uploading"
                         ? "Sending…"
                         : "Building…"}
                     </>
@@ -1020,7 +1285,9 @@ function DashboardPageInner() {
               <div className="p-5 sm:p-6">
                 <p
                   className="text-xs uppercase tracking-wide"
-                  style={{ color: "#5a523f" }}
+                  style={{
+                    color: "#5a523f",
+                  }}
                 >
                   Campaigns left
                 </p>
@@ -1028,12 +1295,16 @@ function DashboardPageInner() {
                 {dashboardLoading ? (
                   <div
                     className="h-8 w-16 rounded-lg mt-2 animate-pulse"
-                    style={{ background: paperMuted }}
+                    style={{
+                      background: paperMuted,
+                    }}
                   />
                 ) : dashboardError ? (
                   <p
                     className="text-sm mt-2"
-                    style={{ color: signal }}
+                    style={{
+                      color: signal,
+                    }}
                   >
                     {dashboardError}
                   </p>
@@ -1041,17 +1312,21 @@ function DashboardPageInner() {
                   <>
                     <p className="font-mono text-3xl font-bold mt-1">
                       {getCampaignsDisplay(
-                        dashboardData?.campaigns_remaining ?? 0
+                        dashboardData?.campaigns_remaining ??
+                          0
                       )}
                     </p>
 
                     <p
                       className="text-xs mt-1"
-                      style={{ color: "#6b6250" }}
+                      style={{
+                        color: "#6b6250",
+                      }}
                     >
                       {dashboardData?.plan
                         ? getPlanDisplay(
-                            dashboardData.plan.plan_type
+                            dashboardData.plan
+                              .plan_type
                           )
                         : "No plan yet"}
                     </p>
@@ -1068,7 +1343,9 @@ function DashboardPageInner() {
               >
                 <p
                   className="text-xs uppercase tracking-wide"
-                  style={{ color: "#5a523f" }}
+                  style={{
+                    color: "#5a523f",
+                  }}
                 >
                   Flyers made so far
                 </p>
@@ -1076,17 +1353,22 @@ function DashboardPageInner() {
                 {dashboardLoading ? (
                   <div
                     className="h-8 w-16 rounded-lg mt-2 animate-pulse"
-                    style={{ background: paperMuted }}
+                    style={{
+                      background: paperMuted,
+                    }}
                   />
                 ) : (
                   <>
                     <p className="font-mono text-3xl font-bold mt-1">
-                      {dashboardData?.campaigns_generated ?? 0}
+                      {dashboardData?.campaigns_generated ??
+                        0}
                     </p>
 
                     <p
                       className="text-xs mt-1"
-                      style={{ color: "#6b6250" }}
+                      style={{
+                        color: "#6b6250",
+                      }}
                     >
                       Since you joined
                     </p>
@@ -1102,7 +1384,9 @@ function DashboardPageInner() {
               >
                 <p
                   className="text-xs uppercase tracking-wide"
-                  style={{ color: "#5a523f" }}
+                  style={{
+                    color: "#5a523f",
+                  }}
                 >
                   Plan status
                 </p>
@@ -1110,24 +1394,30 @@ function DashboardPageInner() {
                 {dashboardLoading ? (
                   <div
                     className="h-8 w-24 rounded-lg mt-2 animate-pulse"
-                    style={{ background: paperMuted }}
+                    style={{
+                      background: paperMuted,
+                    }}
                   />
                 ) : (
                   <>
                     <p className="font-mono text-xl font-bold mt-1 break-words">
-                      {dashboardData?.plan?.name || "Free trial"}
+                      {dashboardData?.plan?.name ||
+                        "Free trial"}
                     </p>
 
                     <p
                       className="text-xs mt-1 flex items-center gap-1.5"
-                      style={{ color: "#6b6250" }}
+                      style={{
+                        color: "#6b6250",
+                      }}
                     >
                       <span
                         className="inline-block w-2 h-2 rounded-full"
                         style={{
-                          background: dashboardData?.is_active
-                            ? "#5FA05F"
-                            : signal,
+                          background:
+                            dashboardData?.is_active
+                              ? "#5FA05F"
+                              : signal,
                         }}
                       />
 
@@ -1150,10 +1440,14 @@ function DashboardPageInner() {
                 {recentCampaigns.length > 4 && (
                   <button
                     onClick={() =>
-                      setShowAllCampaigns((v) => !v)
+                      setShowAllCampaigns(
+                        (v) => !v
+                      )
                     }
                     className="font-mono text-xs tracking-wide px-3 py-2 -my-2 min-h-[44px] flex items-center"
-                    style={{ color: marigold }}
+                    style={{
+                      color: marigold,
+                    }}
                   >
                     {showAllCampaigns
                       ? "SHOW LESS"
@@ -1164,16 +1458,25 @@ function DashboardPageInner() {
 
               {recentCampaignsLoading ? (
                 <div className="grid grid-cols-2 min-[400px]:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="space-y-2">
+                  {Array.from({
+                    length: 4,
+                  }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="space-y-2"
+                    >
                       <div
                         className="aspect-[4/5] rounded-xl animate-pulse"
-                        style={{ background: panel }}
+                        style={{
+                          background: panel,
+                        }}
                       />
 
                       <div
                         className="h-3 w-3/4 rounded-full animate-pulse"
-                        style={{ background: panel }}
+                        style={{
+                          background: panel,
+                        }}
                       />
                     </div>
                   ))}
@@ -1188,7 +1491,9 @@ function DashboardPageInner() {
                 >
                   <History
                     className="w-8 h-8 mb-4"
-                    style={{ color: textMuted }}
+                    style={{
+                      color: textMuted,
+                    }}
                   />
 
                   <h3 className="text-base sm:text-lg font-semibold mb-2">
@@ -1197,17 +1502,23 @@ function DashboardPageInner() {
 
                   <p
                     className="text-sm max-w-sm text-center px-4"
-                    style={{ color: textMuted }}
+                    style={{
+                      color: textMuted,
+                    }}
                   >
-                    Start your first campaign above and it will show up
-                    here — flyer, caption and video together.
+                    Start your first campaign above
+                    and it will show up here — flyer,
+                    caption and video together.
                   </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 min-[400px]:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                   {(showAllCampaigns
                     ? recentCampaigns
-                    : recentCampaigns.slice(0, 4)
+                    : recentCampaigns.slice(
+                        0,
+                        4
+                      )
                   ).map((c) => (
                     <Link
                       key={c.job_id}
@@ -1222,18 +1533,26 @@ function DashboardPageInner() {
                         {c.png_url ? (
                           <Image
                             src={c.png_url}
-                            alt={c.headline ?? "Campaign"}
+                            alt={
+                              c.headline ??
+                              "Campaign"
+                            }
                             fill
                             className="object-cover"
                           />
                         ) : (
                           <div
                             className="w-full h-full flex items-center justify-center"
-                            style={{ background: "#141210" }}
+                            style={{
+                              background:
+                                "#141210",
+                            }}
                           >
                             <History
                               className="w-6 h-6"
-                              style={{ color: textMuted }}
+                              style={{
+                                color: textMuted,
+                              }}
                             />
                           </div>
                         )}
@@ -1252,26 +1571,35 @@ function DashboardPageInner() {
 
                         <div
                           className="absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                          style={{ background: marigold }}
+                          style={{
+                            background: marigold,
+                          }}
                         >
                           <Pencil
                             className="w-3.5 h-3.5"
-                            style={{ color: ink }}
+                            style={{
+                              color: ink,
+                            }}
                           />
                         </div>
                       </div>
 
                       <div className="px-0.5">
                         <p className="text-[13px] font-medium truncate">
-                          {c.headline || "Untitled campaign"}
+                          {c.headline ||
+                            "Untitled campaign"}
                         </p>
 
                         <p
                           className="font-mono flex items-center gap-1 text-[10.5px] mt-0.5"
-                          style={{ color: textMuted }}
+                          style={{
+                            color: textMuted,
+                          }}
                         >
                           <Clock className="w-3 h-3 shrink-0" />
-                          {timeAgo(c.created_at)}
+                          {timeAgo(
+                            c.created_at
+                          )}
                         </p>
                       </div>
                     </Link>
@@ -1295,7 +1623,8 @@ function DashboardPageInner() {
                   border: `1px solid ${rule}`,
                 }}
                 onClick={() => {
-                  const video = videoRef.current;
+                  const video =
+                    videoRef.current;
 
                   if (!video) return;
 
@@ -1315,8 +1644,12 @@ function DashboardPageInner() {
                     loop
                     playsInline
                     preload="metadata"
-                    onPlay={() => setIsVideoPlaying(true)}
-                    onPause={() => setIsVideoPlaying(false)}
+                    onPlay={() =>
+                      setIsVideoPlaying(true)
+                    }
+                    onPause={() =>
+                      setIsVideoPlaying(false)
+                    }
                   />
                 )}
 
@@ -1376,10 +1709,12 @@ function DashboardPageInner() {
 
               <p
                 className="mt-3 text-sm"
-                style={{ color: textMuted }}
+                style={{
+                  color: textMuted,
+                }}
               >
-                Two minutes, start to finish — from a phone photo to a
-                finished post.
+                Two minutes, start to finish — from a
+                phone photo to a finished post.
               </p>
             </section>
 
@@ -1398,9 +1733,12 @@ function DashboardPageInner() {
 
                 <p
                   className="text-sm mt-1"
-                  style={{ color: textMuted }}
+                  style={{
+                    color: textMuted,
+                  }}
                 >
-                  Sign out everywhere you&apos;re currently logged in.
+                  Sign out everywhere you&apos;re
+                  currently logged in.
                 </p>
               </div>
 
@@ -1416,7 +1754,6 @@ function DashboardPageInner() {
                 Log out all devices
               </button>
             </section>
-
           </div>
         </main>
       </div>
@@ -1431,3 +1768,4 @@ export default function DashboardPage() {
     </ThemeProvider>
   );
 }
+
