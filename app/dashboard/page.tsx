@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -470,41 +471,6 @@ function Sidebar({
 // ─────────────────────────────────────────────────────────────────────────────
 // Small building blocks specific to the "campaign ticket" concept
 // ─────────────────────────────────────────────────────────────────────────────
-function Stamp({
-  value,
-  label,
-}: {
-  value: string;
-  label: string;
-}) {
-  const { tokens } = useTheme();
-  const { signal } = tokens;
-
-  return (
-    <div
-      className="w-28 h-28 sm:w-32 sm:h-32 rounded-full flex flex-col items-center justify-center shrink-0"
-      style={{
-        border: `2px dashed ${signal}`,
-        transform: "rotate(-6deg)",
-      }}
-    >
-      <span
-        className="font-mono font-bold text-2xl sm:text-3xl leading-none"
-        style={{ color: signal }}
-      >
-        {value}
-      </span>
-
-      <span
-        className="font-mono text-[9px] sm:text-[10px] tracking-widest mt-1 text-center px-2"
-        style={{ color: signal }}
-      >
-        {label}
-      </span>
-    </div>
-  );
-}
-
 function Perforation() {
   const { tokens } = useTheme();
   const { rule, ink } = tokens;
@@ -530,6 +496,91 @@ function Perforation() {
           background: ink,
         }}
       />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dashboard loading skeleton
+// ─────────────────────────────────────────────────────────────────────────────
+function DashboardLoadingSkeleton() {
+  const { tokens } = useTheme();
+  const { ink, panel, rule, textMuted } = tokens;
+
+  return (
+    <div
+      className="min-h-screen font-sans flex overflow-x-hidden"
+      style={{ background: ink, color: textMuted }}
+      aria-label="Loading dashboard"
+      role="status"
+    >
+      <aside
+        className="hidden lg:flex fixed top-0 left-0 bottom-0 w-64 z-40 flex-col"
+        style={{ background: panel, borderRight: `1px solid ${rule}` }}
+      >
+        <div className="p-6 flex items-center justify-between">
+          <div className="w-8 h-8 rounded-lg animate-pulse" style={{ background: rule }} />
+          <div className="w-8 h-8 rounded-lg animate-pulse" style={{ background: rule }} />
+        </div>
+        <div className="px-4 pt-6 space-y-3">
+          <div className="h-11 rounded-xl animate-pulse" style={{ background: rule }} />
+        </div>
+      </aside>
+
+      <main className="flex-1 lg:ml-64 min-h-screen w-full">
+        <div className="lg:hidden h-[73px] px-4 flex items-center justify-between" style={{ borderBottom: `1px solid ${rule}` }}>
+          <div className="w-8 h-8 rounded-md animate-pulse" style={{ background: rule }} />
+          <div className="w-20 h-9 rounded-xl animate-pulse" style={{ background: rule }} />
+        </div>
+
+        <div className="p-3 sm:p-6 md:p-10 max-w-6xl mx-auto space-y-10 sm:space-y-14">
+          <section className="rounded-3xl overflow-hidden" style={{ background: panel, border: `1px solid ${rule}` }}>
+            <div className="p-6 sm:p-9 space-y-4">
+              <div className="h-3 w-40 rounded-full animate-pulse" style={{ background: rule }} />
+              <div className="h-10 w-full max-w-xl rounded-xl animate-pulse" style={{ background: rule }} />
+              <div className="h-4 w-full max-w-md rounded-full animate-pulse" style={{ background: rule }} />
+              <div className="h-4 w-3/4 max-w-sm rounded-full animate-pulse" style={{ background: rule }} />
+            </div>
+            <div className="mx-8 sm:mx-10" style={{ borderTop: `2px dashed ${rule}` }} />
+            <div className="p-6 sm:p-9 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div className="h-3 w-36 rounded-full animate-pulse" style={{ background: rule }} />
+                <div className="h-11 w-full max-w-md rounded-xl animate-pulse" style={{ background: rule }} />
+                <div className="h-11 w-full max-w-md rounded-xl animate-pulse" style={{ background: rule }} />
+                <div className="h-11 w-full max-w-md rounded-xl animate-pulse" style={{ background: rule }} />
+              </div>
+              <div className="h-40 rounded-2xl animate-pulse" style={{ background: rule }} />
+            </div>
+          </section>
+
+          <section>
+            <div className="h-6 w-48 rounded-full animate-pulse mb-5" style={{ background: rule }} />
+            <div className="grid grid-cols-2 min-[400px]:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="aspect-[4/5] rounded-xl animate-pulse" style={{ background: panel }} />
+                  <div className="h-3 w-3/4 rounded-full animate-pulse" style={{ background: panel }} />
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-2xl overflow-hidden" style={{ background: panel, border: `1px solid ${rule}` }}>
+            <div className="p-5 sm:p-6 border-b" style={{ borderColor: rule }}>
+              <div className="h-5 w-36 rounded-full animate-pulse" style={{ background: rule }} />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-px" style={{ background: rule }}>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="p-5 sm:p-6 min-h-[128px]" style={{ background: panel }}>
+                  <div className="h-3 w-24 rounded-full animate-pulse" style={{ background: rule }} />
+                  <div className="h-7 w-32 rounded-lg mt-3 animate-pulse" style={{ background: rule }} />
+                  <div className="h-3 w-40 rounded-full mt-2 animate-pulse" style={{ background: rule }} />
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      </main>
     </div>
   );
 }
@@ -793,6 +844,10 @@ function DashboardPageInner() {
     phase === "uploading" ||
     phase === "processing";
 
+  if (loading) {
+    return <DashboardLoadingSkeleton />;
+  }
+
   const getCampaignsDisplay = (
     remaining: number | string
   ) => {
@@ -1044,15 +1099,6 @@ function DashboardPageInner() {
                   )}
                 </div>
 
-                {!dashboardLoading &&
-                  dashboardData && (
-                    <Stamp
-                      value={getCampaignsDisplay(
-                        getAvailableCampaigns(dashboardData)
-                      )}
-                      label="CAMPAIGNS LEFT"
-                    />
-                  )}
               </div>
 
               <Perforation />
@@ -1321,379 +1367,6 @@ function DashboardPageInner() {
                   )}
                 </button>
               </div>
-            </section>
-
-            {/* ── STAT RECEIPT STRIP ── */}
-            <section
-              className="rounded-2xl grid grid-cols-1 sm:grid-cols-3"
-              style={{
-                background: paper,
-                color: ink,
-              }}
-            >
-              <div className="p-5 sm:p-6">
-                <p
-                  className="text-xs uppercase tracking-wide"
-                  style={{
-                    color: "#5a523f",
-                  }}
-                >
-                  Campaigns left
-                </p>
-
-                {dashboardLoading ? (
-                  <div
-                    className="h-8 w-16 rounded-lg mt-2 animate-pulse"
-                    style={{
-                      background: paperMuted,
-                    }}
-                  />
-                ) : dashboardError ? (
-                  <p
-                    className="text-sm mt-2"
-                    style={{
-                      color: signal,
-                    }}
-                  >
-                    {dashboardError}
-                  </p>
-                ) : (
-                  <>
-                    <p className="font-mono text-3xl font-bold mt-1">
-                      {getCampaignsDisplay(
-                        getAvailableCampaigns(dashboardData)
-                      )}
-                    </p>
-
-                    <p
-                      className="text-xs mt-1"
-                      style={{
-                        color: "#6b6250",
-                      }}
-                    >
-                      {dashboardData?.plan
-                        ? getPlanDisplay(
-                            dashboardData.plan
-                              .plan_type
-                          )
-                        : "No plan yet"}
-                    </p>
-                  </>
-                )}
-              </div>
-
-              <div
-                className="p-5 sm:p-6"
-                style={{
-                  borderTop: `1px dashed ${paperMuted}`,
-                  borderLeft: `1px dashed ${paperMuted}`,
-                }}
-              >
-                <p
-                  className="text-xs uppercase tracking-wide"
-                  style={{
-                    color: "#5a523f",
-                  }}
-                >
-                  Flyers made so far
-                </p>
-
-                {dashboardLoading ? (
-                  <div
-                    className="h-8 w-16 rounded-lg mt-2 animate-pulse"
-                    style={{
-                      background: paperMuted,
-                    }}
-                  />
-                ) : (
-                  <>
-                    <p className="font-mono text-3xl font-bold mt-1">
-                      {dashboardData?.campaigns_generated ??
-                        0}
-                    </p>
-
-                    <p
-                      className="text-xs mt-1"
-                      style={{
-                        color: "#6b6250",
-                      }}
-                    >
-                      Since you joined
-                    </p>
-                  </>
-                )}
-              </div>
-
-              <div
-                className="p-5 sm:p-6"
-                style={{
-                  borderTop: `1px dashed ${paperMuted}`,
-                }}
-              >
-                <p
-                  className="text-xs uppercase tracking-wide"
-                  style={{
-                    color: "#5a523f",
-                  }}
-                >
-                  Plan status
-                </p>
-
-                {dashboardLoading ? (
-                  <div
-                    className="h-8 w-24 rounded-lg mt-2 animate-pulse"
-                    style={{
-                      background: paperMuted,
-                    }}
-                  />
-                ) : (
-                  <>
-                    <p className="font-mono text-xl font-bold mt-1 break-words">
-                      {dashboardData?.plan?.name ||
-                        "Free trial"}
-                    </p>
-
-                    <p
-                      className="text-xs mt-1 flex items-center gap-1.5"
-                      style={{
-                        color: "#6b6250",
-                      }}
-                    >
-                      <span
-                        className="inline-block w-2 h-2 rounded-full"
-                        style={{
-                          background:
-                            dashboardData?.is_active
-                              ? "#5FA05F"
-                              : signal,
-                        }}
-                      />
-
-                      {dashboardData?.is_active
-                        ? "Active"
-                        : "Inactive"}
-                    </p>
-                  </>
-                )}
-              </div>
-            </section>
-
-            {/* ── PLAN & BILLING ── */}
-            <section
-              className="rounded-2xl overflow-hidden"
-              style={{ background: panel, border: `1px solid ${rule}` }}
-            >
-              <div className="p-5 sm:p-6 border-b" style={{ borderColor: rule }}>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="font-mono text-[10px] tracking-[0.2em] uppercase" style={{ color: textMuted }}>
-                      ACCOUNT BILLING
-                    </p>
-                    <h2 className="font-display text-lg sm:text-xl font-semibold mt-1">Your plan &amp; payments</h2>
-                    <p className="text-sm mt-1 max-w-2xl leading-6" style={{ color: textMuted }}>
-                      See exactly what your account has, what each campaign uses, and when your paid access ends.
-                    </p>
-                  </div>
-                  <CreditCard className="w-5 h-5 shrink-0 mt-1" style={{ color: marigold }} />
-                </div>
-              </div>
-
-              {dashboardLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-px" style={{ background: rule }}>
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="p-5 sm:p-6 min-h-[128px]" style={{ background: panel }}>
-                      <div className="h-3 w-24 rounded-full animate-pulse" style={{ background: rule }} />
-                      <div className="h-7 w-32 rounded-lg mt-3 animate-pulse" style={{ background: rule }} />
-                      <div className="h-3 w-40 rounded-full mt-2 animate-pulse" style={{ background: rule }} />
-                    </div>
-                  ))}
-                </div>
-              ) : dashboardData ? (
-                <>
-                  {dashboardData.plan.plan_type === "pro" ? (
-                    <>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-px" style={{ background: rule }}>
-                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
-                          <div className="flex items-center gap-2">
-                            <Crown className="w-4 h-4" style={{ color: marigold }} />
-                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Plan</p>
-                          </div>
-                          <p className="font-mono text-xl font-bold mt-3">Pro</p>
-                          <p className="text-xs mt-1 flex items-center gap-1.5" style={{ color: isProExpired(dashboardData) ? signal : "#5FA05F" }}>
-                            <span className="inline-block w-2 h-2 rounded-full" style={{ background: isProExpired(dashboardData) ? signal : "#5FA05F" }} />
-                            {isProExpired(dashboardData) ? "Pro expired" : "Active"}
-                          </p>
-                        </div>
-
-                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
-                          <div className="flex items-center gap-2">
-                            <CalendarDays className="w-4 h-4" style={{ color: marigold }} />
-                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Started</p>
-                          </div>
-                          <p className="font-mono text-base sm:text-lg font-bold mt-3 break-words">{formatBillingDate(dashboardData.start_date)}</p>
-                          <p className="text-xs mt-1" style={{ color: textMuted }}>Current Pro period start</p>
-                        </div>
-
-                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
-                          <div className="flex items-center gap-2">
-                            <CalendarDays className="w-4 h-4" style={{ color: marigold }} />
-                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Renews / expires</p>
-                          </div>
-                          <p className="font-mono text-base sm:text-lg font-bold mt-3 break-words" style={{ color: isProExpired(dashboardData) ? signal : textPrimary }}>
-                            {formatBillingDate(dashboardData.end_date)}
-                          </p>
-                          <p className="text-xs mt-1" style={{ color: isProExpired(dashboardData) ? signal : textMuted }}>
-                            {isProExpired(dashboardData)
-                              ? "Pro expired"
-                              : `${getProDaysRemaining(dashboardData.end_date) ?? 0} day${(getProDaysRemaining(dashboardData.end_date) ?? 0) === 1 ? "" : "s"} remaining`}
-                          </p>
-                        </div>
-
-
-
-
-                      </div>
-
-                      <div className="px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3" style={{ borderTop: `1px solid ${rule}` }}>
-                        <div className="min-w-0">
-                          <p className="text-sm" style={{ color: textMuted }}>
-                            Last payment: <span style={{ color: textPrimary }}>{formatBillingDate(dashboardData.last_payment_at, "Payment date unavailable")}</span>
-                          </p>
-                          <p className="text-xs mt-1 leading-5" style={{ color: textMuted }}>
-                            Total assets generated on this account: <span style={{ color: textPrimary, fontWeight: 700 }}>{dashboardData.campaigns_generated}</span>.
-                          </p>
-                        </div>
-                        {(dashboardData.payg_credits ?? 0) > 0 && (
-                          <div
-                            className="rounded-lg px-3 py-2 shrink-0"
-                            style={{ background: "rgba(232,163,61,0.08)", border: `1px solid ${rule}` }}
-                          >
-                            <p className="font-mono text-xs font-semibold" style={{ color: textPrimary }}>
-                              {dashboardData.payg_credits} PAYG credit{dashboardData.payg_credits === 1 ? "" : "s"} saved
-                            </p>
-                            <p className="text-[11px] mt-0.5" style={{ color: textMuted }}>
-                              Available after Pro when needed
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  ) : dashboardData.plan.plan_type === "payg" ? (
-                    <>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-px" style={{ background: rule }}>
-                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
-                          <div className="flex items-center gap-2">
-                            <CreditCard className="w-4 h-4" style={{ color: marigold }} />
-                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Plan</p>
-                          </div>
-                          <p className="font-mono text-xl font-bold mt-3">Pay as you go</p>
-                          <p className="text-xs mt-1 flex items-center gap-1.5" style={{ color: dashboardData.is_active ? "#5FA05F" : signal }}>
-                            <span className="inline-block w-2 h-2 rounded-full" style={{ background: dashboardData.is_active ? "#5FA05F" : signal }} />
-                            {dashboardData.is_active ? "Active" : "Inactive"}
-                          </p>
-                        </div>
-
-                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
-                          <div className="flex items-center gap-2">
-                            <Coins className="w-4 h-4" style={{ color: marigold }} />
-                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Campaign credits</p>
-                          </div>
-                          <p className="font-mono text-3xl font-bold mt-3">{dashboardData.payg_credits ?? 0}</p>
-                          <p className="text-xs mt-1" style={{ color: textMuted }}>1 successful campaign uses 1 credit</p>
-                        </div>
-
-                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
-                          <div className="flex items-center gap-2">
-                            <CalendarDays className="w-4 h-4" style={{ color: marigold }} />
-                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Last payment</p>
-                          </div>
-                          <p className="font-mono text-base sm:text-lg font-bold mt-3 break-words">{formatBillingDate(dashboardData.last_payment_at, "Payment date unavailable")}</p>
-                          <p className="text-xs mt-1" style={{ color: textMuted }}>Most recent successful PAYG purchase</p>
-                        </div>
-
-                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4" style={{ color: "#5FA05F" }} />
-                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Total assets generated</p>
-                          </div>
-                          <p className="font-mono text-3xl font-bold mt-3">{dashboardData.campaigns_generated}</p>
-                          <p className="text-xs mt-1" style={{ color: textMuted }}>All successful campaigns</p>
-                        </div>
-
-                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4" style={{ color: "#5FA05F" }} />
-                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Expiry</p>
-                          </div>
-                          <p className="font-mono text-xl font-bold mt-3">No expiry</p>
-                          <p className="text-xs mt-1" style={{ color: textMuted }}>Credits remain until used</p>
-                        </div>
-                      </div>
-
-                      <div className="px-5 sm:px-6 py-4" style={{ borderTop: `1px solid ${rule}` }}>
-                        <p className="text-sm leading-6" style={{ color: textMuted }}>
-                          <span style={{ color: textPrimary, fontWeight: 700 }}>What happens:</span>{" "}
-                          each successful campaign uses exactly 1 credit. Credits do not expire and remain available until used.
-                        </p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-px" style={{ background: rule }}>
-                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
-                          <div className="flex items-center gap-2">
-                            <CreditCard className="w-4 h-4" style={{ color: marigold }} />
-                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Plan</p>
-                          </div>
-                          <p className="font-mono text-xl font-bold mt-3">Free Trial</p>
-                          <p className="text-xs mt-1 flex items-center gap-1.5" style={{ color: dashboardData.is_active ? "#5FA05F" : signal }}>
-                            <span className="inline-block w-2 h-2 rounded-full" style={{ background: dashboardData.is_active ? "#5FA05F" : signal }} />
-                            {dashboardData.is_active ? "Active" : "Inactive"}
-                          </p>
-                        </div>
-
-                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
-                          <div className="flex items-center gap-2">
-                            <Coins className="w-4 h-4" style={{ color: marigold }} />
-                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Campaigns remaining</p>
-                          </div>
-                          <p className="font-mono text-3xl font-bold mt-3">{getCampaignsDisplay(dashboardData.campaigns_remaining)}</p>
-                          <p className="text-xs mt-1" style={{ color: textMuted }}>Included in your free trial</p>
-                        </div>
-
-                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
-                          <div className="flex items-center gap-2">
-                            <CalendarDays className="w-4 h-4" style={{ color: marigold }} />
-                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Trial started</p>
-                          </div>
-                          <p className="font-mono text-base sm:text-lg font-bold mt-3 break-words">{formatBillingDate(dashboardData.start_date)}</p>
-                          <p className="text-xs mt-1" style={{ color: textMuted }}>No payment required</p>
-                        </div>
-
-                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
-                          <div className="flex items-center gap-2">
-                            <CreditCard className="w-4 h-4" style={{ color: marigold }} />
-                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>What happens next</p>
-                          </div>
-                          <p className="font-mono text-base sm:text-lg font-bold mt-3">PAYG or Pro</p>
-                          <p className="text-xs mt-1 leading-5" style={{ color: textMuted }}>After your free campaign is used, buy a campaign or upgrade to Pro.</p>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </>
-              ) : null}
-
-              {!dashboardLoading && dashboardData?.plan.plan_type === "payg" && (dashboardData.payg_credits ?? 0) === 0 && (
-                <div className="px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3" style={{ background: "rgba(214,73,31,0.08)", borderTop: `1px solid ${rule}` }}>
-                  <p className="text-sm leading-6" style={{ color: textPrimary }}>
-                    No campaign credits remaining — buy another campaign or upgrade to Pro.
-                  </p>
-                  <Link href="/pricing" className="inline-flex items-center justify-center px-4 py-2 rounded-lg font-mono text-xs tracking-wide shrink-0 min-h-[44px]" style={{ background: marigold, color: ink }}>
-                    BUY CREDITS
-                  </Link>
-                </div>
-              )}
             </section>
 
             {/* ── Recent Campaigns: contact sheet ── */}
