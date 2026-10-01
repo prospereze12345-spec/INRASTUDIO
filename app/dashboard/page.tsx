@@ -470,160 +470,66 @@ function Sidebar({
 // ─────────────────────────────────────────────────────────────────────────────
 // Small building blocks specific to the "campaign ticket" concept
 // ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
-// Dashboard loading skeleton
-// ─────────────────────────────────────────────────────────────────────────────
-function DashboardLoadingSkeleton({
-  ink,
-  panel,
-  rule,
-  paperMuted,
-  marigold,
+function Stamp({
+  value,
+  label,
 }: {
-  ink: string;
-  panel: string;
-  rule: string;
-  paperMuted: string;
-  marigold: string;
+  value: string;
+  label: string;
 }) {
+  const { tokens } = useTheme();
+  const { signal } = tokens;
+
   return (
     <div
-      className="min-h-screen font-sans"
-      style={{ background: ink }}
+      className="w-28 h-28 sm:w-32 sm:h-32 rounded-full flex flex-col items-center justify-center shrink-0"
+      style={{
+        border: `2px dashed ${signal}`,
+        transform: "rotate(-6deg)",
+      }}
     >
+      <span
+        className="font-mono font-bold text-2xl sm:text-3xl leading-none"
+        style={{ color: signal }}
+      >
+        {value}
+      </span>
+
+      <span
+        className="font-mono text-[9px] sm:text-[10px] tracking-widest mt-1 text-center px-2"
+        style={{ color: signal }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function Perforation() {
+  const { tokens } = useTheme();
+  const { rule, ink } = tokens;
+
+  return (
+    <div className="relative h-px mx-8 sm:mx-10">
       <div
-        className="sticky top-0 z-30 flex items-center justify-between px-4 py-4 lg:hidden"
+        style={{
+          borderTop: `2px dashed ${rule}`,
+        }}
+      />
+
+      <div
+        className="absolute -left-[10px] -top-[9px] w-[18px] h-[18px] rounded-full"
         style={{
           background: ink,
-          borderBottom: `1px solid ${rule}`,
         }}
-      >
-        <div
-          className="h-8 w-8 animate-pulse rounded-lg"
-          style={{ background: rule }}
-        />
-        <div
-          className="h-9 w-9 animate-pulse rounded-lg"
-          style={{ background: rule }}
-        />
-      </div>
+      />
 
-      <div className="mx-auto w-full max-w-6xl px-3 py-6 sm:px-6 sm:py-10 lg:px-10">
-        <div
-          className="overflow-hidden rounded-3xl"
-          style={{
-            background: panel,
-            border: `1px solid ${rule}`,
-          }}
-        >
-          <div className="p-6 sm:p-9">
-            <div className="animate-pulse space-y-3">
-              <div
-                className="h-3 w-40 rounded-full"
-                style={{ background: rule }}
-              />
-              <div
-                className="h-9 w-full max-w-md rounded-xl"
-                style={{ background: rule }}
-              />
-              <div
-                className="h-4 w-full max-w-lg rounded-full"
-                style={{ background: rule }}
-              />
-            </div>
-
-            <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2">
-              <div
-                className="h-36 animate-pulse rounded-2xl"
-                style={{ background: paperMuted }}
-              />
-              <div
-                className="h-36 animate-pulse rounded-2xl"
-                style={{ background: paperMuted }}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="mt-8 overflow-hidden rounded-2xl"
-          style={{
-            background: panel,
-            border: `1px solid ${rule}`,
-          }}
-        >
-          <div className="p-5 sm:p-6" style={{ borderBottom: `1px solid ${rule}` }}>
-            <div
-              className="h-3 w-28 animate-pulse rounded-full"
-              style={{ background: rule }}
-            />
-            <div
-              className="mt-3 h-6 w-52 animate-pulse rounded-lg"
-              style={{ background: rule }}
-            />
-          </div>
-
-          <div
-            className="grid grid-cols-1 gap-px sm:grid-cols-2 xl:grid-cols-4"
-            style={{ background: rule }}
-          >
-            {Array.from({ length: 4 }).map((_, index) => (
-              <div
-                key={index}
-                className="min-h-[128px] p-5 sm:p-6"
-                style={{ background: panel }}
-              >
-                <div
-                  className="h-3 w-24 animate-pulse rounded-full"
-                  style={{ background: rule }}
-                />
-                <div
-                  className="mt-4 h-7 w-32 animate-pulse rounded-lg"
-                  style={{ background: rule }}
-                />
-                <div
-                  className="mt-3 h-3 w-40 animate-pulse rounded-full"
-                  style={{ background: rule }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-8">
-          <div
-            className="mb-4 h-6 w-40 animate-pulse rounded-lg"
-            style={{ background: rule }}
-          />
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 sm:gap-4">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index}>
-                <div
-                  className="aspect-[4/5] animate-pulse rounded-xl"
-                  style={{ background: panel }}
-                />
-                <div
-                  className="mt-2 h-3 w-3/4 animate-pulse rounded-full"
-                  style={{ background: rule }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center gap-2 py-10">
-          <Loader2
-            className="h-4 w-4 animate-spin"
-            style={{ color: marigold }}
-          />
-          <span
-            className="font-mono text-[10px] tracking-[0.18em]"
-            style={{ color: rule }}
-          >
-            LOADING STUDIO
-          </span>
-        </div>
-      </div>
+      <div
+        className="absolute -right-[10px] -top-[9px] w-[18px] h-[18px] rounded-full"
+        style={{
+          background: ink,
+        }}
+      />
     </div>
   );
 }
@@ -674,21 +580,6 @@ function DashboardPageInner() {
   } = useUser();
 
   const greeting = useGreeting();
-
-  // Keep the user on a dashboard-shaped skeleton while magic-link/session
-  // authentication is resolving. This prevents the login page/purple auth
-  // screen from flashing before the dashboard appears.
-  if (loading || !user) {
-    return (
-      <DashboardLoadingSkeleton
-        ink={ink}
-        panel={panel}
-        rule={rule}
-        paperMuted={paperMuted}
-        marigold={marigold}
-      />
-    );
-  }
 
   // Demo video section — lazy-loads only once it scrolls into view.
   const videoWrapRef =
@@ -819,7 +710,7 @@ function DashboardPageInner() {
        * Usage is consumed once the complete campaign succeeds:
        * Free  -> consumes one free campaign
        * PAYG  -> consumes one PAYG credit
-       * Pro   -> consumes the successful generation according to the active Pro entitlement
+       * Pro   -> consumes one successful generation from the daily allowance
        *
        * Therefore we MUST NOT call /api/pricing/track_generation/
        * from the frontend. The backend's successful-render path is
@@ -918,6 +809,34 @@ function DashboardPageInner() {
       : remaining;
   };
 
+  const getPlanDisplay = (
+    planType: string
+  ) => {
+    if (planType === "free") {
+      return "Free trial";
+    }
+
+    if (planType === "payg") {
+      return "Pay as you go";
+    }
+
+    if (planType === "pro") {
+      return "Pro plan";
+    }
+
+    return planType;
+  };
+
+  const getAvailableCampaigns = (data: DashboardData | null) => {
+    if (!data) return 0;
+
+    if (data.plan.plan_type === "payg") {
+      return data.payg_credits ?? 0;
+    }
+
+    return data.campaigns_remaining;
+  };
+
   const formatBillingDate = (
     iso: string | null | undefined,
     fallback = "Not available"
@@ -937,10 +856,39 @@ function DashboardPageInner() {
   const getProDaysRemaining = (endDate: string | null) => {
     if (!endDate) return null;
 
-    const diff = new Date(endDate).getTime() - Date.now();
-    if (diff <= 0) return 0;
+    const end = new Date(endDate);
+    if (Number.isNaN(end.getTime())) return null;
 
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    /*
+     * Show remaining Pro time as calendar days, not a 24-hour countdown.
+     *
+     * Example:
+     * - Pro started yesterday
+     * - Pro expires 30 days after it started
+     * - Today therefore shows 29 days remaining
+     *
+     * Using UTC calendar dates also avoids daylight-saving/time-of-day
+     * differences changing the number displayed.
+     */
+    const now = new Date();
+
+    const todayUtc = Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate()
+    );
+
+    const endDateUtc = Date.UTC(
+      end.getUTCFullYear(),
+      end.getUTCMonth(),
+      end.getUTCDate()
+    );
+
+    const diffDays = Math.floor(
+      (endDateUtc - todayUtc) / (1000 * 60 * 60 * 24)
+    );
+
+    return Math.max(0, diffDays);
   };
 
   const isProExpired = (data: DashboardData | null) => {
@@ -1125,7 +1073,18 @@ function DashboardPageInner() {
                   )}
                 </div>
 
+                {!dashboardLoading &&
+                  dashboardData && (
+                    <Stamp
+                      value={getCampaignsDisplay(
+                        getAvailableCampaigns(dashboardData)
+                      )}
+                      label="CAMPAIGNS LEFT"
+                    />
+                  )}
               </div>
+
+              <Perforation />
 
               {/* order form */}
               <div className="p-6 sm:p-9 pt-6 sm:pt-7">
@@ -1463,20 +1422,18 @@ function DashboardPageInner() {
                           </p>
                         </div>
 
-                        <div className="p-5 sm:p-6 min-w-0" style={{ background: panel }}>
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4" style={{ color: "#5FA05F" }} />
-                            <p className="font-mono text-[10px] tracking-wider uppercase" style={{ color: textMuted }}>Total assets generated</p>
-                          </div>
-                          <p className="font-mono text-3xl font-bold mt-3">{dashboardData.campaigns_generated}</p>
-                          <p className="text-xs mt-1" style={{ color: textMuted }}>All successful campaigns</p>
-                        </div>
+
+
+
                       </div>
 
                       <div className="px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3" style={{ borderTop: `1px solid ${rule}` }}>
                         <div className="min-w-0">
                           <p className="text-sm" style={{ color: textMuted }}>
                             Last payment: <span style={{ color: textPrimary }}>{formatBillingDate(dashboardData.last_payment_at, "Payment date unavailable")}</span>
+                          </p>
+                          <p className="text-xs mt-1 leading-5" style={{ color: textMuted }}>
+                            Total assets generated on this account: <span style={{ color: textPrimary, fontWeight: 700 }}>{dashboardData.campaigns_generated}</span>.
                           </p>
                         </div>
                         {(dashboardData.payg_credits ?? 0) > 0 && (
