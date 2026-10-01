@@ -1,35 +1,91 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { DashboardSkeleton } from "@/components/DashboardSkeleton";
+import { ThemeProvider, useTheme } from "@/lib/theme";
 
+const VERIFY_URL = "https://inrabackend-docker.onrender.com/api/auth/verify/";
+
+interface VerifyResponse {
+  access: string;
+  refresh: string;
+  detail?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Error state (only shown when verification actually fails)
+// ─────────────────────────────────────────────────────────────────────────────
+function CallbackError({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) {
+  const { tokens } = useTheme();
+  const { ink, panel, rule, signal, marigold, textPrimary } = tokens;
+
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ background: ink, color: textPrimary }}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl p-6 text-center space-y-4"
+        style={{ background: panel, border: `1px solid ${rule}` }}
+        role="alert"
+      >
+        <p className="text-sm" style={{ color: signal }}>
+          {message}
+        </p>
+
+        <button
+          onClick={onRetry}
+          className="min-h-[44px] rounded-full px-6 py-3 text-sm font-semibold"
+          style={{ background: marigold, color: ink }}
+        >
+          Request new login link
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Callback logic
+// ─────────────────────────────────────────────────────────────────────────────
 function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+
+  // Login tokens are single-use. In development, React Strict Mode runs
+  // effects twice, which would burn the token on the first call and fail the
+  // second. The ref makes sure we only verify once.
+  const startedRef = useRef(false);
 
   useEffect(() => {
+    if (startedRef.current) return;
+
     const token = searchParams?.get("token");
 
-    if (!token) return;
+    if (!token) {
+      setError("This login link is missing or invalid.");
+      return;
+    }
+
+    startedRef.current = true;
 
     const verifyToken = async () => {
       try {
-        const res = await fetch(
-          "https://inrabackend-docker.onrender.com/api/auth/verify/",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ token }),
-          }
-        );
+        const res = await fetch(VERIFY_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
 
-        const data = await res.json();
+        const data: VerifyResponse = await res.json();
 
         if (!res.ok) {
           throw new Error(data.detail || "Verification failed");
@@ -41,59 +97,29 @@ function AuthCallbackContent() {
         router.replace("/dashboard");
       } catch (err) {
         setError(
-          err instanceof Error
-            ? err.message
-            : "Login verification failed."
+          err instanceof Error ? err.message : "Login verification failed."
         );
-      } finally {
-        setLoading(false);
       }
     };
 
     verifyToken();
   }, [searchParams, router]);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#030712] text-white">
-      {loading && !error && (
-        <div className="flex items-center gap-2 text-slate-400">
-          <Loader2 className="w-5 h-5 animate-spin" />
-          Signing you in...
-        </div>
-      )}
+  if (error) {
+    return <CallbackError message={error} onRetry={() => router.push("/login")} />;
+  }
 
-      {error && (
-        <div className="text-center space-y-4 max-w-sm">
-          <p className="text-red-500 text-sm">{error}</p>
-
-          <button
-            onClick={() => router.push("/login")}
-            className="text-cyan-400 font-semibold hover:underline"
-          >
-            Request new login link
-          </button>
-        </div>
-      )}
-    </div>
-  );
+  // While verifying (and during the redirect) the user sees the dashboard
+  // skeleton, so the page already looks like where they're going.
+  return <DashboardSkeleton />;
 }
 
 export default function AuthCallbackPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#030712] text-white">
-          <div className="flex items-center gap-2 text-slate-400">
-            <Loader2 className="w-5 h-5 animate-spin" />
-            Loading...
-          </div>
-        </div>
-      }
-    >
-      <AuthCallbackContent />
-    </Suspense>
+    <ThemeProvider>
+      <Suspense fallback={<DashboardSkeleton />}>
+        <AuthCallbackContent />
+      </Suspense>
+    </ThemeProvider>
   );
 }
-
-
-
